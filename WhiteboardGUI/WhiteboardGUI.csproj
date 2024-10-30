@@ -9,11 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Alto%27s Adventure Photo.png" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Resource Include="Alto's Adventure Photo.png" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
 </Project>
