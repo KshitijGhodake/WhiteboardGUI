@@ -1,22 +1,15 @@
-﻿using System;
-using System.IO;
-using System.Net.Sockets;
-using System.Net;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using Newtonsoft.Json;
 using WhiteboardGUI.Models;
 using System.Diagnostics;
-using System.Threading.Tasks;
-using System.Threading;
-using System.Collections.Generic;
-using System.Linq;
-using System.Collections.Concurrent;
-using System.Transactions;
 using WhiteboardGUI.ViewModel;
+using System.Threading.Tasks.Dataflow;
+using System.Runtime.CompilerServices;
+using Newtonsoft.Json;
+
 
 namespace WhiteboardGUI
 {
@@ -60,6 +53,7 @@ namespace WhiteboardGUI
                 MainPageViewModel viewModel = new();
                 DataContext = viewModel;
                 viewModel.ShapeReceived += OnShapeReceived; // Subscribe to the event
+                viewModel.ShapeDeleted += OnShapeDeleted;
             }
             catch (Exception exception)
             {
@@ -68,6 +62,26 @@ namespace WhiteboardGUI
             }
         }
 
+        private void OnShapeDeleted(IShape shape)
+        {
+            Dispatcher.Invoke(() => RemoveShape(shape));
+        }
+
+        private void RemoveShape(IShape shape)
+        {
+            UIElement elementToRemove = shapes.FirstOrDefault(uiElement =>
+            {
+                IShape uiElementShape = ConvertToShapeObject(uiElement);
+                return uiElementShape.Equals(shape);
+            });
+
+            if (elementToRemove != null)
+            {
+                drawingCanvas.Children.Remove(elementToRemove);
+                shapes.Remove(elementToRemove);
+            }
+        }
+            
         private void OnShapeReceived(IShape shape)
         {
             Debug.Write("Drawing Shape");
@@ -150,6 +164,8 @@ namespace WhiteboardGUI
                     // Remove the TextBox after confirming input
                     drawingCanvas.Children.Remove(currentTextBox);
                     currentTextBox = null;
+                    FinalizeDrawing();
+
                 }
             }
             else if (e.Key == Key.Escape)
@@ -210,23 +226,7 @@ namespace WhiteboardGUI
             }
         }
 
-        private void Canvas_MouseUp(object sender, MouseButtonEventArgs e)
-        {
-            if (isSelecting)
-            {
-                EndSelection();
-                isSelecting = false;
-            }
-            else if (isDragging)
-            {
-                isDragging = false;
-                boundingBox = null; // Clear bounding box after moving
-            }
-            else
-            {
-                FinalizeDrawing();
-            }
-        }
+        
 
         private void CreateTextBox()
         {
@@ -306,7 +306,7 @@ namespace WhiteboardGUI
             currentEllipse = null;
             currentPolyline = null;
 
-            if (shapes.LastOrDefault() is Shape lastShape)
+            if (shapes.LastOrDefault() is UIElement lastShape)
             {
 
                 IShape shapeToSend = ConvertToShapeObject(lastShape);
@@ -333,7 +333,7 @@ namespace WhiteboardGUI
             {
                 Stroke = Brushes.Blue,
                 StrokeThickness = 1,
-                Fill = new SolidColorBrush(Color.FromArgb(50, 0, 0, 255))
+                Fill = new SolidColorBrush(Color.FromArgb(70, 0, 120, 215))
             };
             Canvas.SetLeft(selectionRectangle, start.X);
             Canvas.SetTop(selectionRectangle, start.Y);
@@ -355,20 +355,48 @@ namespace WhiteboardGUI
             }
         }
 
+        //private void EndSelection()
+        //{
+        //    Rect selectionBounds = new Rect(Canvas.GetLeft(selectionRectangle), Canvas.GetTop(selectionRectangle), selectionRectangle.Width, selectionRectangle.Height);
+        //    selectedShapes.Clear();
+
+        //    foreach (var shape in shapes)
+        //    {
+        //        if (shape is Shape s && s != selectionRectangle)
+        //        {
+        //            Rect shapeBounds = new Rect(Canvas.GetLeft(s), Canvas.GetTop(s), s.Width, s.Height);
+        //            if (selectionBounds.IntersectsWith(shapeBounds))
+        //            {
+        //                selectedShapes.Add(s);
+        //                // No color change for selected shapes
+        //            }
+        //        }
+        //    }
+
+        //    drawingCanvas.Children.Remove(selectionRectangle);
+        //    selectionRectangle = null;
+
+        //    if (selectedShapes.Any())
+        //    {
+        //        CreateBoundingBox();
+        //    }
+        //}
         private void EndSelection()
         {
-            Rect selectionBounds = new Rect(Canvas.GetLeft(selectionRectangle), Canvas.GetTop(selectionRectangle), selectionRectangle.Width, selectionRectangle.Height);
+            Rect selectionBounds = new(Canvas.GetLeft(selectionRectangle), Canvas.GetTop(selectionRectangle), selectionRectangle.Width, selectionRectangle.Height);
             selectedShapes.Clear();
 
             foreach (var shape in shapes)
             {
-                if (shape is Shape s && s != selectionRectangle)
+                if (shape is UIElement uiElement)
                 {
-                    Rect shapeBounds = new Rect(Canvas.GetLeft(s), Canvas.GetTop(s), s.Width, s.Height);
-                    if (selectionBounds.IntersectsWith(shapeBounds))
+                    Rect shapeBounds = VisualTreeHelper.GetDescendantBounds(uiElement);
+                    GeneralTransform transform = uiElement.TransformToVisual(drawingCanvas);
+                    Rect transformedBounds = transform.TransformBounds(shapeBounds);
+
+                    if (selectionBounds.IntersectsWith(transformedBounds))
                     {
-                        selectedShapes.Add(s);
-                        // No color change for selected shapes
+                        selectedShapes.Add(uiElement);
                     }
                 }
             }
@@ -381,8 +409,6 @@ namespace WhiteboardGUI
                 CreateBoundingBox();
             }
         }
-
-
         private void CreateBoundingBox()
         {
             if (boundingBox != null)
@@ -410,20 +436,148 @@ namespace WhiteboardGUI
 
             drawingCanvas.Children.Add(boundingBox);
 
-            boundingBox.MouseLeftButtonDown += (s, e) => isDragging = true;
-            boundingBox.MouseMove += (s, e) =>
-            {
-                if (isDragging)
-                {
-                    Point pos = e.GetPosition(drawingCanvas);
-                    double offsetX = pos.X - (boundingBox.Width / 2);
-                    double offsetY = pos.Y - (boundingBox.Height / 2);
-                    Canvas.SetLeft(boundingBox, offsetX);
-                    Canvas.SetTop(boundingBox, offsetY);
-                }
-            };
-            boundingBox.MouseLeftButtonUp += (s, e) => isDragging = false;
+            // Modify the event handlers to capture and release the mouse
+            boundingBox.MouseLeftButtonDown += BoundingBox_MouseLeftButtonDown;
+            boundingBox.MouseMove += BoundingBox_MouseMove;
+            boundingBox.MouseLeftButtonUp += BoundingBox_MouseLeftButtonUp;
         }
+
+        private void BoundingBox_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            isDragging = true;
+            startPoint = e.GetPosition(drawingCanvas);
+            boundingBox.CaptureMouse(); // Capture the mouse
+            e.Handled = true; // Prevent event bubbling
+        }
+
+        private void BoundingBox_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (isDragging)
+            {
+                Point currentPoint = e.GetPosition(drawingCanvas);
+                double offsetX = currentPoint.X - startPoint.X;
+                double offsetY = currentPoint.Y - startPoint.Y;
+
+                // Move the bounding box
+                Canvas.SetLeft(boundingBox, Canvas.GetLeft(boundingBox) + offsetX);
+                Canvas.SetTop(boundingBox, Canvas.GetTop(boundingBox) + offsetY);
+
+                // Move the selected shapes
+                foreach (var shape in selectedShapes)
+                {
+                    Canvas.SetLeft(shape, Canvas.GetLeft(shape) + offsetX);
+                    Canvas.SetTop(shape, Canvas.GetTop(shape) + offsetY);
+                }
+
+                startPoint = currentPoint;
+                e.Handled = true; // Prevent event bubbling
+            }
+        }
+
+        private void BoundingBox_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (isDragging)
+            {
+                isDragging = false;
+                boundingBox.ReleaseMouseCapture(); // Release the mouse
+                e.Handled = true; // Prevent event bubbling
+
+                //// After dragging ends, broadcast the movement
+                //if (selectedShapes.Count == 1)
+                //{
+                //    var shape = selectedShapes[0];
+                //    IShape shapeToSend = ConvertToShapeObject(shape);
+                //    BroadcastShapeMovement(shapeToSend);
+                //}
+                //else if (selectedShapes.Count > 1)
+                //{
+                //    foreach (var shape in selectedShapes)
+                //    {
+                //        IShape shapeToSend = ConvertToShapeObject(shape);
+                //        BroadcastShapeMovement(shapeToSend);
+                //    }
+                //}
+            }
+        }
+        private void Canvas_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            if (isSelecting)
+            {
+                EndSelection();
+                isSelecting = false;
+            }
+            else if (isDragging)
+            {
+                isDragging = false;
+                if (boundingBox != null)
+                {
+                    boundingBox.ReleaseMouseCapture(); // Ensure mouse capture is released
+                }
+
+                // Broadcast movement if necessary
+                if (selectedShapes.Count == 1)
+                {
+                    var shape = selectedShapes[0];
+                    IShape shapeToSend = ConvertToShapeObject(shape);
+                    //BroadcastShapeMovement(shapeToSend);
+                }
+                else if (selectedShapes.Count > 1)
+                {
+                    foreach (var shape in selectedShapes)
+                    {
+                        IShape shapeToSend = ConvertToShapeObject(shape);
+                        //BroadcastShapeMovement(shapeToSend);
+                    }
+                }
+            }
+            else
+            {
+                FinalizeDrawing();
+            }
+        }
+        //private void CreateBoundingBox()
+        //{
+        //    if (boundingBox != null)
+        //    {
+        //        drawingCanvas.Children.Remove(boundingBox);
+        //    }
+
+        //    // Calculate bounds based on selected shapes
+        //    double minX = selectedShapes.Min(s => Canvas.GetLeft(s));
+        //    double minY = selectedShapes.Min(s => Canvas.GetTop(s));
+        //    double maxX = selectedShapes.Max(s => Canvas.GetLeft(s) + (s is Shape shape ? shape.Width : 0));
+        //    double maxY = selectedShapes.Max(s => Canvas.GetTop(s) + (s is Shape shape ? shape.Height : 0));
+
+        //    boundingBox = new Rectangle
+        //    {
+        //        Stroke = Brushes.Gray,
+        //        StrokeThickness = 1,
+        //        Fill = Brushes.Transparent // No fill color
+        //    };
+
+        //    Canvas.SetLeft(boundingBox, minX);
+        //    Canvas.SetTop(boundingBox, minY);
+        //    boundingBox.Width = maxX - minX;
+        //    boundingBox.Height = maxY - minY;
+
+        //    drawingCanvas.Children.Add(boundingBox);
+
+        //    boundingBox.MouseLeftButtonDown += (s, e) => isDragging = true;
+        //    boundingBox.MouseMove += (s, e) =>
+        //    {
+        //        if (isDragging)
+        //        {
+        //            Point pos = e.GetPosition(drawingCanvas);
+        //            double offsetX = pos.X - (boundingBox.Width / 2);
+        //            double offsetY = pos.Y - (boundingBox.Height / 2);
+        //            Canvas.SetLeft(boundingBox, offsetX);
+        //            Canvas.SetTop(boundingBox, offsetY);
+        //        }
+        //    };
+        //    boundingBox.MouseLeftButtonUp += (s, e) => isDragging = false;
+        //}
+
+
 
 
         private void DeleteSelectedShapes()
@@ -432,10 +586,27 @@ namespace WhiteboardGUI
             {
                 drawingCanvas.Children.Remove(shape);
                 shapes.Remove(shape);
+                IShape shapeToDelete = ConvertToShapeObject(shape);
+                BroadcastShapeDeletion(shapeToDelete);
             }
             selectedShapes.Clear();
             drawingCanvas.Children.Remove(boundingBox);
             boundingBox = null;
+        }
+
+        private void BroadcastShapeDeletion(IShape shapeToDelete)
+        {
+            MainPageViewModel? viewModel = DataContext as MainPageViewModel;
+            string serializedShape = SerializeShape(shapeToDelete);
+            string deletionMessage = $"DELETE:{serializedShape}";
+            _ = Task.Run(() => viewModel.BroadcastShapeData(deletionMessage, -1));
+        }
+
+        private string SerializeShape(IShape shape)
+        {
+            // Serialize the shape object to JSON format
+            //return Newtonsoft.Json.JsonConvert.SerializeObject(shape);
+            return JsonConvert.SerializeObject(shape);
         }
 
         private void DeleteButton_Click(object sender, RoutedEventArgs e)
@@ -443,9 +614,9 @@ namespace WhiteboardGUI
             DeleteSelectedShapes();
         }
 
-        private IShape ConvertToShapeObject(Shape shape)
+        private IShape ConvertToShapeObject(UIElement element)
         {
-            switch (shape)
+            switch (element)
             {
                 case Polyline polyline:
                     var scribbleShape = new ScribbleShape
@@ -478,20 +649,19 @@ namespace WhiteboardGUI
                         StrokeThickness = ellipse.StrokeThickness
                     };
 
+                case TextBlock textBlock:
+                    return new TextShape
+                    {
+                        Text = textBlock.Text,
+                        X = Canvas.GetLeft(textBlock),
+                        Y = Canvas.GetTop(textBlock),
+                        Color = textBlock.Foreground.ToString(),
+                        FontSize = textBlock.FontSize,
+                    };
                 default:
                     throw new NotSupportedException("Shape type not supported");
             }
         }
-
-        //private async void SendShapeToHost(string serializedShape)
-        //{
-        //    if (client != null && client.Connected)
-        //    {
-        //        using NetworkStream stream = client.GetStream();
-        //        using StreamWriter writer = new StreamWriter(stream) { AutoFlush = true };
-        //        await writer.WriteLineAsync(serializedShape);
-        //    }
-        //}
 
         private void HostCheckBox_Checked(object sender, RoutedEventArgs e)
         {
@@ -535,149 +705,6 @@ namespace WhiteboardGUI
             _ = Task.Run(() => viewModel.ClientCheckBox_Unchecked());
             StatusTextBlock.Text = "Disconnected from Host";
         }
-
-        //private async Task StartServer()
-        //{
-        //    try
-        //    {
-        //        listener = new TcpListener(IPAddress.Any, 5000);
-        //        listener.Start();
-        //        Debug.WriteLine("Host started, waiting for clients...");
-        //        double _currentUserID = 1;
-
-        //        while (true)
-        //        {
-        //            TcpClient newClient = await listener.AcceptTcpClientAsync();
-        //            clients.TryAdd(_currentUserID, newClient);
-        //            Debug.WriteLine($"Client connected! Assigned ID: {_currentUserID}");
-
-        //            // Send the client ID to the newly connected client
-        //            NetworkStream stream = newClient.GetStream();
-        //            StreamWriter writer = new StreamWriter(stream) { AutoFlush = true };
-        //            await writer.WriteLineAsync($"ID:{_currentUserID}");
-
-        //            _currentUserID++;
-        //            _ = Task.Run(() => ListenClients(newClient, 5000, _currentUserID - 1));
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Debug.WriteLine($"Host error: {ex.Message}");
-        //    }
-        //}
-
-        //private async Task StartHost()
-        //{
-        //    StartServer();
-        //}
-
-        // called by host, should return the messages sent by any client
-
-        //private async Task ListenClients(TcpClient client, int port, double senderUserID)
-        //{
-        //    try
-        //    {
-        //        using (NetworkStream stream = client.GetStream())
-        //        using (StreamReader reader = new StreamReader(stream))
-        //        using (StreamWriter writer = new StreamWriter(stream) { AutoFlush = true })
-        //        {
-        //            // Send the current whiteboard state (all shapes) to the new client
-        //            foreach (var shape in synchronizedShapes)
-        //            {
-        //                string serializedShape = SerializeShape(shape);
-        //                await writer.WriteLineAsync(serializedShape);
-        //            }
-
-        //            while (true)
-        //            {
-        //                var receivedData = await reader.ReadLineAsync();
-        //                if (receivedData == null) continue;
-
-        //                Debug.WriteLine($"Received data: {receivedData}");
-        //                BroadcastShapeData(receivedData, senderUserID);
-        //                var shape = DeserializeShape(receivedData);
-        //                if (shape != null)
-        //                {
-        //                    // Use Dispatcher to call DrawReceivedShape on the UI thread
-        //                    await Application.Current.Dispatcher.InvokeAsync(() => DrawReceivedShape(shape));
-        //                }
-        //            }
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Debug.WriteLine($"Error in ListenClients: {ex.Message}");
-        //    }
-        //}
-
-
-
-        //private async Task RunningClient(TcpClient client)
-        //{
-        //    try
-        //    {
-        //        using (NetworkStream stream = client.GetStream())
-        //        using (StreamReader reader = new StreamReader(stream))
-        //        {
-        //            // Read the initial client ID message from the server
-        //            string initialMessage = await reader.ReadLineAsync();
-        //            if (initialMessage != null && initialMessage.StartsWith("ID:"))
-        //            {
-        //                clientID = double.Parse(initialMessage.Substring(3)); // Extract and store client ID
-        //                Debug.WriteLine($"Received Client ID: {clientID}");
-        //            }
-
-        //            // Listen for further shape data from the server
-        //            while (true)
-        //            {
-        //                var receivedData = await reader.ReadLineAsync();
-
-        //                if (receivedData == null) continue; // Continue if no data is received
-
-        //                Debug.WriteLine($"Received data: {receivedData}");
-
-        //                var shape = DeserializeShape(receivedData);
-        //                if (shape != null)
-        //                {
-        //                    // Use Dispatcher to call DrawReceivedShape on the UI thread
-        //                    await Application.Current.Dispatcher.InvokeAsync(() => DrawReceivedShape(shape));
-        //                }
-        //            }
-        //        }
-        //    }
-        //    catch (IOException ioEx)
-        //    {
-        //        Debug.WriteLine($"IO error while communicating with client: {ioEx.Message}");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Debug.WriteLine($"Client communication error: {ex.Message}");
-        //    }
-        //    finally
-        //    {
-        //        if (client != null)
-        //        {
-        //            // Remove client from the dictionary safely
-        //            foreach (var kvp in clients)
-        //            {
-        //                if (kvp.Value == client)
-        //                {
-        //                    clients.TryRemove(kvp);
-        //                    break;
-        //                }
-        //            }
-        //            client.Close();
-        //            Debug.WriteLine("Client disconnected.");
-        //        }
-        //        else
-        //        {
-        //            Debug.WriteLine("Client was null, no action taken.");
-        //        }
-        //    }
-        //}
-
-
-
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             // Start the Host when the window loads
@@ -685,51 +712,7 @@ namespace WhiteboardGUI
             _ = viewModel.StartHost();
         }
 
-        //private async void SendShapeDataToHost(string shapeData)
-        //{
-        //    byte[] dataToSend = System.Text.Encoding.UTF8.GetBytes(shapeData + "\n");
-
-        //    NetworkStream stream = client.GetStream();
-        //    await stream.WriteAsync(dataToSend, 0, dataToSend.Length);
-        //    await stream.FlushAsync();
-
-        //}
-        //private async void BroadcastShapeData(string shapeData, double senderUserID)
-        //{
-        //    byte[] dataToSend = System.Text.Encoding.UTF8.GetBytes(shapeData + "\n");
-
-        //    foreach (var kvp in clients)
-        //    {
-        //        var userId = kvp.Key;
-        //        var client = kvp.Value;
-        //        if (kvp.Key != senderUserID)
-        //        {
-        //            try
-        //            {
-        //                NetworkStream stream = client.GetStream();
-        //                await stream.WriteAsync(dataToSend, 0, dataToSend.Length);
-        //                await stream.FlushAsync();
-        //            }
-        //            catch (Exception ex)
-        //            {
-        //                Debug.WriteLine($"Error sending data to client {userId}: {ex.Message}");
-        //            }
-        //        }
-        //    }
-        //}
-
-
-
-
-        //private async Task StartClient(int port)
-        //{
-        //    client = new TcpClient();
-        //    await client.ConnectAsync(IPAddress.Loopback, port);
-        //    Console.WriteLine("Connected to host");
-        //    clients.TryAdd(0, client);
-        //    _ = Task.Run(() => RunningClient(client)); // Start listening to the host
-        //}
-
+      
         private void DrawReceivedShape(IShape shape)
         {
             AddSynchronizedShape(shape);
@@ -774,8 +757,21 @@ namespace WhiteboardGUI
 
                     drawingCanvas.Children.Add(polyline);
                     break;
+
+                case TextShape textShape:
+                    TextBlock textBlock = new TextBlock
+                    {
+                        Text = textShape.Text,
+                        Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(textShape.Color)),
+                        FontSize = textShape.FontSize
+                    };
+                    Canvas.SetLeft(textBlock, textShape.X);
+                    Canvas.SetTop(textBlock, textShape.Y);
+                    drawingCanvas.Children.Add(textBlock);
+                    break;
             }
         }
+
         // Event handler for Clear Button Click
         private void ClearButton_Click(object sender, RoutedEventArgs e)
         {

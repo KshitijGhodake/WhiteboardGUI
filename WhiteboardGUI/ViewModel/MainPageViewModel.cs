@@ -1,17 +1,13 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Windows;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Net.Sockets;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using WhiteboardGUI.Models;
 using System.ComponentModel;
 using System.Collections.Concurrent;
+using System.Windows.Shapes;
+using System.Windows;
 
 namespace WhiteboardGUI.ViewModel
 {
@@ -23,6 +19,7 @@ namespace WhiteboardGUI.ViewModel
         public List<IShape> synchronizedShapes = new List<IShape>(); // Keeps track of all shapes on the whiteboard
         private double clientID;
         public event Action<IShape> ShapeReceived; // Event for shape received
+        public event Action<IShape> ShapeDeleted;
 
 
         public MainPageViewModel() { }
@@ -141,6 +138,9 @@ namespace WhiteboardGUI.ViewModel
             }
         }
 
+
+      
+
         private async Task RunningClient(TcpClient client)
         {
             try
@@ -164,13 +164,33 @@ namespace WhiteboardGUI.ViewModel
                         if (receivedData == null) continue; // Continue if no data is received
 
                         Debug.WriteLine($"Received data: {receivedData}");
+                        //if (receivedData.StartsWith("DELETE:"))
+                        //{
+                        //    string data = receivedData.Substring(7);
+                        //    var shape = DeserializeShape(data);
 
-                        var shape = DeserializeShape(receivedData);
-                        if (shape != null)
-                        {
-                            // Use Dispatcher to call DrawReceivedShape on the UI thread
-                            ShapeReceived?.Invoke(shape);
-                        }
+                        //    if (shape != null)
+                        //    {
+                        //        var shape_id = shape.ShapeId;
+                        //        foreach (var currentShape in synchronizedShapes)
+                        //        {
+                        //            if (shape_id == currentShape.ShapeId)
+                        //            {
+                        //                ShapeDeleted?.Invoke(currentShape);
+                        //            }
+                        //        }
+                        //    }
+                        //}
+                        //else
+                        //{
+                            var shape2 = DeserializeShape(receivedData);
+                            if (shape2 != null)
+                            {
+                                // Use Dispatcher to call DrawReceivedShape on the UI thread
+                                ShapeReceived?.Invoke(shape2);
+                            }
+                        //}
+                        
                     }
                 }
             }
@@ -228,6 +248,7 @@ namespace WhiteboardGUI.ViewModel
             // Deserialize the shape based on its type
             var shapeDict = JsonConvert.DeserializeObject<Dictionary<string, object>>(data);
             string shapeType = shapeDict["ShapeType"].ToString();
+            Debug.WriteLine(shapeType);
 
             switch (shapeType)
             {
@@ -237,6 +258,8 @@ namespace WhiteboardGUI.ViewModel
                     return JsonConvert.DeserializeObject<LineShape>(data);
                 case "Scribble":
                     return JsonConvert.DeserializeObject<ScribbleShape>(data);
+                case "TextShape":
+                    return JsonConvert.DeserializeObject<TextShape>(data);
                 default:
                     throw new NotSupportedException("Shape type not supported");
             }
@@ -251,5 +274,4 @@ namespace WhiteboardGUI.ViewModel
 
 
     }
-
 }
