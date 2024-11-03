@@ -11,7 +11,7 @@ namespace WhiteboardGUI.Models
         public string ShapeType { get; set; }
         public string Color { get; set; } 
         public double StrokeThickness { get; set; }
-        public Guid ShapeId { get; set; } = Guid.NewGuid();
+        public Guid ShapeId { get; set; }
         public double UserID { get; set; }
     }
 }

@@ -25,7 +25,7 @@ namespace WhiteboardGUI
         private TextBox currentTextBox;
         private List<UIElement> shapes = new List<UIElement>();
         //private List<IShape> synchronizedShapes = new List<IShape>(); // Keeps track of all shapes on the whiteboard
-
+        private Dictionary<UIElement, IShape?> uiElementToShapeId = new Dictionary<UIElement, IShape?>();
         private Brush selectedColor = Brushes.Black;
         //private TcpClient client;
         private List<UIElement> selectedShapes = new List<UIElement>();
@@ -69,16 +69,13 @@ namespace WhiteboardGUI
 
         private void RemoveShape(IShape shape)
         {
-            UIElement elementToRemove = shapes.FirstOrDefault(uiElement =>
-            {
-                IShape uiElementShape = ConvertToShapeObject(uiElement);
-                return uiElementShape.Equals(shape);
-            });
+            foreach (var kvp in uiElementToShapeId) {
 
-            if (elementToRemove != null)
-            {
-                drawingCanvas.Children.Remove(elementToRemove);
-                shapes.Remove(elementToRemove);
+                if (uiElementToShapeId[kvp.Key].ShapeId == shape.ShapeId)
+                {
+                    drawingCanvas.Children.Remove(kvp.Key);
+                    uiElementToShapeId.Remove(kvp.Key);
+                }
             }
         }
             
@@ -159,7 +156,9 @@ namespace WhiteboardGUI
 
                     // Add the TextBlock to the Canvas and store it in the shapes list
                     drawingCanvas.Children.Add(currentTextBlock);
+                    uiElementToShapeId.TryAdd(currentTextBlock, null);
                     shapes.Add(currentTextBlock);
+                        
 
                     // Remove the TextBox after confirming input
                     drawingCanvas.Children.Remove(currentTextBox);
@@ -189,22 +188,22 @@ namespace WhiteboardGUI
             {
                 UpdateSelectionRectangle(endPoint);
             }
-            else if (isDragging && boundingBox != null)
-            {
-                // Move the bounding box and its contents
-                double offsetX = endPoint.X - startPoint.X;
-                double offsetY = endPoint.Y - startPoint.Y;
-                Canvas.SetLeft(boundingBox, Canvas.GetLeft(boundingBox) + offsetX);
-                Canvas.SetTop(boundingBox, Canvas.GetTop(boundingBox) + offsetY);
+            //else if (isDragging && boundingBox != null)
+            //{
+            //    // Move the bounding box and its contents
+            //    double offsetX = endPoint.X - startPoint.X;
+            //    double offsetY = endPoint.Y - startPoint.Y;
+            //    Canvas.SetLeft(boundingBox, Canvas.GetLeft(boundingBox) + offsetX);
+            //    Canvas.SetTop(boundingBox, Canvas.GetTop(boundingBox) + offsetY);
 
-                foreach (var shape in selectedShapes)
-                {
-                    Canvas.SetLeft(shape, Canvas.GetLeft(shape) + offsetX);
-                    Canvas.SetTop(shape, Canvas.GetTop(shape) + offsetY);
-                }
+            //    foreach (var shape in selectedShapes)
+            //    {
+            //        Canvas.SetLeft(shape, Canvas.GetLeft(shape) + offsetX);
+            //        Canvas.SetTop(shape, Canvas.GetTop(shape) + offsetY);
+            //    }
 
-                startPoint = endPoint;
-            }
+            //    startPoint = endPoint;
+            //}
             else
             {
                 switch (currentTool)
@@ -258,6 +257,7 @@ namespace WhiteboardGUI
             };
             currentPolyline.Points.Add(startPoint);
             drawingCanvas.Children.Add(currentPolyline);
+            uiElementToShapeId.TryAdd(currentPolyline, null);
             shapes.Add(currentPolyline);
         }
 
@@ -271,7 +271,8 @@ namespace WhiteboardGUI
                 Y1 = startPoint.Y
             };
             drawingCanvas.Children.Add(currentLine);
-            shapes.Add(currentLine);
+            uiElementToShapeId.TryAdd(currentLine, null);
+            shapes.Add(currentLine);    
         }
 
         private void StartDrawingEllipse()
@@ -284,7 +285,9 @@ namespace WhiteboardGUI
             Canvas.SetLeft(currentEllipse, startPoint.X);
             Canvas.SetTop(currentEllipse, startPoint.Y);
             drawingCanvas.Children.Add(currentEllipse);
-            shapes.Add(currentEllipse);
+           
+            uiElementToShapeId.TryAdd(currentEllipse, null);
+            shapes.Add(currentEllipse) ;
         }
 
         private void UpdateEllipse(Point endPoint)
@@ -306,10 +309,14 @@ namespace WhiteboardGUI
             currentEllipse = null;
             currentPolyline = null;
 
-            if (shapes.LastOrDefault() is UIElement lastShape)
+            var lastShape = shapes.LastOrDefault();
+            shapes.Remove(lastShape);
+            if (lastShape is UIElement)
             {
 
                 IShape shapeToSend = ConvertToShapeObject(lastShape);
+                shapeToSend.ShapeId = Guid.NewGuid();
+                uiElementToShapeId[lastShape] = shapeToSend;
                 AddSynchronizedShape(shapeToSend);
                 //string serializedShape = SerializeShape(shapeToSend);
                 //Console.WriteLine("Broadcasting shape data: " + serializedShape);
@@ -326,6 +333,14 @@ namespace WhiteboardGUI
             MainPageViewModel? viewModel = DataContext as MainPageViewModel;
             _ = Task.Run(() => viewModel.synchronizedShapes.Add(shapeToSend));
         }
+
+        private void RemoveSynchronizedShape(IShape shapeToSend)
+        {
+            MainPageViewModel? viewModel = DataContext as MainPageViewModel;
+            _ = Task.Run(() => viewModel.synchronizedShapes.Remove(shapeToSend));
+        }
+
+
 
         private void BeginSelection(Point start)
         {
@@ -386,9 +401,9 @@ namespace WhiteboardGUI
             Rect selectionBounds = new(Canvas.GetLeft(selectionRectangle), Canvas.GetTop(selectionRectangle), selectionRectangle.Width, selectionRectangle.Height);
             selectedShapes.Clear();
 
-            foreach (var shape in shapes)
+            foreach (var kvp in uiElementToShapeId)
             {
-                if (shape is UIElement uiElement)
+                if (kvp.Key is UIElement uiElement)
                 {
                     Rect shapeBounds = VisualTreeHelper.GetDescendantBounds(uiElement);
                     GeneralTransform transform = uiElement.TransformToVisual(drawingCanvas);
@@ -482,21 +497,25 @@ namespace WhiteboardGUI
                 boundingBox.ReleaseMouseCapture(); // Release the mouse
                 e.Handled = true; // Prevent event bubbling
 
-                //// After dragging ends, broadcast the movement
-                //if (selectedShapes.Count == 1)
-                //{
-                //    var shape = selectedShapes[0];
-                //    IShape shapeToSend = ConvertToShapeObject(shape);
-                //    BroadcastShapeMovement(shapeToSend);
-                //}
-                //else if (selectedShapes.Count > 1)
-                //{
-                //    foreach (var shape in selectedShapes)
-                //    {
-                //        IShape shapeToSend = ConvertToShapeObject(shape);
-                //        BroadcastShapeMovement(shapeToSend);
-                //    }
-                //}
+                // After dragging ends, broadcast the movement
+                if (selectedShapes.Count == 1)
+                {
+                    var shape = selectedShapes[0];
+                    var shapeId = uiElementToShapeId[shape].ShapeId;
+                    IShape shapeToSend = ConvertToShapeObject(shape);
+                    shapeToSend.ShapeId = shapeId;
+                    BroadcastShapeModify(shapeToSend);
+                }
+                else if (selectedShapes.Count > 1)
+                {
+                    foreach (var shape in selectedShapes)
+                    {
+                        var shapeId = uiElementToShapeId[shape].ShapeId;
+                        IShape shapeToSend = ConvertToShapeObject(shape);
+                        shapeToSend.ShapeId = shapeId;
+                        BroadcastShapeModify(shapeToSend);
+                    }
+                }
             }
         }
         private void Canvas_MouseUp(object sender, MouseButtonEventArgs e)
@@ -519,7 +538,7 @@ namespace WhiteboardGUI
                 {
                     var shape = selectedShapes[0];
                     IShape shapeToSend = ConvertToShapeObject(shape);
-                    //BroadcastShapeMovement(shapeToSend);
+                    BroadcastShapeModify(shapeToSend);
                 }
                 else if (selectedShapes.Count > 1)
                 {
@@ -585,15 +604,17 @@ namespace WhiteboardGUI
             foreach (var shape in selectedShapes.ToList())
             {
                 drawingCanvas.Children.Remove(shape);
-                shapes.Remove(shape);
-                IShape shapeToDelete = ConvertToShapeObject(shape);
+                IShape shapeToDelete = uiElementToShapeId[shape];
                 BroadcastShapeDeletion(shapeToDelete);
+                uiElementToShapeId.Remove(shape);
+                RemoveSynchronizedShape(shapeToDelete);
             }
             selectedShapes.Clear();
             drawingCanvas.Children.Remove(boundingBox);
             boundingBox = null;
         }
 
+        
         private void BroadcastShapeDeletion(IShape shapeToDelete)
         {
             MainPageViewModel? viewModel = DataContext as MainPageViewModel;
@@ -601,6 +622,15 @@ namespace WhiteboardGUI
             string deletionMessage = $"DELETE:{serializedShape}";
             _ = Task.Run(() => viewModel.BroadcastShapeData(deletionMessage, -1));
         }
+
+        private void BroadcastShapeModify(IShape shapeToDelete)
+        {
+            MainPageViewModel? viewModel = DataContext as MainPageViewModel;
+            string serializedShape = SerializeShape(shapeToDelete);
+            string modifyMessage = $"MODIFY:{serializedShape}";
+            _ = Task.Run(() => viewModel.BroadcastShapeData(modifyMessage, -1));
+        }
+
 
         private string SerializeShape(IShape shape)
         {
@@ -613,6 +643,8 @@ namespace WhiteboardGUI
         {
             DeleteSelectedShapes();
         }
+
+
 
         private IShape ConvertToShapeObject(UIElement element)
         {
@@ -716,6 +748,7 @@ namespace WhiteboardGUI
         private void DrawReceivedShape(IShape shape)
         {
             AddSynchronizedShape(shape);
+            
             switch (shape)
             {
                 case CircleShape circle:
@@ -729,6 +762,7 @@ namespace WhiteboardGUI
                     Canvas.SetLeft(ellipse, circle.CenterX);
                     Canvas.SetTop(ellipse, circle.CenterY);
                     drawingCanvas.Children.Add(ellipse);
+                    uiElementToShapeId.TryAdd(ellipse, shape);
                     break;
 
                 case LineShape line:
@@ -742,6 +776,7 @@ namespace WhiteboardGUI
                         StrokeThickness = line.StrokeThickness
                     };
                     drawingCanvas.Children.Add(lineShape);
+                    uiElementToShapeId.TryAdd(lineShape, shape);
                     break;
 
                 case ScribbleShape scribble:
@@ -756,6 +791,7 @@ namespace WhiteboardGUI
                     }
 
                     drawingCanvas.Children.Add(polyline);
+                    uiElementToShapeId.TryAdd(polyline, shape);
                     break;
 
                 case TextShape textShape:
@@ -768,6 +804,7 @@ namespace WhiteboardGUI
                     Canvas.SetLeft(textBlock, textShape.X);
                     Canvas.SetTop(textBlock, textShape.Y);
                     drawingCanvas.Children.Add(textBlock);
+                    uiElementToShapeId.TryAdd(textBlock, shape);
                     break;
             }
         }

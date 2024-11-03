@@ -83,12 +83,59 @@ namespace WhiteboardGUI.ViewModel
 
                         Debug.WriteLine($"Received data: {receivedData}");
                         BroadcastShapeData(receivedData, senderUserID);
-                        var shape = DeserializeShape(receivedData);
-                        if (shape != null)
+                        if (receivedData.StartsWith("DELETE:"))
                         {
-                            // Use Dispatcher to call DrawReceivedShape on the UI thread
-                            Debug.Write("Shape Received");
-                            ShapeReceived?.Invoke(shape);
+                            string data = receivedData.Substring(7);
+                            var shape = DeserializeShape(data);
+
+
+                            if (shape != null)
+                            {
+                                var shape_id = shape.ShapeId;
+                                var shape_user_id = shape.UserID;
+                                foreach (var currentShape in synchronizedShapes)
+                                {
+                                    if (shape_id == currentShape.ShapeId && shape_user_id == currentShape.UserID)
+                                    {
+                                        ShapeDeleted?.Invoke(currentShape);
+                                        synchronizedShapes.Remove(currentShape);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        else if (receivedData.StartsWith("MODIFY:"))
+                        {
+
+                            string data = receivedData.Substring(7);
+                            var shape = DeserializeShape(data);
+
+
+                            if (shape != null)
+                            {
+                                var shape_id = shape.ShapeId;
+                                var shape_user_id = shape.UserID;
+                                foreach (var currentShape in synchronizedShapes)
+                                {
+                                    if (shape_id == currentShape.ShapeId && shape_user_id == currentShape.UserID)
+                                    {
+                                        ShapeDeleted?.Invoke(currentShape);
+                                        synchronizedShapes.Remove(currentShape);
+                                        ShapeReceived?.Invoke(shape);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            var shape = DeserializeShape(receivedData);
+                            if (shape != null)
+                            {
+                                // Use Dispatcher to call DrawReceivedShape on the UI thread
+                                Debug.Write("Shape Received");
+                                ShapeReceived?.Invoke(shape);
+                            }
                         }
                     }
                 }
@@ -164,33 +211,61 @@ namespace WhiteboardGUI.ViewModel
                         if (receivedData == null) continue; // Continue if no data is received
 
                         Debug.WriteLine($"Received data: {receivedData}");
-                        //if (receivedData.StartsWith("DELETE:"))
-                        //{
-                        //    string data = receivedData.Substring(7);
-                        //    var shape = DeserializeShape(data);
+                        if (receivedData.StartsWith("DELETE:"))
+                        {
+                            string data = receivedData.Substring(7);
+                            var shape = DeserializeShape(data);
+                            
 
-                        //    if (shape != null)
-                        //    {
-                        //        var shape_id = shape.ShapeId;
-                        //        foreach (var currentShape in synchronizedShapes)
-                        //        {
-                        //            if (shape_id == currentShape.ShapeId)
-                        //            {
-                        //                ShapeDeleted?.Invoke(currentShape);
-                        //            }
-                        //        }
-                        //    }
-                        //}
-                        //else
-                        //{
-                            var shape2 = DeserializeShape(receivedData);
-                            if (shape2 != null)
+                            if (shape != null)
+                            {
+                                var shape_id = shape.ShapeId;
+                                var shape_user_id = shape.UserID;
+                                foreach (var currentShape in synchronizedShapes)
+                                {
+                                    if (shape_id == currentShape.ShapeId && shape_user_id == currentShape.UserID)
+                                    {                                  
+                                        ShapeDeleted?.Invoke(currentShape);
+                                        synchronizedShapes.Remove(currentShape);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        else if (receivedData.StartsWith("MODIFY:"))
+                        {
+
+                            string data = receivedData.Substring(7);
+                            var shape = DeserializeShape(data);
+
+
+                            if (shape != null)
+                            {
+                                var shape_id = shape.ShapeId;
+                                var shape_user_id = shape.UserID;
+                                foreach (var currentShape in synchronizedShapes)
+                                {
+                                    if (shape_id == currentShape.ShapeId && shape_user_id == currentShape.UserID)
+                                    {
+                                        ShapeDeleted?.Invoke(currentShape);
+                                        synchronizedShapes.Remove(currentShape);
+                                        break;
+                                    }
+                                }
+                                ShapeReceived?.Invoke(shape);
+                            }
+                        }
+                        else
+                        {
+                            var shape = DeserializeShape(receivedData);
+                            if (shape != null)
                             {
                                 // Use Dispatcher to call DrawReceivedShape on the UI thread
-                                ShapeReceived?.Invoke(shape2);
+                                ShapeReceived?.Invoke(shape);
                             }
-                        //}
-                        
+                        }
+
                     }
                 }
             }
