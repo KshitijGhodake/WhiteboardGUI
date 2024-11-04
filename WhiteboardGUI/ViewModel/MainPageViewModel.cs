@@ -76,8 +76,9 @@ namespace WhiteboardGUI.ViewModel
             _networkingService.ShapeDeleted += OnShapeDeleted;
 
             // Initialize commands
-            StartHostCommand = new RelayCommand(async () => await StartHost(), () => !IsHost);
-            StartClientCommand = new RelayCommand(async () => await StartClient(5000), () => !IsClient);
+            Debug.WriteLine("ViewModel init start");
+            StartHostCommand = new RelayCommand(async () => await StartHost(), () => { return true; });
+            StartClientCommand = new RelayCommand(async () => await StartClient(5000), () => { return true;});
             StopHostCommand = new RelayCommand(StopHost, () => IsHost);
             StopClientCommand = new RelayCommand(StopClient, () => IsClient);
             SelectToolCommand = new RelayCommand<ShapeType>(SelectTool);
@@ -93,12 +94,14 @@ namespace WhiteboardGUI.ViewModel
         private async System.Threading.Tasks.Task StartHost()
         {
             IsHost = true;
+            Debug.WriteLine("ViewModel host start");
             await _networkingService.StartHost();
         }
 
         private async System.Threading.Tasks.Task StartClient(int port)
         {
             IsClient = true;
+            Debug.WriteLine("ViewModel client start");
             await _networkingService.StartClient(port);
         }
 
