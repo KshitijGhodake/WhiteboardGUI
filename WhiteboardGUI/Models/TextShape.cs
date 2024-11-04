@@ -1,21 +1,41 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Windows.Media;
 
 namespace WhiteboardGUI.Models
 {
-    public class TextShape : IShape
+    public class TextShape : ShapeBase
     {
-        public string Text { get; set; }
-        public double X { get; set; }      // X-coordinate position
-        public double Y { get; set; }      // Y-coordinate position
-        public string Color { get; set; }  // Text color
-        public double FontSize { get; set; }
-        public TextShape()
+        public override string ShapeType => "TextShape";
+
+        private string _text;
+        private double _x;
+        private double _y;
+        private double _fontSize;
+
+        public string Text
         {
-            ShapeType = "TextShape";
+            get => _text;
+            set { _text = value; OnPropertyChanged(nameof(Text)); }
         }
+
+        public double X
+        {
+            get => _x;
+            set { _x = value; OnPropertyChanged(nameof(X)); }
+        }
+
+        public double Y
+        {
+            get => _y;
+            set { _y = value; OnPropertyChanged(nameof(Y)); }
+        }
+
+        public double FontSize
+        {
+            get => _fontSize;
+            set { _fontSize = value; OnPropertyChanged(nameof(FontSize)); }
+        }
+
+        // Property for binding in XAML
+        public Brush Foreground => new SolidColorBrush((Color)ColorConverter.ConvertFromString(Color));
     }
 }

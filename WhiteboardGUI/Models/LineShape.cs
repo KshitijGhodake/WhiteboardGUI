@@ -1,21 +1,41 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Windows.Media;
 
 namespace WhiteboardGUI.Models
 {
-    public class LineShape : IShape
+    public class LineShape : ShapeBase
     {
-        public double StartX { get; set; }
-        public double StartY { get; set; }
-        public double EndX { get; set; }
-        public double EndY { get; set; }
+        public override string ShapeType => "Line";
 
-        public LineShape()
+        private double _startX;
+        private double _startY;
+        private double _endX;
+        private double _endY;
+
+        public double StartX
         {
-            ShapeType = "Line";
+            get => _startX;
+            set { _startX = value; OnPropertyChanged(nameof(StartX)); }
         }
+
+        public double StartY
+        {
+            get => _startY;
+            set { _startY = value; OnPropertyChanged(nameof(StartY)); }
+        }
+
+        public double EndX
+        {
+            get => _endX;
+            set { _endX = value; OnPropertyChanged(nameof(EndX)); }
+        }
+
+        public double EndY
+        {
+            get => _endY;
+            set { _endY = value; OnPropertyChanged(nameof(EndY)); }
+        }
+
+        // Property for binding in XAML
+        public Brush Stroke => new SolidColorBrush((Color)ColorConverter.ConvertFromString(Color));
     }
 }

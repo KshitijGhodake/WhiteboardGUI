@@ -1,352 +1,270 @@
-﻿using Newtonsoft.Json;
-using System.Diagnostics;
-using System.IO;
-using System.Net.Sockets;
-using System.Net;
-using WhiteboardGUI.Models;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Collections.Concurrent;
-using System.Windows.Shapes;
+using System.Windows.Input;
+using WhiteboardGUI.Models;
+using WhiteboardGUI.Services;
+using System.Windows.Media;
 using System.Windows;
+using System.Diagnostics;
 
 namespace WhiteboardGUI.ViewModel
 {
-    public class MainPageViewModel :INotifyPropertyChanged
+    public class MainPageViewModel : INotifyPropertyChanged
     {
-        private TcpListener listener;
-        private TcpClient client;
-        private ConcurrentDictionary<double, TcpClient> clients = new();
-        public List<IShape> synchronizedShapes = new List<IShape>(); // Keeps track of all shapes on the whiteboard
-        private double clientID;
-        public event Action<IShape> ShapeReceived; // Event for shape received
+        // Fields
+        private readonly NetworkingService _networkingService;
+        private IShape _selectedShape;
+        private ShapeType _currentTool = ShapeType.Pencil;
+        private Point _startPoint;
+        private bool _isSelecting;
+        private bool _isDragging;
+        private ObservableCollection<IShape> _shapes;
+
+        // Properties
+        public ObservableCollection<IShape> Shapes
+        {
+            get => _shapes;
+            set { _shapes = value; OnPropertyChanged(nameof(Shapes)); }
+        }
+
+        public IShape SelectedShape
+        {
+            get => _selectedShape;
+            set { _selectedShape = value; OnPropertyChanged(nameof(SelectedShape)); }
+        }
+
+        public ShapeType CurrentTool
+        {
+            get => _currentTool;
+            set { _currentTool = value; OnPropertyChanged(nameof(CurrentTool)); }
+        }
+
+        public bool IsHost { get; set; }
+        public bool IsClient { get; set; }
+
+        public Brush SelectedColor { get; set; } = Brushes.Black;
+        public double SelectedThickness { get; set; } = 2.0;
+
+        // Commands
+        public ICommand StartHostCommand { get; }
+        public ICommand StartClientCommand { get; }
+        public ICommand StopHostCommand { get; }
+        public ICommand StopClientCommand { get; }
+        public ICommand SelectToolCommand { get; }
+        public ICommand DrawShapeCommand { get; }
+        public ICommand SelectShapeCommand { get; }
+        public ICommand DeleteShapeCommand { get; }
+        public ICommand CanvasMouseDownCommand { get; }
+        public ICommand CanvasMouseMoveCommand { get; }
+        public ICommand CanvasMouseUpCommand { get; }
+
+
+        // Events
+        public event PropertyChangedEventHandler PropertyChanged;
+        public event Action<IShape> ShapeReceived;
         public event Action<IShape> ShapeDeleted;
 
-
-        public MainPageViewModel() { }
-
-
-
-        public async Task StartHost()
+        // Constructor
+        public MainPageViewModel()
         {
-            StartServer();
+            Shapes = new ObservableCollection<IShape>();
+            _networkingService = new NetworkingService(new System.Collections.Generic.List<IShape>());
+
+            // Subscribe to networking events
+            _networkingService.ShapeReceived += OnShapeReceived;
+            _networkingService.ShapeDeleted += OnShapeDeleted;
+
+            // Initialize commands
+            StartHostCommand = new RelayCommand(async () => await StartHost(), () => !IsHost);
+            StartClientCommand = new RelayCommand(async () => await StartClient(5000), () => !IsClient);
+            StopHostCommand = new RelayCommand(StopHost, () => IsHost);
+            StopClientCommand = new RelayCommand(StopClient, () => IsClient);
+            SelectToolCommand = new RelayCommand<ShapeType>(SelectTool);
+            DrawShapeCommand = new RelayCommand<IShape>(DrawShape);
+            SelectShapeCommand = new RelayCommand<IShape>(SelectShape);
+            DeleteShapeCommand = new RelayCommand(DeleteSelectedShape, () => SelectedShape != null);
+            CanvasMouseDownCommand = new RelayCommand<MouseButtonEventArgs>(OnCanvasMouseDown);
+            CanvasMouseMoveCommand = new RelayCommand<MouseEventArgs>(OnCanvasMouseMove);
+            CanvasMouseUpCommand = new RelayCommand<MouseButtonEventArgs>(OnCanvasMouseUp);
         }
 
-        private async Task StartServer()
+        // Methods
+        private async System.Threading.Tasks.Task StartHost()
         {
-            try
-            {
-                listener = new TcpListener(IPAddress.Any, 5000);
-                listener.Start();
-                Debug.WriteLine("Host started, waiting for clients...");
-                double _currentUserID = 1;
+            IsHost = true;
+            await _networkingService.StartHost();
+        }
 
-                while (true)
+        private async System.Threading.Tasks.Task StartClient(int port)
+        {
+            IsClient = true;
+            await _networkingService.StartClient(port);
+        }
+
+        private void StopHost()
+        {
+            IsHost = false;
+            _networkingService.StopHost();
+        }
+
+        private void StopClient()
+        {
+            IsClient = false;
+            _networkingService.StopClient();
+        }
+
+        private void SelectTool(ShapeType tool)
+        {
+            CurrentTool = tool;
+        }
+
+        private void DrawShape(IShape shape)
+        {
+            if (shape == null) return;
+
+            Shapes.Add(shape);
+            string serializedShape = SerializationService.SerializeShape(shape);
+            _networkingService.BroadcastShapeData(serializedShape, -1);
+        }
+
+        private void SelectShape(IShape shape)
+        {
+            SelectedShape = shape;
+        }
+
+        private void DeleteSelectedShape()
+        {
+            if (SelectedShape != null)
+            {
+                Shapes.Remove(SelectedShape);
+                string serializedShape = SerializationService.SerializeShape(SelectedShape);
+                string deletionMessage = $"DELETE:{serializedShape}";
+                _networkingService.BroadcastShapeData(deletionMessage, -1);
+                SelectedShape = null;
+            }
+        }
+
+        private void OnCanvasMouseDown(MouseButtonEventArgs e)
+        {
+            _startPoint = e.GetPosition(null); // The canvas will be passed as 'null' here
+            if (CurrentTool == ShapeType.Select)
+            {
+                // Implement selection logic
+                _isSelecting = true;
+            }
+            else
+            {
+                // Start drawing a new shape
+                IShape newShape = CreateShape(_startPoint);
+                if (newShape != null)
                 {
-                    TcpClient newClient = await listener.AcceptTcpClientAsync();
-                    clients.TryAdd(_currentUserID, newClient);
-                    Debug.WriteLine($"Client connected! Assigned ID: {_currentUserID}");
-
-                    // Send the client ID to the newly connected client
-                    NetworkStream stream = newClient.GetStream();
-                    StreamWriter writer = new StreamWriter(stream) { AutoFlush = true };
-                    await writer.WriteLineAsync($"ID:{_currentUserID}");
-
-                    _currentUserID++;
-                    _ = Task.Run(() => ListenClients(newClient, 5000, _currentUserID - 1));
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Host error: {ex.Message}");
-            }
-        }
-
-        private async Task ListenClients(TcpClient client, int port, double senderUserID)
-        {
-            try
-            {
-                using (NetworkStream stream = client.GetStream())
-                using (StreamReader reader = new StreamReader(stream))
-                using (StreamWriter writer = new StreamWriter(stream) { AutoFlush = true })
-                {
-                    // Send the current whiteboard state (all shapes) to the new client
-                    foreach (var shape in synchronizedShapes)
-                    {
-                        string serializedShape = SerializeShape(shape);
-                        await writer.WriteLineAsync(serializedShape);
-                    }
-
-                    while (true)
-                    {
-                        var receivedData = await reader.ReadLineAsync();
-                        if (receivedData == null) continue;
-
-                        Debug.WriteLine($"Received data: {receivedData}");
-                        BroadcastShapeData(receivedData, senderUserID);
-                        if (receivedData.StartsWith("DELETE:"))
-                        {
-                            string data = receivedData.Substring(7);
-                            var shape = DeserializeShape(data);
-
-
-                            if (shape != null)
-                            {
-                                var shape_id = shape.ShapeId;
-                                var shape_user_id = shape.UserID;
-                                foreach (var currentShape in synchronizedShapes)
-                                {
-                                    if (shape_id == currentShape.ShapeId && shape_user_id == currentShape.UserID)
-                                    {
-                                        ShapeDeleted?.Invoke(currentShape);
-                                        synchronizedShapes.Remove(currentShape);
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        else if (receivedData.StartsWith("MODIFY:"))
-                        {
-
-                            string data = receivedData.Substring(7);
-                            var shape = DeserializeShape(data);
-
-
-                            if (shape != null)
-                            {
-                                var shape_id = shape.ShapeId;
-                                var shape_user_id = shape.UserID;
-                                foreach (var currentShape in synchronizedShapes)
-                                {
-                                    if (shape_id == currentShape.ShapeId && shape_user_id == currentShape.UserID)
-                                    {
-                                        ShapeDeleted?.Invoke(currentShape);
-                                        synchronizedShapes.Remove(currentShape);
-                                        ShapeReceived?.Invoke(shape);
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        else
-                        {
-                            var shape = DeserializeShape(receivedData);
-                            if (shape != null)
-                            {
-                                // Use Dispatcher to call DrawReceivedShape on the UI thread
-                                Debug.Write("Shape Received");
-                                ShapeReceived?.Invoke(shape);
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error in ListenClients: {ex}");
-            }
-        }
-
-        public void HostCheckBox_Unchecked()
-        {
-            listener?.Stop();
-            clients.Clear();
-        }
-        public async Task StartClient(int port)
-        {
-            client = new TcpClient();
-            await client.ConnectAsync(IPAddress.Loopback, port);
-            Console.WriteLine("Connected to host");
-
-            clients.TryAdd(0, client);
-            _ = Task.Run(() => RunningClient(client)); // Start listening to the host
-        }
-
-        public async void BroadcastShapeData(string shapeData, double senderUserID)
-        {
-            byte[] dataToSend = System.Text.Encoding.UTF8.GetBytes(shapeData + "\n");
-
-            foreach (var kvp in clients)
-            {
-                var userId = kvp.Key;
-                var client = kvp.Value;
-                if (kvp.Key != senderUserID)
-                {
-                    try
-                    {
-                        NetworkStream stream = client.GetStream();
-                        await stream.WriteAsync(dataToSend, 0, dataToSend.Length);
-                        await stream.FlushAsync();
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine($"Error sending data to client {userId}: {ex.Message}");
-                    }
+                    Shapes.Add(newShape);
+                    SelectedShape = newShape;
                 }
             }
         }
 
-
-      
-
-        private async Task RunningClient(TcpClient client)
+        private void OnCanvasMouseMove(MouseEventArgs e)
         {
-            try
+            if (e.LeftButton == MouseButtonState.Pressed && SelectedShape != null)
             {
-                using (NetworkStream stream = client.GetStream())
-                using (StreamReader reader = new StreamReader(stream))
-                {
-                    // Read the initial client ID message from the server
-                    string initialMessage = await reader.ReadLineAsync();
-                    if (initialMessage != null && initialMessage.StartsWith("ID:"))
+                Point currentPoint = e.GetPosition(null);
+                UpdateShape(SelectedShape, currentPoint);
+            }
+        }
+
+        private void OnCanvasMouseUp(MouseButtonEventArgs e)
+        {
+            if (SelectedShape != null)
+            {
+                // Finalize shape drawing
+                DrawShape(SelectedShape);
+                SelectedShape = null;
+            }
+            _isSelecting = false;
+        }
+
+        private IShape CreateShape(Point startPoint)
+        {
+            IShape shape = null;
+            switch (CurrentTool)
+            {
+                case ShapeType.Pencil:
+                    var scribbleShape = new ScribbleShape
                     {
-                        clientID = double.Parse(initialMessage.Substring(3)); // Extract and store client ID
-                        Debug.WriteLine($"Received Client ID: {clientID}");
-                    }
-
-                    // Listen for further shape data from the server
-                    while (true)
+                        Color = SelectedColor.ToString(),
+                        StrokeThickness = SelectedThickness,
+                        Points = new System.Collections.Generic.List<Point> { startPoint }
+                    };
+                    shape = scribbleShape;
+                    break;
+                case ShapeType.Line:
+                    var lineShape = new LineShape
                     {
-                        var receivedData = await reader.ReadLineAsync();
-
-                        if (receivedData == null) continue; // Continue if no data is received
-
-                        Debug.WriteLine($"Received data: {receivedData}");
-                        if (receivedData.StartsWith("DELETE:"))
-                        {
-                            string data = receivedData.Substring(7);
-                            var shape = DeserializeShape(data);
-                            
-
-                            if (shape != null)
-                            {
-                                var shape_id = shape.ShapeId;
-                                var shape_user_id = shape.UserID;
-                                foreach (var currentShape in synchronizedShapes)
-                                {
-                                    if (shape_id == currentShape.ShapeId && shape_user_id == currentShape.UserID)
-                                    {                                  
-                                        ShapeDeleted?.Invoke(currentShape);
-                                        synchronizedShapes.Remove(currentShape);
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-
-                        else if (receivedData.StartsWith("MODIFY:"))
-                        {
-
-                            string data = receivedData.Substring(7);
-                            var shape = DeserializeShape(data);
-
-
-                            if (shape != null)
-                            {
-                                var shape_id = shape.ShapeId;
-                                var shape_user_id = shape.UserID;
-                                foreach (var currentShape in synchronizedShapes)
-                                {
-                                    if (shape_id == currentShape.ShapeId && shape_user_id == currentShape.UserID)
-                                    {
-                                        ShapeDeleted?.Invoke(currentShape);
-                                        synchronizedShapes.Remove(currentShape);
-                                        break;
-                                    }
-                                }
-                                ShapeReceived?.Invoke(shape);
-                            }
-                        }
-                        else
-                        {
-                            var shape = DeserializeShape(receivedData);
-                            if (shape != null)
-                            {
-                                // Use Dispatcher to call DrawReceivedShape on the UI thread
-                                ShapeReceived?.Invoke(shape);
-                            }
-                        }
-
-                    }
-                }
-            }
-            catch (IOException ioEx)
-            {
-                Debug.WriteLine($"IO error while communicating with client: {ioEx.Message}");
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Client communication error: {ex.Message}");
-            }
-            finally
-            {
-                if (client != null)
-                {
-                    // Remove client from the dictionary safely
-                    foreach (var kvp in clients)
+                        StartX = startPoint.X,
+                        StartY = startPoint.Y,
+                        EndX = startPoint.X,
+                        EndY = startPoint.Y,
+                        Color = SelectedColor.ToString(),
+                        StrokeThickness = SelectedThickness
+                    };
+                    shape = lineShape;
+                    break;
+                case ShapeType.Circle:
+                    var circleShape = new CircleShape
                     {
-                        if (kvp.Value == client)
-                        {
-                            clients.TryRemove(kvp);
-                            break;
-                        }
-                    }
-                    client.Close();
-                    Debug.WriteLine("Client disconnected.");
-                }
-                else
-                {
-                    Debug.WriteLine("Client was null, no action taken.");
-                }
+                        CenterX = startPoint.X,
+                        CenterY = startPoint.Y,
+                        RadiusX = 0,
+                        RadiusY = 0,
+                        Color = SelectedColor.ToString(),
+                        StrokeThickness = SelectedThickness
+                    };
+                    shape = circleShape;
+                    break;
+                case ShapeType.Text:
+                    // Handle text input separately
+                    break;
             }
+            return shape;
         }
 
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        private void OnPropertyChanged(string property)
+        private void UpdateShape(IShape shape, Point currentPoint)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(property));
-        }
-
-        internal void ClientCheckBox_Unchecked()
-        {
-            client?.Close();
-        }
-
-        private string SerializeShape(IShape shape)
-        {
-            // Serialize the shape object to JSON format
-            //return Newtonsoft.Json.JsonConvert.SerializeObject(shape);
-            return JsonConvert.SerializeObject(shape);
-        }
-        private IShape DeserializeShape(string data)
-        {
-            // Deserialize the shape based on its type
-            var shapeDict = JsonConvert.DeserializeObject<Dictionary<string, object>>(data);
-            string shapeType = shapeDict["ShapeType"].ToString();
-            Debug.WriteLine(shapeType);
-
-            switch (shapeType)
+            switch (shape)
             {
-                case "Circle":
-                    return JsonConvert.DeserializeObject<CircleShape>(data);
-                case "Line":
-                    return JsonConvert.DeserializeObject<LineShape>(data);
-                case "Scribble":
-                    return JsonConvert.DeserializeObject<ScribbleShape>(data);
-                case "TextShape":
-                    return JsonConvert.DeserializeObject<TextShape>(data);
-                default:
-                    throw new NotSupportedException("Shape type not supported");
+                case ScribbleShape scribble:
+                    scribble.Points.Add(currentPoint);
+                    break;
+                case LineShape line:
+                    line.EndX = currentPoint.X;
+                    line.EndY = currentPoint.Y;
+                    break;
+                case CircleShape circle:
+                    circle.RadiusX = Math.Abs(currentPoint.X - circle.CenterX);
+                    circle.RadiusY = Math.Abs(currentPoint.Y - circle.CenterY);
+                    break;
             }
         }
 
-        internal void SerilaizeAndBroadcastShapeData(IShape shapeToSend)
+        private void OnShapeReceived(IShape shape)
         {
-            string serializedShape = SerializeShape(shapeToSend);
-            Console.WriteLine("Broadcasting shape data: " + serializedShape);
-            BroadcastShapeData(serializedShape, -1);
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                Shapes.Add(shape);
+            });
         }
 
+        private void OnShapeDeleted(IShape shape)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                Shapes.Remove(shape);
+            });
+        }
 
+        protected void OnPropertyChanged(string propertyName) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
