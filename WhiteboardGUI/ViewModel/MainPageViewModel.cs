@@ -150,7 +150,11 @@ namespace WhiteboardGUI.ViewModel
 
         private void OnCanvasMouseDown(MouseButtonEventArgs e)
         {
-            _startPoint = e.GetPosition(null); // The canvas will be passed as 'null' here
+            // Pass the canvas as the element
+            var canvas = e.Source as FrameworkElement;
+            if (canvas != null)
+            {
+                _startPoint = e.GetPosition(canvas);
             if (CurrentTool == ShapeType.Select)
             {
                 // Implement selection logic
@@ -167,14 +171,19 @@ namespace WhiteboardGUI.ViewModel
                 }
             }
         }
+        }
 
         private void OnCanvasMouseMove(MouseEventArgs e)
         {
             if (e.LeftButton == MouseButtonState.Pressed && SelectedShape != null)
             {
-                Point currentPoint = e.GetPosition(null);
+                var canvas = e.Source as FrameworkElement;
+                if (canvas != null)
+                {
+                    Point currentPoint = e.GetPosition(canvas);
                 UpdateShape(SelectedShape, currentPoint);
             }
+        }
         }
 
         private void OnCanvasMouseUp(MouseButtonEventArgs e)
