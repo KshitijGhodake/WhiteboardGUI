@@ -20,6 +20,7 @@ namespace WhiteboardGUI
         private Tool currentTool = Tool.Pencil;
         private Point startPoint;
         private Line currentLine;
+        private bool isColourChanging = false;
         private Ellipse currentEllipse;
         private Polyline currentPolyline;
         private TextBlock currentTextBlock;
@@ -39,6 +40,7 @@ namespace WhiteboardGUI
         //private ConcurrentDictionary<double, TcpClient> clients = new();
         private bool isServerRunning = false;
         //private double clientID;
+        private double selectedThickness = 2.0;
 
         int cuserID = 0;
         public MainPage()
@@ -102,6 +104,7 @@ namespace WhiteboardGUI
                 "Green" => Brushes.Green,
                 _ => Brushes.Black
             };
+            isColourChanging = true;
         }
 
         private void Canvas_MouseDown(object sender, MouseButtonEventArgs e)
@@ -238,7 +241,7 @@ namespace WhiteboardGUI
             currentPolyline = new Polyline
             {
                 Stroke = selectedColor,
-                StrokeThickness = 2,
+                StrokeThickness = selectedThickness,
             };
             currentPolyline.Points.Add(startPoint);
             drawingCanvas.Children.Add(currentPolyline);
@@ -251,7 +254,7 @@ namespace WhiteboardGUI
             currentLine = new Line
             {
                 Stroke = selectedColor,
-                StrokeThickness = 2,
+                StrokeThickness = selectedThickness,
                 X1 = startPoint.X,
                 Y1 = startPoint.Y
             };
@@ -265,7 +268,7 @@ namespace WhiteboardGUI
             currentEllipse = new Ellipse
             {
                 Stroke = selectedColor,
-                StrokeThickness = 2
+                StrokeThickness = selectedThickness
             };
             Canvas.SetLeft(currentEllipse, startPoint.X);
             Canvas.SetTop(currentEllipse, startPoint.Y);
@@ -329,6 +332,7 @@ namespace WhiteboardGUI
                     Debug.WriteLine(shape.ShapeType, shape);
                     Debug.WriteLine(shapeToUpdate.ShapeType, shapeToUpdate);
                     AddSynchronizedShape(shapeToUpdate);
+                    break;
                 }
             }
         }
@@ -346,7 +350,7 @@ namespace WhiteboardGUI
             selectionRectangle = new Rectangle
             {
                 Stroke = Brushes.Blue,
-                StrokeThickness = 1,
+                StrokeThickness = selectedThickness,
                 Fill = new SolidColorBrush(Color.FromArgb(70, 0, 120, 215))
             };
             Canvas.SetLeft(selectionRectangle, start.X);
@@ -427,7 +431,7 @@ namespace WhiteboardGUI
             boundingBox = new Rectangle
             {
                 Stroke = Brushes.Gray,
-                StrokeThickness = 1,
+                StrokeThickness = 2,
                 Fill = Brushes.Transparent 
             };
 
@@ -458,10 +462,16 @@ namespace WhiteboardGUI
                 {
                     double left = Canvas.GetLeft(shape);
                     double top = Canvas.GetTop(shape);
-                    if(shape is Ellipse circle)
+                    
+                    uiElementToShapeId[shape].Color = selectedColor.ToString();
+                   
+                    if (shape is Ellipse circle)
                     {
+                        Debug.WriteLine("Changing");
                         Canvas.SetLeft(circle, left + offsetX);
                         Canvas.SetTop (circle, top + offsetY);
+                        circle.Stroke = selectedColor;
+                       
                     }
                     else
                     {
@@ -471,6 +481,7 @@ namespace WhiteboardGUI
                             line.Y1 += offsetY;
                             line.X2 += offsetX;
                             line.Y2 += offsetY;
+                            line.Fill = selectedColor;
                         }
                         else if (shape is Polyline polyline)
                         {
@@ -479,6 +490,7 @@ namespace WhiteboardGUI
                                 Point p = polyline.Points[i];
                                 polyline.Points[i] = new Point(p.X + offsetX, p.Y + offsetY);
                             }
+                            polyline.Fill = selectedColor;
                         }
                       
                     }
@@ -486,6 +498,7 @@ namespace WhiteboardGUI
 
                 startPoint = currentPoint;
                 e.Handled = true; // Prevent event bubbling
+                isColourChanging = false;
             }
         }
 
@@ -518,7 +531,7 @@ namespace WhiteboardGUI
                     IShape shapeToSend = ConvertToShapeObject(shape);
                     shapeToSend.ShapeId = shapeId;
                     BroadcastShapeModify(shapeToSend);
-                    //UpdateSynchronizedShape(shapeToSend);
+                    UpdateSynchronizedShape(shapeToSend);
                 }
                 else if (selectedShapes.Count > 1)
                 {
@@ -758,7 +771,16 @@ namespace WhiteboardGUI
             _ = viewModel.StartHost();
         }
 
-      
+        private void ThicknessPicker_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (ThicknessPicker.SelectedItem is ComboBoxItem selectedItem)
+            {
+                if (double.TryParse(selectedItem.Content.ToString(), out double thickness))
+                {
+                    selectedThickness = thickness;
+                }
+            }
+        }
         private void DrawReceivedShape(IShape shape)
         {
             AddSynchronizedShape(shape);
