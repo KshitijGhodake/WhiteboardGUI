@@ -9,6 +9,7 @@ using WhiteboardGUI.ViewModel;
 using System.Threading.Tasks.Dataflow;
 using System.Runtime.CompilerServices;
 using Newtonsoft.Json;
+using System.Windows.Automation.Peers;
 
 
 namespace WhiteboardGUI
@@ -188,22 +189,6 @@ namespace WhiteboardGUI
             {
                 UpdateSelectionRectangle(endPoint);
             }
-            //else if (isDragging && boundingBox != null)
-            //{
-            //    // Move the bounding box and its contents
-            //    double offsetX = endPoint.X - startPoint.X;
-            //    double offsetY = endPoint.Y - startPoint.Y;
-            //    Canvas.SetLeft(boundingBox, Canvas.GetLeft(boundingBox) + offsetX);
-            //    Canvas.SetTop(boundingBox, Canvas.GetTop(boundingBox) + offsetY);
-
-            //    foreach (var shape in selectedShapes)
-            //    {
-            //        Canvas.SetLeft(shape, Canvas.GetLeft(shape) + offsetX);
-            //        Canvas.SetTop(shape, Canvas.GetTop(shape) + offsetY);
-            //    }
-
-            //    startPoint = endPoint;
-            //}
             else
             {
                 switch (currentTool)
@@ -333,6 +318,20 @@ namespace WhiteboardGUI
             MainPageViewModel? viewModel = DataContext as MainPageViewModel;
             _ = Task.Run(() => viewModel.synchronizedShapes.Add(shapeToSend));
         }
+        private void UpdateSynchronizedShape(IShape shapeToUpdate)
+        {
+            MainPageViewModel? viewModel = DataContext as MainPageViewModel;
+            foreach (var shape in viewModel.synchronizedShapes)
+            {
+                if (shape.ShapeId == shapeToUpdate.ShapeId)
+                {
+                    RemoveSynchronizedShape(shape);
+                    Debug.WriteLine(shape.ShapeType, shape);
+                    Debug.WriteLine(shapeToUpdate.ShapeType, shapeToUpdate);
+                    AddSynchronizedShape(shapeToUpdate);
+                }
+            }
+        }
 
         private void RemoveSynchronizedShape(IShape shapeToSend)
         {
@@ -369,33 +368,6 @@ namespace WhiteboardGUI
                 selectionRectangle.Height = height;
             }
         }
-
-        //private void EndSelection()
-        //{
-        //    Rect selectionBounds = new Rect(Canvas.GetLeft(selectionRectangle), Canvas.GetTop(selectionRectangle), selectionRectangle.Width, selectionRectangle.Height);
-        //    selectedShapes.Clear();
-
-        //    foreach (var shape in shapes)
-        //    {
-        //        if (shape is Shape s && s != selectionRectangle)
-        //        {
-        //            Rect shapeBounds = new Rect(Canvas.GetLeft(s), Canvas.GetTop(s), s.Width, s.Height);
-        //            if (selectionBounds.IntersectsWith(shapeBounds))
-        //            {
-        //                selectedShapes.Add(s);
-        //                // No color change for selected shapes
-        //            }
-        //        }
-        //    }
-
-        //    drawingCanvas.Children.Remove(selectionRectangle);
-        //    selectionRectangle = null;
-
-        //    if (selectedShapes.Any())
-        //    {
-        //        CreateBoundingBox();
-        //    }
-        //}
         private void EndSelection()
         {
             Rect selectionBounds = new(Canvas.GetLeft(selectionRectangle), Canvas.GetTop(selectionRectangle), selectionRectangle.Width, selectionRectangle.Height);
@@ -424,6 +396,7 @@ namespace WhiteboardGUI
                 CreateBoundingBox();
             }
         }
+        
         private void CreateBoundingBox()
         {
             if (boundingBox != null)
@@ -431,17 +404,31 @@ namespace WhiteboardGUI
                 drawingCanvas.Children.Remove(boundingBox);
             }
 
-            // Calculate bounds based on selected shapes
-            double minX = selectedShapes.Min(s => Canvas.GetLeft(s));
-            double minY = selectedShapes.Min(s => Canvas.GetTop(s));
-            double maxX = selectedShapes.Max(s => Canvas.GetLeft(s) + (s is Shape shape ? shape.Width : 0));
-            double maxY = selectedShapes.Max(s => Canvas.GetTop(s) + (s is Shape shape ? shape.Height : 0));
+            double minX = double.PositiveInfinity;
+            double minY = double.PositiveInfinity;
+            double maxX = double.NegativeInfinity;
+            double maxY = double.NegativeInfinity;
+
+            foreach (var shape in selectedShapes)
+            {
+                Rect bounds = shape.TransformToVisual(drawingCanvas)
+                    .TransformBounds(VisualTreeHelper.GetDescendantBounds(shape));
+
+                if (bounds.Left < minX)
+                    minX = bounds.Left;
+                if (bounds.Top < minY)
+                    minY = bounds.Top;
+                if (bounds.Right > maxX)
+                    maxX = bounds.Right;
+                if (bounds.Bottom > maxY)
+                    maxY = bounds.Bottom;
+            }
 
             boundingBox = new Rectangle
             {
                 Stroke = Brushes.Gray,
                 StrokeThickness = 1,
-                Fill = Brushes.Transparent // No fill color
+                Fill = Brushes.Transparent 
             };
 
             Canvas.SetLeft(boundingBox, minX);
@@ -451,18 +438,9 @@ namespace WhiteboardGUI
 
             drawingCanvas.Children.Add(boundingBox);
 
-            // Modify the event handlers to capture and release the mouse
             boundingBox.MouseLeftButtonDown += BoundingBox_MouseLeftButtonDown;
             boundingBox.MouseMove += BoundingBox_MouseMove;
             boundingBox.MouseLeftButtonUp += BoundingBox_MouseLeftButtonUp;
-        }
-
-        private void BoundingBox_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            isDragging = true;
-            startPoint = e.GetPosition(drawingCanvas);
-            boundingBox.CaptureMouse(); // Capture the mouse
-            e.Handled = true; // Prevent event bubbling
         }
 
         private void BoundingBox_MouseMove(object sender, MouseEventArgs e)
@@ -473,21 +451,56 @@ namespace WhiteboardGUI
                 double offsetX = currentPoint.X - startPoint.X;
                 double offsetY = currentPoint.Y - startPoint.Y;
 
-                // Move the bounding box
                 Canvas.SetLeft(boundingBox, Canvas.GetLeft(boundingBox) + offsetX);
                 Canvas.SetTop(boundingBox, Canvas.GetTop(boundingBox) + offsetY);
 
-                // Move the selected shapes
                 foreach (var shape in selectedShapes)
                 {
-                    Canvas.SetLeft(shape, Canvas.GetLeft(shape) + offsetX);
-                    Canvas.SetTop(shape, Canvas.GetTop(shape) + offsetY);
+                    double left = Canvas.GetLeft(shape);
+                    double top = Canvas.GetTop(shape);
+                    if(shape is Ellipse circle)
+                    {
+                        Canvas.SetLeft(circle, left + offsetX);
+                        Canvas.SetTop (circle, top + offsetY);
+                    }
+                    else
+                    {
+                        if (shape is Line line)
+                        {
+                            line.X1 += offsetX;
+                            line.Y1 += offsetY;
+                            line.X2 += offsetX;
+                            line.Y2 += offsetY;
+                        }
+                        else if (shape is Polyline polyline)
+                        {
+                            for (int i = 0; i < polyline.Points.Count; i++)
+                            {
+                                Point p = polyline.Points[i];
+                                polyline.Points[i] = new Point(p.X + offsetX, p.Y + offsetY);
+                            }
+                        }
+                      
+                    }
                 }
 
                 startPoint = currentPoint;
                 e.Handled = true; // Prevent event bubbling
             }
         }
+
+
+
+
+        private void BoundingBox_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            isDragging = true;
+            startPoint = e.GetPosition(drawingCanvas);
+            boundingBox.CaptureMouse(); // Capture the mouse
+            e.Handled = true; // Prevent event bubbling
+        }
+
+        
 
         private void BoundingBox_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
@@ -505,6 +518,7 @@ namespace WhiteboardGUI
                     IShape shapeToSend = ConvertToShapeObject(shape);
                     shapeToSend.ShapeId = shapeId;
                     BroadcastShapeModify(shapeToSend);
+                    //UpdateSynchronizedShape(shapeToSend);
                 }
                 else if (selectedShapes.Count > 1)
                 {
