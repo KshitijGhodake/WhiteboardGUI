@@ -52,9 +52,11 @@
                         <ContentControl.Resources>
                             <!-- CircleShape Template -->
                             <DataTemplate DataType="{x:Type models:CircleShape}">
+                                <Canvas>
                                 <Ellipse Width="{Binding Width}" Height="{Binding Height}"
                                          Stroke="{Binding Stroke}" StrokeThickness="{Binding StrokeThickness}"
                                          Canvas.Left="{Binding Left}" Canvas.Top="{Binding Top}" />
+                                </Canvas>
                             </DataTemplate>
 
                             <!-- LineShape Template -->
