@@ -79,8 +79,8 @@ namespace WhiteboardGUI.ViewModel
             Debug.WriteLine("ViewModel init start");
             StartHostCommand = new RelayCommand(async () => await StartHost(), () => { return true; });
             StartClientCommand = new RelayCommand(async () => await StartClient(5000), () => { return true;});
-            StopHostCommand = new RelayCommand(StopHost, () => IsHost);
-            StopClientCommand = new RelayCommand(StopClient, () => IsClient);
+            StopHostCommand = new RelayCommand(StopHost, () => { return true; });
+            StopClientCommand = new RelayCommand(StopClient, () => { return true; });
             SelectToolCommand = new RelayCommand<ShapeType>(SelectTool);
             DrawShapeCommand = new RelayCommand<IShape>(DrawShape);
             SelectShapeCommand = new RelayCommand<IShape>(SelectShape);
