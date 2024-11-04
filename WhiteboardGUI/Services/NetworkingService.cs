@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -16,12 +17,12 @@ namespace WhiteboardGUI.Services
         private TcpClient _client;
         private ConcurrentDictionary<double, TcpClient> _clients = new();
         private double _clientID;
-        private List<IShape> _synchronizedShapes;
+        private ObservableCollection<IShape> _synchronizedShapes;
 
         public event Action<IShape> ShapeReceived; // Event for shape received
         public event Action<IShape> ShapeDeleted;
 
-        public NetworkingService(List<IShape> synchronizedShapes)
+        public NetworkingService(ObservableCollection<IShape> synchronizedShapes)
         {
             _synchronizedShapes = synchronizedShapes;
         }
@@ -53,7 +54,15 @@ namespace WhiteboardGUI.Services
 
                     currentUserID++;
                     _ = Task.Run(() => ListenClients(newClient, currentUserID - 1));
+                    //Send all existing shapes to new clients
+                    foreach (var shape in _synchronizedShapes)
+                    {
+
+                        string serializedShape = SerializationService.SerializeShape(shape);
+                        await BroadcastShapeData(serializedShape, -1);
+
                 }
+            }
             }
             catch (Exception ex)
             {
@@ -94,7 +103,7 @@ namespace WhiteboardGUI.Services
                             var shapeId = shape.ShapeId;
                             var shapeUserId = shape.UserID;
 
-                            var currentShape = _synchronizedShapes.Find(s => s.ShapeId == shapeId && s.UserID == shapeUserId);
+                            var currentShape = _synchronizedShapes.Where(s => s.ShapeId == shapeId && s.UserID == shapeUserId).FirstOrDefault();
                             if (currentShape != null)
                             {
                                 ShapeDeleted?.Invoke(currentShape);
@@ -112,7 +121,7 @@ namespace WhiteboardGUI.Services
                             var shapeId = shape.ShapeId;
                             var shapeUserId = shape.UserID;
 
-                            var currentShape = _synchronizedShapes.Find(s => s.ShapeId == shapeId && s.UserID == shapeUserId);
+                            var currentShape = _synchronizedShapes.Where(s => s.ShapeId == shapeId && s.UserID == shapeUserId).FirstOrDefault();
                             if (currentShape != null)
                             {
                                 ShapeDeleted?.Invoke(currentShape);
@@ -186,7 +195,7 @@ namespace WhiteboardGUI.Services
                             var shapeId = shape.ShapeId;
                             var shapeUserId = shape.UserID;
 
-                            var currentShape = _synchronizedShapes.Find(s => s.ShapeId == shapeId && s.UserID == shapeUserId);
+                            var currentShape = _synchronizedShapes.Where(s => s.ShapeId == shapeId && s.UserID == shapeUserId).FirstOrDefault();
                             if (currentShape != null)
                             {
                                 ShapeDeleted?.Invoke(currentShape);
@@ -204,7 +213,7 @@ namespace WhiteboardGUI.Services
                             var shapeId = shape.ShapeId;
                             var shapeUserId = shape.UserID;
 
-                            var currentShape = _synchronizedShapes.Find(s => s.ShapeId == shapeId && s.UserID == shapeUserId);
+                            var currentShape = _synchronizedShapes.Where(s => s.ShapeId == shapeId && s.UserID == shapeUserId).FirstOrDefault();
                             if (currentShape != null)
                             {
                                 ShapeDeleted?.Invoke(currentShape);

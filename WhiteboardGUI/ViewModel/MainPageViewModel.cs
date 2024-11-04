@@ -69,7 +69,7 @@ namespace WhiteboardGUI.ViewModel
         public MainPageViewModel()
         {
             Shapes = new ObservableCollection<IShape>();
-            _networkingService = new NetworkingService(new System.Collections.Generic.List<IShape>());
+            _networkingService = new NetworkingService(Shapes);
 
             // Subscribe to networking events
             _networkingService.ShapeReceived += OnShapeReceived;
@@ -77,10 +77,8 @@ namespace WhiteboardGUI.ViewModel
 
             // Initialize commands
             Debug.WriteLine("ViewModel init start");
-            StartHostCommand = new RelayCommand(async () => await StartHost(), () => { return true; });
-            StartClientCommand = new RelayCommand(async () => await StartClient(5000), () => { return true;});
-            StopHostCommand = new RelayCommand(StopHost, () => { return true; });
-            StopClientCommand = new RelayCommand(StopClient, () => { return true; });
+            StartHostCommand = new RelayCommand(async () => await TriggerHostCheckbox(), () => { return true; });
+            StartClientCommand = new RelayCommand(async () => await TriggerClientCheckBox(5000), () => { return true; });
             SelectToolCommand = new RelayCommand<ShapeType>(SelectTool);
             DrawShapeCommand = new RelayCommand<IShape>(DrawShape);
             SelectShapeCommand = new RelayCommand<IShape>(SelectShape);
@@ -91,14 +89,27 @@ namespace WhiteboardGUI.ViewModel
         }
 
         // Methods
-        private async System.Threading.Tasks.Task StartHost()
+        private async System.Threading.Tasks.Task TriggerHostCheckbox()
         {
-            IsHost = true;
+            if (IsHost==true){
             Debug.WriteLine("ViewModel host start");
             await _networkingService.StartHost();
         }
+            else
+            {
+                _networkingService.StopHost();
+            }
+        }
 
-        private async System.Threading.Tasks.Task StartClient(int port)
+        private async System.Threading.Tasks.Task TriggerClientCheckBox(int port)
+        {
+            //IsClient = true;
+            Debug.WriteLine("IsClient:", IsClient.ToString());
+            if (IsClient == false)
+            {
+                _networkingService.StopClient();
+            }
+            else
         {
             IsClient = true;
             Debug.WriteLine("ViewModel client start");
@@ -111,11 +122,7 @@ namespace WhiteboardGUI.ViewModel
             _networkingService.StopHost();
         }
 
-        private void StopClient()
-        {
-            IsClient = false;
-            _networkingService.StopClient();
-        }
+     
 
         private void SelectTool(ShapeType tool)
         {
