@@ -33,5 +33,13 @@ namespace WhiteboardGUI.Models
                 return new SolidColorBrush(color);
             }
         }
+
+        // Method to add a point and trigger UI update
+        public void AddPoint(Point point)
+        {
+            _points.Add(point);
+            OnPropertyChanged(nameof(PointCollection));
+        }
+
     }
 }

@@ -247,7 +247,7 @@ namespace WhiteboardGUI.ViewModel
             switch (shape)
             {
                 case ScribbleShape scribble:
-                    scribble.Points.Add(currentPoint);
+                    scribble.AddPoint(currentPoint);
                     break;
                 case LineShape line:
                     line.EndX = currentPoint.X;
