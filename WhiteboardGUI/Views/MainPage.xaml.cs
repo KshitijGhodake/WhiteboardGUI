@@ -470,8 +470,13 @@ namespace WhiteboardGUI
                         Debug.WriteLine("Changing");
                         Canvas.SetLeft(circle, left + offsetX);
                         Canvas.SetTop (circle, top + offsetY);
-                        circle.Stroke = selectedColor;
+                        //circle.Stroke = selectedColor;
                        
+                    } 
+                    else if(!double.IsNaN(left) && !double.IsNaN(top))
+                    {
+                        Canvas.SetLeft(shape, left + offsetX);
+                        Canvas.SetTop(shape, top + offsetY);
                     }
                     else
                     {
@@ -481,7 +486,7 @@ namespace WhiteboardGUI
                             line.Y1 += offsetY;
                             line.X2 += offsetX;
                             line.Y2 += offsetY;
-                            line.Fill = selectedColor;
+                            //line.Fill = selectedColor;
                         }
                         else if (shape is Polyline polyline)
                         {
@@ -490,7 +495,7 @@ namespace WhiteboardGUI
                                 Point p = polyline.Points[i];
                                 polyline.Points[i] = new Point(p.X + offsetX, p.Y + offsetY);
                             }
-                            polyline.Fill = selectedColor;
+                            //polyline.Fill = selectedColor;
                         }
                       
                     }
@@ -498,7 +503,7 @@ namespace WhiteboardGUI
 
                 startPoint = currentPoint;
                 e.Handled = true; // Prevent event bubbling
-                isColourChanging = false;
+                //isColourChanging = false;
             }
         }
 
