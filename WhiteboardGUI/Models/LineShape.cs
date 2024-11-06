@@ -17,6 +17,8 @@ namespace WhiteboardGUI.Models
             set { _startX = value; OnPropertyChanged(nameof(StartX)); }
         }
 
+       
+
         public double StartY
         {
             get => _startY;

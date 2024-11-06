@@ -10,6 +10,9 @@
         <vm:MainPageViewModel />
     </Page.DataContext>
 
+    
+  
+
     <Grid>
         <!-- Define two rows: one for the toolbar, one for the canvas -->
         <Grid.RowDefinitions>
@@ -27,21 +30,16 @@
             <Button Content="Delete" Command="{Binding DeleteShapeCommand}" />
             <CheckBox Content="Server Mode" IsChecked="{Binding IsHost, Mode=TwoWay}" Command="{Binding StartHostCommand}" />
             <CheckBox Content="Client Mode" IsChecked="{Binding IsClient, Mode=TwoWay}" Command="{Binding StartClientCommand}" />
-            <!-- Other UI Elements -->
         </StackPanel>
 
         <!-- Canvas Section -->
         <ItemsControl Grid.Row="1" ItemsSource="{Binding Shapes}">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <!-- Canvas Section -->
-                    <Canvas Grid.Row="1" Background="White"
-                        MouseLeftButtonDown="Canvas_MouseLeftButtonDown"
-                        MouseMove="Canvas_MouseMove"
-                        MouseLeftButtonUp="Canvas_MouseLeftButtonUp">       
-                        <!-- The rest of your ItemsControl and templates -->
-                    </Canvas>
-
+                    <Canvas Background="White"
+                            MouseLeftButtonDown="Canvas_MouseLeftButtonDown"
+                            MouseMove="Canvas_MouseMove"
+                            MouseLeftButtonUp="Canvas_MouseLeftButtonUp" />
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
 
@@ -53,9 +51,9 @@
                             <!-- CircleShape Template -->
                             <DataTemplate DataType="{x:Type models:CircleShape}">
                                 <Canvas>
-                                <Ellipse Width="{Binding Width}" Height="{Binding Height}"
-                                         Stroke="{Binding Stroke}" StrokeThickness="{Binding StrokeThickness}"
-                                         Canvas.Left="{Binding Left}" Canvas.Top="{Binding Top}" />
+                                    <Ellipse Width="{Binding Width}" Height="{Binding Height}"
+                                             Stroke="{Binding Stroke}" StrokeThickness="{Binding StrokeThickness}"
+                                             Canvas.Left="{Binding Left}" Canvas.Top="{Binding Top}" />
                                 </Canvas>
                             </DataTemplate>
 
@@ -71,15 +69,39 @@
                                 <Polyline Points="{Binding PointCollection}" Stroke="{Binding Stroke}" StrokeThickness="{Binding StrokeThickness}" />
                             </DataTemplate>
 
+                            <DataTemplate DataType="{x:Type models:TextboxModel}">
+                                <Canvas>
+                                    <TextBox Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"
+                                     Width="{Binding Width}"
+                                     Height="{Binding Height}"
+                                     Canvas.Left="{Binding X}"
+                                     Canvas.Top="{Binding Y}"
+                                     FontSize="{Binding FontSize}"
+                                     Background="#F0F0F0"
+                                     BorderBrush="#007ACC"
+                                     AcceptsReturn="False">
+                                        <TextBox.InputBindings>
+                                            <KeyBinding Key="Enter"
+                            Command="{Binding DataContext.FinalizeTextBoxCommand, RelativeSource={RelativeSource AncestorType=Page}}" />
+                                        </TextBox.InputBindings>
+                                    </TextBox>
+                                </Canvas>
+                            </DataTemplate>
+
                             <!-- TextShape Template -->
                             <DataTemplate DataType="{x:Type models:TextShape}">
+                                <Canvas>
                                 <TextBlock Text="{Binding Text}" Foreground="{Binding Foreground}" FontSize="{Binding FontSize}"
                                            Canvas.Left="{Binding X}" Canvas.Top="{Binding Y}" />
+                                </Canvas>
                             </DataTemplate>
                         </ContentControl.Resources>
                     </ContentControl>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
+
+        <!-- TextBox for text input overlayed on Canvas -->
+       
     </Grid>
 </Page>

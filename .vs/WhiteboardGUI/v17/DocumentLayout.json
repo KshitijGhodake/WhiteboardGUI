@@ -1,0 +1,307 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{EC766421-F8E1-4013-9EDC-96557D82F48E}|WhiteboardGUI\\WhiteboardGUI.csproj|\\\\mac\\home\\downloads\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui\\views\\mainwindow.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EC766421-F8E1-4013-9EDC-96557D82F48E}|WhiteboardGUI\\WhiteboardGUI.csproj|\\\\mac\\home\\downloads\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui\\views\\mainpage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EC766421-F8E1-4013-9EDC-96557D82F48E}|WhiteboardGUI\\WhiteboardGUI.csproj|\\\\mac\\home\\downloads\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui\\models\\textboxmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EC766421-F8E1-4013-9EDC-96557D82F48E}|WhiteboardGUI\\WhiteboardGUI.csproj|\\\\mac\\home\\downloads\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui\\models\\textshape.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EC766421-F8E1-4013-9EDC-96557D82F48E}|WhiteboardGUI\\WhiteboardGUI.csproj|\\\\mac\\home\\downloads\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui\\viewmodel\\mainpageviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EC766421-F8E1-4013-9EDC-96557D82F48E}|WhiteboardGUI\\WhiteboardGUI.csproj|\\\\mac\\home\\downloads\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui\\models\\lineshape.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EC766421-F8E1-4013-9EDC-96557D82F48E}|WhiteboardGUI\\WhiteboardGUI.csproj|\\\\mac\\home\\downloads\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui\\models\\shapebase.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EC766421-F8E1-4013-9EDC-96557D82F48E}|WhiteboardGUI\\WhiteboardGUI.csproj|\\\\mac\\home\\downloads\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui\\models\\shapetype.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EC766421-F8E1-4013-9EDC-96557D82F48E}|WhiteboardGUI\\WhiteboardGUI.csproj|\\\\mac\\home\\downloads\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui\\services\\networkingservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EC766421-F8E1-4013-9EDC-96557D82F48E}|WhiteboardGUI\\WhiteboardGUI.csproj|\\\\mac\\home\\downloads\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui\\views\\mainpage.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EC766421-F8E1-4013-9EDC-96557D82F48E}|WhiteboardGUI\\WhiteboardGUI.csproj|\\\\mac\\home\\downloads\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui\\viewmodel\\relaycommand.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EC766421-F8E1-4013-9EDC-96557D82F48E}|WhiteboardGUI\\WhiteboardGUI.csproj|\\\\mac\\home\\downloads\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui\\models\\ishape.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EC766421-F8E1-4013-9EDC-96557D82F48E}|WhiteboardGUI\\WhiteboardGUI.csproj|\\\\mac\\home\\downloads\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui\\models\\circleshape.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EC766421-F8E1-4013-9EDC-96557D82F48E}|WhiteboardGUI\\WhiteboardGUI.csproj|\\\\mac\\home\\downloads\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui\\views\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EC766421-F8E1-4013-9EDC-96557D82F48E}|WhiteboardGUI\\WhiteboardGUI.csproj|\\\\mac\\home\\downloads\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui\\converters\\heighttofontsizeconverter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EC766421-F8E1-4013-9EDC-96557D82F48E}|WhiteboardGUI\\WhiteboardGUI.csproj|\\\\mac\\home\\downloads\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui\\models\\scribbleshape.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EC766421-F8E1-4013-9EDC-96557D82F48E}|WhiteboardGUI\\WhiteboardGUI.csproj|\\\\mac\\home\\downloads\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui\\services\\serializationservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EC766421-F8E1-4013-9EDC-96557D82F48E}|WhiteboardGUI\\WhiteboardGUI.csproj|\\\\mac\\home\\downloads\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui-branch-2\\whiteboardgui\\whiteboardgui.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 212,
+          "SelectedChildIndex": 7,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{75188d03-9892-4ae2-abf1-207126247ce5}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "TextboxModel.cs",
+              "DocumentMoniker": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\Models\\TextboxModel.cs",
+              "RelativeDocumentMoniker": "WhiteboardGUI\\Models\\TextboxModel.cs",
+              "ToolTip": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\Models\\TextboxModel.cs",
+              "RelativeToolTip": "WhiteboardGUI\\Models\\TextboxModel.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEsAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-06T06:54:39.736Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "MainPage.xaml.cs",
+              "DocumentMoniker": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\Views\\MainPage.xaml.cs",
+              "RelativeDocumentMoniker": "WhiteboardGUI\\Views\\MainPage.xaml.cs",
+              "ToolTip": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\Views\\MainPage.xaml.cs",
+              "RelativeToolTip": "WhiteboardGUI\\Views\\MainPage.xaml.cs",
+              "ViewState": "AgIAAAgAAAAAAAAAAEBCwBUAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-05T19:00:42.822Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "SerializationService.cs",
+              "DocumentMoniker": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\Services\\SerializationService.cs",
+              "RelativeDocumentMoniker": "WhiteboardGUI\\Services\\SerializationService.cs",
+              "ToolTip": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\Services\\SerializationService.cs",
+              "RelativeToolTip": "WhiteboardGUI\\Services\\SerializationService.cs",
+              "ViewState": "AgIAAAQAAAAAAAAAAAA2wBEAAAAdAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-05T18:33:12.025Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "NetworkingService.cs",
+              "DocumentMoniker": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\Services\\NetworkingService.cs",
+              "RelativeDocumentMoniker": "WhiteboardGUI\\Services\\NetworkingService.cs",
+              "ToolTip": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\Services\\NetworkingService.cs",
+              "RelativeToolTip": "WhiteboardGUI\\Services\\NetworkingService.cs",
+              "ViewState": "AgIAANQAAAAAAAAAAMAuwNoAAAAgAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-05T18:33:01.643Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "MainWindow.xaml",
+              "DocumentMoniker": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\Views\\MainWindow.xaml",
+              "RelativeDocumentMoniker": "WhiteboardGUI\\Views\\MainWindow.xaml",
+              "ToolTip": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\Views\\MainWindow.xaml",
+              "RelativeToolTip": "WhiteboardGUI\\Views\\MainWindow.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2024-11-05T18:31:17.065Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "MainWindow.cs",
+              "DocumentMoniker": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\Views\\MainWindow.cs",
+              "RelativeDocumentMoniker": "WhiteboardGUI\\Views\\MainWindow.cs",
+              "ToolTip": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\Views\\MainWindow.cs",
+              "RelativeToolTip": "WhiteboardGUI\\Views\\MainWindow.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-05T18:31:09.973Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "RelayCommand.cs",
+              "DocumentMoniker": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\ViewModel\\RelayCommand.cs",
+              "RelativeDocumentMoniker": "WhiteboardGUI\\ViewModel\\RelayCommand.cs",
+              "ToolTip": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\ViewModel\\RelayCommand.cs",
+              "RelativeToolTip": "WhiteboardGUI\\ViewModel\\RelayCommand.cs",
+              "ViewState": "AgIAAIAAAAAAAAAAAAAzwI8AAAAxAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-05T18:29:42.332Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "LineShape.cs",
+              "DocumentMoniker": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\Models\\LineShape.cs",
+              "RelativeDocumentMoniker": "WhiteboardGUI\\Models\\LineShape.cs",
+              "ToolTip": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\Models\\LineShape.cs",
+              "RelativeToolTip": "WhiteboardGUI\\Models\\LineShape.cs",
+              "ViewState": "AgIAAA0AAAAAAAAAAAAswA8AAAAbAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-05T18:29:28.745Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "CircleShape.cs",
+              "DocumentMoniker": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\Models\\CircleShape.cs",
+              "RelativeDocumentMoniker": "WhiteboardGUI\\Models\\CircleShape.cs",
+              "ToolTip": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\Models\\CircleShape.cs",
+              "RelativeToolTip": "WhiteboardGUI\\Models\\CircleShape.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACwAAAAfAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-05T18:29:10.866Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "WhiteboardGUI.csproj",
+              "DocumentMoniker": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\WhiteboardGUI.csproj",
+              "RelativeDocumentMoniker": "WhiteboardGUI\\WhiteboardGUI.csproj",
+              "ToolTip": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\WhiteboardGUI.csproj",
+              "RelativeToolTip": "WhiteboardGUI\\WhiteboardGUI.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAATAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2024-11-05T07:02:18.141Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "ShapeType.cs",
+              "DocumentMoniker": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\Models\\ShapeType.cs",
+              "RelativeDocumentMoniker": "WhiteboardGUI\\Models\\ShapeType.cs",
+              "ToolTip": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\Models\\ShapeType.cs",
+              "RelativeToolTip": "WhiteboardGUI\\Models\\ShapeType.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-05T06:49:34.837Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "ScribbleShape.cs",
+              "DocumentMoniker": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\Models\\ScribbleShape.cs",
+              "RelativeDocumentMoniker": "WhiteboardGUI\\Models\\ScribbleShape.cs",
+              "ToolTip": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\Models\\ScribbleShape.cs",
+              "RelativeToolTip": "WhiteboardGUI\\Models\\ScribbleShape.cs",
+              "ViewState": "AgIAABEAAAAAAAAAAAA2wC0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-05T06:26:50.754Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "IShape.cs",
+              "DocumentMoniker": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\Models\\IShape.cs",
+              "RelativeDocumentMoniker": "WhiteboardGUI\\Models\\IShape.cs",
+              "ToolTip": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\Models\\IShape.cs",
+              "RelativeToolTip": "WhiteboardGUI\\Models\\IShape.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-05T06:22:18.522Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "ShapeBase.cs",
+              "DocumentMoniker": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\Models\\ShapeBase.cs",
+              "RelativeDocumentMoniker": "WhiteboardGUI\\Models\\ShapeBase.cs",
+              "ToolTip": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\Models\\ShapeBase.cs",
+              "RelativeToolTip": "WhiteboardGUI\\Models\\ShapeBase.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABwAAAATAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-05T06:22:05.395Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "TextShape.cs",
+              "DocumentMoniker": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\Models\\TextShape.cs",
+              "RelativeDocumentMoniker": "WhiteboardGUI\\Models\\TextShape.cs",
+              "ToolTip": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\Models\\TextShape.cs",
+              "RelativeToolTip": "WhiteboardGUI\\Models\\TextShape.cs",
+              "ViewState": "AgIAABUAAAAAAAAAAAAQwB8AAAAHAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-05T06:20:52.229Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "MainPage.xaml",
+              "DocumentMoniker": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\Views\\MainPage.xaml",
+              "RelativeDocumentMoniker": "WhiteboardGUI\\Views\\MainPage.xaml",
+              "ToolTip": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\Views\\MainPage.xaml",
+              "RelativeToolTip": "WhiteboardGUI\\Views\\MainPage.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2024-11-05T06:10:38.678Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "MainPageViewModel.cs",
+              "DocumentMoniker": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\ViewModel\\MainPageViewModel.cs",
+              "RelativeDocumentMoniker": "WhiteboardGUI\\ViewModel\\MainPageViewModel.cs",
+              "ToolTip": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\ViewModel\\MainPageViewModel.cs",
+              "RelativeToolTip": "WhiteboardGUI\\ViewModel\\MainPageViewModel.cs",
+              "ViewState": "AgIAAGYBAAAAAAAAAEAkwHMBAAAuAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-05T05:55:19.831Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "HeightToFontSizeConverter.cs",
+              "DocumentMoniker": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\Converters\\HeightToFontSizeConverter.cs",
+              "RelativeDocumentMoniker": "WhiteboardGUI\\Converters\\HeightToFontSizeConverter.cs",
+              "ToolTip": "\\\\Mac\\Home\\Downloads\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI-branch-2\\WhiteboardGUI\\Converters\\HeightToFontSizeConverter.cs",
+              "RelativeToolTip": "WhiteboardGUI\\Converters\\HeightToFontSizeConverter.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-05T07:03:02.248Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

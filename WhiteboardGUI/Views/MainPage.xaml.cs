@@ -27,5 +27,10 @@ namespace WhiteboardGUI.Views
         {
             ViewModel?.CanvasMouseUpCommand.Execute(e);
         }
+
+        private void InputTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+
+        }
     }
 }

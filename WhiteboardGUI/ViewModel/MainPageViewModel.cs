@@ -7,6 +7,7 @@ using WhiteboardGUI.Services;
 using System.Windows.Media;
 using System.Windows;
 using System.Diagnostics;
+using System.Windows.Xps;
 
 namespace WhiteboardGUI.ViewModel
 {
@@ -20,7 +21,39 @@ namespace WhiteboardGUI.ViewModel
         private bool _isSelecting;
         private bool _isDragging;
         private ObservableCollection<IShape> _shapes;
+        //for textbox
+        private string _textInput;
+        private bool _isTextBoxActive;
+        private TextShape _currentTextShape;
+        private TextboxModel _currentTextboxModel;
 
+        public string TextInput
+        {
+            get => _textInput;
+            set { _textInput = value; OnPropertyChanged(nameof(TextInput));
+                Debug.WriteLine(_textInput); }
+        }
+
+        public bool IsTextBoxActive
+        {
+            get => _isTextBoxActive;
+            set
+            {
+                _isTextBoxActive = value;
+                OnPropertyChanged(nameof(IsTextBoxActive));
+                OnPropertyChanged(nameof(TextBoxVisibility));
+            }
+        }
+
+        public Rect TextBoxBounds { get; set; }
+
+        private double txx;
+        private double tyy;
+
+        public double TextBoxFontSize { get; set; } = 16;
+
+        // Visibility property that directly converts IsTextBoxActive to a Visibility value
+        public Visibility TextBoxVisibility => IsTextBoxActive ? Visibility.Visible : Visibility.Collapsed;
         // Properties
         public ObservableCollection<IShape> Shapes
         {
@@ -37,7 +70,11 @@ namespace WhiteboardGUI.ViewModel
         public ShapeType CurrentTool
         {
             get => _currentTool;
-            set { _currentTool = value; OnPropertyChanged(nameof(CurrentTool)); }
+            set 
+            {
+                //without textbox
+                _currentTool = value; OnPropertyChanged(nameof(CurrentTool));
+            }
         }
 
         public bool IsHost { get; set; }
@@ -45,6 +82,8 @@ namespace WhiteboardGUI.ViewModel
 
         public Brush SelectedColor { get; set; } = Brushes.Black;
         public double SelectedThickness { get; set; } = 2.0;
+
+        
 
         // Commands
         public ICommand StartHostCommand { get; }
@@ -58,6 +97,10 @@ namespace WhiteboardGUI.ViewModel
         public ICommand CanvasMouseDownCommand { get; }
         public ICommand CanvasMouseMoveCommand { get; }
         public ICommand CanvasMouseUpCommand { get; }
+        //public ICommand FinalizeTextBoxCommand { get; }
+        // Commands for finalizing or canceling the TextBox input
+        public ICommand FinalizeTextBoxCommand { get; }
+        public ICommand CancelTextBoxCommand { get; }
 
 
         // Events
@@ -86,6 +129,9 @@ namespace WhiteboardGUI.ViewModel
             CanvasMouseDownCommand = new RelayCommand<MouseButtonEventArgs>(OnCanvasMouseDown);
             CanvasMouseMoveCommand = new RelayCommand<MouseEventArgs>(OnCanvasMouseMove);
             CanvasMouseUpCommand = new RelayCommand<MouseButtonEventArgs>(OnCanvasMouseUp);
+            // Initialize commands
+            FinalizeTextBoxCommand = new RelayCommand(FinalizeTextBox);
+            CancelTextBoxCommand = new RelayCommand(CancelTextBox);
         }
 
         // Methods
@@ -110,12 +156,12 @@ namespace WhiteboardGUI.ViewModel
                 _networkingService.StopClient();
             }
             else
-        {
-            IsClient = true;
-            Debug.WriteLine("ViewModel client start");
-            await _networkingService.StartClient(port);
+            {
+                IsClient = true;
+                Debug.WriteLine("ViewModel client start");
+                await _networkingService.StartClient(port);
+            }
         }
-
         private void StopHost()
         {
             IsHost = false;
@@ -127,13 +173,15 @@ namespace WhiteboardGUI.ViewModel
         private void SelectTool(ShapeType tool)
         {
             CurrentTool = tool;
+            //for textbox
+            //TextInput = string.Empty;
         }
 
         private void DrawShape(IShape shape)
         {
             if (shape == null) return;
 
-            Shapes.Add(shape);
+            //Shapes.Add(shape);
             string serializedShape = SerializationService.SerializeShape(shape);
             _networkingService.BroadcastShapeData(serializedShape, -1);
         }
@@ -162,39 +210,62 @@ namespace WhiteboardGUI.ViewModel
             if (canvas != null)
             {
                 _startPoint = e.GetPosition(canvas);
-            if (CurrentTool == ShapeType.Select)
-            {
-                // Implement selection logic
-                _isSelecting = true;
-            }
-            else
-            {
-                // Start drawing a new shape
-                IShape newShape = CreateShape(_startPoint);
-                if (newShape != null)
+                if (CurrentTool == ShapeType.Select)
                 {
-                    Shapes.Add(newShape);
-                    SelectedShape = newShape;
+                    // Implement selection logic
+                    _isSelecting = true;
+                }
+                if (CurrentTool == ShapeType.Text)
+                {
+                    // Get the position of the click
+                    var position = e.GetPosition((IInputElement)e.Source);
+                    var textboxModel = new TextboxModel
+                    {
+                        X = position.X,
+                        Y = position.Y,
+                        Width = 150,
+                        Height = 30,
+                    };
+
+                    _currentTextboxModel = textboxModel;
+                    TextInput = string.Empty;
+                    IsTextBoxActive = true;
+                    Shapes.Add(textboxModel);
+                    OnPropertyChanged(nameof(TextBoxVisibility));
+             
+                    
+                   
+                }
+                else
+                {
+                    // Start drawing a new shape
+                    IShape newShape = CreateShape(_startPoint);
+                    if (newShape != null)
+                    {
+                        Shapes.Add(newShape);
+                        SelectedShape = newShape;
+                    }
                 }
             }
-        }
         }
 
         private void OnCanvasMouseMove(MouseEventArgs e)
         {
+            //without textbox
             if (e.LeftButton == MouseButtonState.Pressed && SelectedShape != null)
             {
                 var canvas = e.Source as FrameworkElement;
                 if (canvas != null)
                 {
                     Point currentPoint = e.GetPosition(canvas);
-                UpdateShape(SelectedShape, currentPoint);
+                    UpdateShape(SelectedShape, currentPoint);
+                }
             }
-        }
         }
 
         private void OnCanvasMouseUp(MouseButtonEventArgs e)
         {
+            //without textbox
             if (SelectedShape != null)
             {
                 // Finalize shape drawing
@@ -242,9 +313,6 @@ namespace WhiteboardGUI.ViewModel
                     };
                     shape = circleShape;
                     break;
-                case ShapeType.Text:
-                    // Handle text input separately
-                    break;
             }
             return shape;
         }
@@ -264,6 +332,12 @@ namespace WhiteboardGUI.ViewModel
                     circle.RadiusX = Math.Abs(currentPoint.X - circle.CenterX);
                     circle.RadiusY = Math.Abs(currentPoint.Y - circle.CenterY);
                     break;
+                //case TextShape textShape:
+                //    //// Update TextShape's X, Y, Width, and Height based on the TextBoxBounds
+                //    //textShape.X = TextBoxBounds.X;
+                //    //textShape.Y = TextBoxBounds.Y;
+                //    //textShape.FontSize = TextBoxBounds.Height / 2; // Adjust font size
+                //    break;
             }
         }
 
@@ -282,7 +356,36 @@ namespace WhiteboardGUI.ViewModel
                 Shapes.Remove(shape);
             });
         }
+        public void CancelTextBox()
+        {
+            TextInput = string.Empty;
+            IsTextBoxActive = false;
+            OnPropertyChanged(nameof(TextBoxVisibility));
+        }
+        public void FinalizeTextBox()
+        {
+            if ((_currentTextboxModel != null && !string.IsNullOrEmpty(_currentTextboxModel.Text)))
+            {
+                var textShape = new TextShape
+                {
+                    X = _currentTextboxModel.X,
+                    Y = _currentTextboxModel.Y,
+                    Text = _currentTextboxModel.Text,
+                    Color = SelectedColor.ToString(),
+                    FontSize = TextBoxFontSize
+                };
+                Shapes.Add(textShape);
+                string serializedShape = SerializationService.SerializeShape(textShape);
+                _networkingService.BroadcastShapeData(serializedShape, -1);
 
+                // Reset input and hide TextBox
+                TextInput = string.Empty;
+                IsTextBoxActive = false;
+                Shapes.Remove(_currentTextboxModel);
+                _currentTextboxModel = null;
+                OnPropertyChanged(nameof(TextBoxVisibility));
+            }
+        }
         protected void OnPropertyChanged(string propertyName) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
