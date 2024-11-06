@@ -1,0 +1,7 @@
+# Ignore the bin and obj directories in WhiteboardGUI
+WhiteboardGUI/bin/
+WhiteboardGUI/obj/
+
+# Ignore the .vs directory (Visual Studio files)
+.vs/
+
