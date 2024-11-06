@@ -4,4 +4,4 @@ WhiteboardGUI/obj/
 
 # Ignore the .vs directory (Visual Studio files)
 .vs/
-
+.DS_Store
