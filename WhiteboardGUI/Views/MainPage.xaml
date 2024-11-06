@@ -4,16 +4,22 @@
       xmlns:local="clr-namespace:WhiteboardGUI.Views"
       xmlns:vm="clr-namespace:WhiteboardGUI.ViewModel"
       xmlns:models="clr-namespace:WhiteboardGUI.Models"
+      xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
       Title="MainPage">
 
     <Page.DataContext>
         <vm:MainPageViewModel />
     </Page.DataContext>
 
-    
-  
+    <Page.InputBindings>
+        <!-- Bind Shift + Z key to UndoCommand -->
+        <KeyBinding Key="Z" Modifiers="Shift" Command="{Binding UndoCommand}" />
+        <KeyBinding Key="X" Modifiers="Shift" Command="{Binding RedoCommand}" />
+    </Page.InputBindings>
 
-    <Grid>
+
+
+        <Grid>
         <!-- Define two rows: one for the toolbar, one for the canvas -->
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -83,6 +89,10 @@
                                         <TextBox.InputBindings>
                                             <KeyBinding Key="Enter"
                             Command="{Binding DataContext.FinalizeTextBoxCommand, RelativeSource={RelativeSource AncestorType=Page}}" />
+                                            <KeyBinding Key="Z" Modifiers="Shift"
+                    Command="{Binding DataContext.UndoCommand, RelativeSource={RelativeSource AncestorType=Page}}" />
+        <KeyBinding Key="X" Modifiers="Shift"
+                    Command="{Binding DataContext.RedoCommand, RelativeSource={RelativeSource AncestorType=Page}}" />
                                         </TextBox.InputBindings>
                                     </TextBox>
                                 </Canvas>
@@ -91,17 +101,16 @@
                             <!-- TextShape Template -->
                             <DataTemplate DataType="{x:Type models:TextShape}">
                                 <Canvas>
-                                <TextBlock Text="{Binding Text}" Foreground="{Binding Foreground}" FontSize="{Binding FontSize}"
+                                    <TextBlock Text="{Binding Text}" Foreground="{Binding Foreground}" FontSize="{Binding FontSize}"
                                            Canvas.Left="{Binding X}" Canvas.Top="{Binding Y}" />
                                 </Canvas>
                             </DataTemplate>
                         </ContentControl.Resources>
                     </ContentControl>
+                    
+                    
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
-
-        <!-- TextBox for text input overlayed on Canvas -->
-       
     </Grid>
 </Page>

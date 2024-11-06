@@ -9,6 +9,7 @@ namespace WhiteboardGUI.Models
         private string _color;
         private double _strokeThickness;
         private double _userID;
+        private double _lastModifierID;
 
         public Guid ShapeId
         {
@@ -35,6 +36,12 @@ namespace WhiteboardGUI.Models
             get => _userID;
             set { _userID = value; OnPropertyChanged(nameof(UserID)); }
         }
+        public double LastModifierID
+        {
+            get => _lastModifierID;
+            set { _lastModifierID = value; OnPropertyChanged(nameof(LastModifierID)); }
+        }
+
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged(string propertyName) =>

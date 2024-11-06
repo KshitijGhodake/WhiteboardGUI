@@ -10,5 +10,6 @@ namespace WhiteboardGUI.Models
         string Color { get; set; }
         double StrokeThickness { get; set; }
         double UserID { get; set; }
+        double LastModifierID { get; set; }
     }
 }

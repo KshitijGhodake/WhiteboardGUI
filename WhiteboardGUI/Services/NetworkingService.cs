@@ -16,16 +16,16 @@ namespace WhiteboardGUI.Services
         private TcpListener _listener;
         private TcpClient _client;
         private ConcurrentDictionary<double, TcpClient> _clients = new();
-        private double _clientID;
-        private ObservableCollection<IShape> _synchronizedShapes;
+        public double _clientID;
+        public List<IShape> _synchronizedShapes = new();
 
         public event Action<IShape> ShapeReceived; // Event for shape received
         public event Action<IShape> ShapeDeleted;
-
-        public NetworkingService(ObservableCollection<IShape> synchronizedShapes)
-        {
-            _synchronizedShapes = synchronizedShapes;
-        }
+        public event Action<IShape> ShapeModified;
+        //public NetworkingService(List<IShape> synchronizedShapes)
+        //{
+        //    _synchronizedShapes = synchronizedShapes;
+        //}
 
         public async Task StartHost()
         {
@@ -107,7 +107,7 @@ namespace WhiteboardGUI.Services
                             if (currentShape != null)
                             {
                                 ShapeDeleted?.Invoke(currentShape);
-                                _synchronizedShapes.Remove(currentShape);
+                               
                             }
                         }
                     }
@@ -125,9 +125,10 @@ namespace WhiteboardGUI.Services
                             if (currentShape != null)
                             {
                                 ShapeDeleted?.Invoke(currentShape);
-                                _synchronizedShapes.Remove(currentShape);
+                                ShapeModified?.Invoke(shape);
+
                             }
-                            ShapeReceived?.Invoke(shape);
+                            
                         }
                     }
                     else
@@ -199,7 +200,7 @@ namespace WhiteboardGUI.Services
                             if (currentShape != null)
                             {
                                 ShapeDeleted?.Invoke(currentShape);
-                                _synchronizedShapes.Remove(currentShape);
+                              
                             }
                         }
                     }
@@ -217,9 +218,10 @@ namespace WhiteboardGUI.Services
                             if (currentShape != null)
                             {
                                 ShapeDeleted?.Invoke(currentShape);
-                                _synchronizedShapes.Remove(currentShape);
+                                ShapeModified?.Invoke(shape);
+                            
                             }
-                            ShapeReceived?.Invoke(shape);
+                            
                         }
                     }
                     else
