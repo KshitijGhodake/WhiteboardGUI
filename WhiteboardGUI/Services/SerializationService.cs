@@ -25,7 +25,8 @@ namespace WhiteboardGUI.Services
                 "Line" => JsonConvert.DeserializeObject<LineShape>(data),
                 "Scribble" => JsonConvert.DeserializeObject<ScribbleShape>(data),
                 "TextShape" => JsonConvert.DeserializeObject<TextShape>(data),
-                _ => throw new NotSupportedException("Shape type not supported"),
+                "TextboxModel" => JsonConvert.DeserializeObject<TextboxModel>(data), // Added case
+                _ => throw new NotSupportedException($"Shape type '{shapeType}' not supported"),
             };
         }
     }

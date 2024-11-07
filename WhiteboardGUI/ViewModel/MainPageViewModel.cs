@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
+using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 using WhiteboardGUI.Models;
 using WhiteboardGUI.Services;
-using System.Windows.Media;
-using System.Windows;
-using System.Diagnostics;
-using System.Windows.Xps;
-using WhiteboardGUI.ViewModel;
-using System.Windows.Shapes;
-using System.Windows.Controls;
 
 namespace WhiteboardGUI.ViewModel
 {
@@ -18,29 +14,80 @@ namespace WhiteboardGUI.ViewModel
     {
         // Fields
         private readonly NetworkingService _networkingService;
-        private readonly UndoRedoService _undoRedoService = new();
         private IShape _selectedShape;
         private ShapeType _currentTool = ShapeType.Pencil;
         private Point _startPoint;
-        private bool _isSelecting;
-        private bool _isDragging;
-        public ObservableCollection<IShape> _shapes;
-        
-        //for textbox
+        private Point _lastMousePosition;
+
+        // For textbox
         private string _textInput;
         private bool _isTextBoxActive;
-        private TextShape _currentTextShape;
         private TextboxModel _currentTextboxModel;
 
-        // bouding box
-        private bool isBoundingBoxActive;
+        // Properties for color selection
+        private byte _red = 0;
+        public byte Red
+        {
+            get => _red;
+            set { _red = value; OnPropertyChanged(nameof(Red)); UpdateSelectedColor(); }
+        }
 
+        private byte _green = 0;
+        public byte Green
+        {
+            get => _green;
+            set { _green = value; OnPropertyChanged(nameof(Green)); UpdateSelectedColor(); }
+        }
+
+        private byte _blue = 0;
+        public byte Blue
+        {
+            get => _blue;
+            set { _blue = value; OnPropertyChanged(nameof(Blue)); UpdateSelectedColor(); }
+        }
+
+        private double _selectedThickness = 2.0;
+        public double SelectedThickness
+        {
+            get => _selectedThickness;
+            set
+            {
+                _selectedThickness = value;
+                OnPropertyChanged(nameof(SelectedThickness));
+                if (SelectedShape != null)
+                {
+                    UpdateSelectedShapeProperties();
+                }
+            }
+        }
+
+        private Color _selectedColor = Colors.Black;
+        public Color SelectedColor
+        {
+            get => _selectedColor;
+            set
+            {
+                _selectedColor = value;
+                OnPropertyChanged(nameof(SelectedColor));
+                if (SelectedShape != null)
+                {
+                    UpdateSelectedShapeProperties();
+                }
+            }
+        }
 
         public string TextInput
         {
             get => _textInput;
-            set { _textInput = value; OnPropertyChanged(nameof(TextInput));
-                Debug.WriteLine(_textInput); }
+            set
+            {
+                _textInput = value;
+                OnPropertyChanged(nameof(TextInput));
+                if (_currentTextboxModel != null)
+                {
+                    _currentTextboxModel.Text = _textInput;
+                }
+            }
         }
 
         public bool IsTextBoxActive
@@ -56,49 +103,65 @@ namespace WhiteboardGUI.ViewModel
 
         public Rect TextBoxBounds { get; set; }
 
-        private double txx;
-        private double tyy;
-
         public double TextBoxFontSize { get; set; } = 16;
 
         // Visibility property that directly converts IsTextBoxActive to a Visibility value
         public Visibility TextBoxVisibility => IsTextBoxActive ? Visibility.Visible : Visibility.Collapsed;
+
         // Properties
-        public ObservableCollection<IShape> Shapes
-        {
-            get => _shapes;
-            set { _shapes = value; OnPropertyChanged(nameof(Shapes)); }
-        }
+        public ObservableCollection<IShape> Shapes { get; set; }
 
         public IShape SelectedShape
         {
             get => _selectedShape;
-            set { _selectedShape = value; OnPropertyChanged(nameof(SelectedShape)); }
+            set
+            {
+                if (_selectedShape != value)
+                {
+                    if (_selectedShape != null)
+                    {
+                        _selectedShape.IsSelected = false;
+                    }
+
+                    _selectedShape = value;
+
+                    if (_selectedShape != null)
+                    {
+                        _selectedShape.IsSelected = true;
+                    }
+
+                    OnPropertyChanged(nameof(SelectedShape));
+                    OnPropertyChanged(nameof(IsShapeSelected));
+                    UpdateColorAndThicknessFromSelectedShape();
+                }
+            }
         }
+
+        public bool IsShapeSelected => SelectedShape != null;
 
         public ShapeType CurrentTool
         {
             get => _currentTool;
-            set 
-            {
-                //without textbox
-                _currentTool = value; OnPropertyChanged(nameof(CurrentTool));
-            }
+            set { _currentTool = value; OnPropertyChanged(nameof(CurrentTool)); }
         }
 
-        public bool IsHost { get; set; }
-        public bool IsClient { get; set; }
+        private bool _isHost;
+        public bool IsHost
+        {
+            get => _isHost;
+            set { _isHost = value; OnPropertyChanged(nameof(IsHost)); }
+        }
 
-        public Brush SelectedColor { get; set; } = Brushes.Black;
-        public double SelectedThickness { get; set; } = 2.0;
-
-        
+        private bool _isClient;
+        public bool IsClient
+        {
+            get => _isClient;
+            set { _isClient = value; OnPropertyChanged(nameof(IsClient)); }
+        }
 
         // Commands
         public ICommand StartHostCommand { get; }
         public ICommand StartClientCommand { get; }
-        public ICommand StopHostCommand { get; }
-        public ICommand StopClientCommand { get; }
         public ICommand SelectToolCommand { get; }
         public ICommand DrawShapeCommand { get; }
         public ICommand SelectShapeCommand { get; }
@@ -106,94 +169,95 @@ namespace WhiteboardGUI.ViewModel
         public ICommand CanvasMouseDownCommand { get; }
         public ICommand CanvasMouseMoveCommand { get; }
         public ICommand CanvasMouseUpCommand { get; }
-        //public ICommand FinalizeTextBoxCommand { get; }
-        // Commands for finalizing or canceling the TextBox input
         public ICommand FinalizeTextBoxCommand { get; }
         public ICommand CancelTextBoxCommand { get; }
 
-        public ICommand UndoCommand { get; }
-        public ICommand RedoCommand { get; }
-
-
         // Events
         public event PropertyChangedEventHandler PropertyChanged;
-        public event Action<IShape> ShapeReceived;
-        public event Action<IShape> ShapeDeleted;
 
         // Constructor
         public MainPageViewModel()
         {
             Shapes = new ObservableCollection<IShape>();
-            _networkingService = new NetworkingService();
+            _networkingService = new NetworkingService(Shapes);
 
             // Subscribe to networking events
             _networkingService.ShapeReceived += OnShapeReceived;
             _networkingService.ShapeDeleted += OnShapeDeleted;
-            _networkingService.ShapeModified += OnShapeModified;
 
             // Initialize commands
-            Debug.WriteLine("ViewModel init start");
-            StartHostCommand = new RelayCommand(async () => await TriggerHostCheckbox(), () => { return true; });
-            StartClientCommand = new RelayCommand(async () => await TriggerClientCheckBox(5000), () => { return true; });
+            StartHostCommand = new RelayCommand(async () => await TriggerHostCheckbox(), () => true);
+            StartClientCommand = new RelayCommand(async () => await TriggerClientCheckBox(5000), () => true);
             SelectToolCommand = new RelayCommand<ShapeType>(SelectTool);
-            //DrawShapeCommand = new RelayCommand<(IShape, string)>(DrawShape);
-            DrawShapeCommand = new RelayCommand<object>(parameter =>
-            {
-                if (parameter is Tuple<IShape, string> args)
-                {
-                    DrawShape(args.Item1, args.Item2);
-                }
-            });
-
+            DrawShapeCommand = new RelayCommand<IShape>(DrawShape);
             SelectShapeCommand = new RelayCommand<IShape>(SelectShape);
             DeleteShapeCommand = new RelayCommand(DeleteSelectedShape, () => SelectedShape != null);
             CanvasMouseDownCommand = new RelayCommand<MouseButtonEventArgs>(OnCanvasMouseDown);
             CanvasMouseMoveCommand = new RelayCommand<MouseEventArgs>(OnCanvasMouseMove);
             CanvasMouseUpCommand = new RelayCommand<MouseButtonEventArgs>(OnCanvasMouseUp);
-            // Initialize commands
             FinalizeTextBoxCommand = new RelayCommand(FinalizeTextBox);
             CancelTextBoxCommand = new RelayCommand(CancelTextBox);
-            UndoCommand = new RelayCommand(CallUndo);
-            RedoCommand = new RelayCommand(CallRedo);
-        }
 
-        private void CallUndo()
-        {
-            if (_undoRedoService.UndoList.Count > 0)
-            {
-                var prevShape = _undoRedoService.UndoList[_undoRedoService.UndoList.Count - 1].Item2;
-                var currentShape = _undoRedoService.UndoList[_undoRedoService.UndoList.Count - 1].Item1;
-                _undoRedoService.Undo();
-                if (prevShape == null)
-                {
-                    DeleteShape(currentShape);
-                }
-            }
-
-        }
-
-        private void CallRedo()
-        {
-            if (_undoRedoService.RedoList.Count > 0)
-            {
-                var prevShape = _undoRedoService.RedoList[_undoRedoService.RedoList.Count - 1].Item2;
-                var currentShape = _undoRedoService.RedoList[_undoRedoService.RedoList.Count - 1].Item1;
-                _undoRedoService.Redo();
-                if (currentShape == null)
-                {
-                    DrawShape(prevShape, "REDO");
-                }
-            }
-
+            // Initialize color
+            Red = 0;
+            Green = 0;
+            Blue = 0;
+            UpdateSelectedColor();
         }
 
         // Methods
+        private void UpdateSelectedColor()
+        {
+            SelectedColor = Color.FromRgb(Red, Green, Blue);
+        }
+
+        private void UpdateSelectedShapeProperties()
+        {
+            if (SelectedShape == null) return;
+
+            SelectedShape.Color = SelectedColor.ToString();
+            SelectedShape.StrokeThickness = SelectedThickness;
+
+            // Notify property changes for the shape
+            if (SelectedShape is ShapeBase shapeBase)
+            {
+                shapeBase.OnPropertyChanged(nameof(SelectedShape.Color));
+                shapeBase.OnPropertyChanged(nameof(SelectedShape.StrokeThickness));
+            }
+
+            // Broadcast updated shape
+            string serializedShape = SerializationService.SerializeShape(SelectedShape);
+            string updateMessage = $"UPDATE:{serializedShape}";
+            _networkingService.BroadcastShapeData(updateMessage, -1);
+        }
+
+
+        private void UpdateColorAndThicknessFromSelectedShape()
+        {
+            if (SelectedShape == null) return;
+
+            // Parse color from SelectedShape.Color
+            try
+            {
+                var color = (Color)ColorConverter.ConvertFromString(SelectedShape.Color);
+                Red = color.R;
+                Green = color.G;
+                Blue = color.B;
+            }
+            catch
+            {
+                // Ignore parsing errors
+            }
+
+            SelectedThickness = SelectedShape.StrokeThickness;
+        }
+
         private async System.Threading.Tasks.Task TriggerHostCheckbox()
         {
-            if (IsHost==true){
-            Debug.WriteLine("ViewModel host start");
-            await _networkingService.StartHost();
-        }
+            if (IsHost)
+            {
+                await _networkingService.StartHost();
+            }
             else
             {
                 _networkingService.StopHost();
@@ -202,73 +266,52 @@ namespace WhiteboardGUI.ViewModel
 
         private async System.Threading.Tasks.Task TriggerClientCheckBox(int port)
         {
-            //IsClient = true;
-            Debug.WriteLine("IsClient:", IsClient.ToString());
-            if (IsClient == false)
+            if (!IsClient)
             {
                 _networkingService.StopClient();
             }
             else
             {
                 IsClient = true;
-                Debug.WriteLine("ViewModel client start");
                 await _networkingService.StartClient(port);
             }
         }
-        private void StopHost()
-        {
-            IsHost = false;
-            _networkingService.StopHost();
-        }
-
-     
 
         private void SelectTool(ShapeType tool)
         {
             CurrentTool = tool;
-            //for textbox
-            //TextInput = string.Empty;
+            SelectedShape = null;
         }
 
-        private void DrawShape(IShape shape, string command)
+        private void DrawShape(IShape shape)
         {
             if (shape == null) return;
-            if (command != "CREATE")
-            {
-                Shapes.Add(shape);
-            }
 
-            shape.LastModifierID = _networkingService._clientID;
             string serializedShape = SerializationService.SerializeShape(shape);
-
             _networkingService.BroadcastShapeData(serializedShape, -1);
-
-            if (command == "REDO") { return; }
-            _undoRedoService.UpdateLastModified(shape, null);
-            
         }
-
-        
 
         private void SelectShape(IShape shape)
         {
+            // Deselect all shapes
+            foreach (var s in Shapes)
+            {
+                s.IsSelected = false;
+            }
+
+            // Select the new shape
             SelectedShape = shape;
+            if (SelectedShape != null)
+            {
+                SelectedShape.IsSelected = true;
+            }
         }
 
-        private void DeleteShape(IShape shape)
-        {
-            Shapes.Remove(shape);
-            _networkingService._synchronizedShapes.Remove(shape);
-            string serializedShape = SerializationService.SerializeShape(shape);
-            string deletionMessage = $"DELETE:{serializedShape}";
-            _networkingService.BroadcastShapeData(deletionMessage, -1);
-        }
         private void DeleteSelectedShape()
         {
             if (SelectedShape != null)
             {
                 Shapes.Remove(SelectedShape);
-                _networkingService._synchronizedShapes.Remove(SelectedShape);
                 string serializedShape = SerializationService.SerializeShape(SelectedShape);
                 string deletionMessage = $"DELETE:{serializedShape}";
                 _networkingService.BroadcastShapeData(deletionMessage, -1);
@@ -278,39 +321,43 @@ namespace WhiteboardGUI.ViewModel
 
         private void OnCanvasMouseDown(MouseButtonEventArgs e)
         {
-            // Pass the canvas as the element
             var canvas = e.Source as FrameworkElement;
             if (canvas != null)
             {
-                _startPoint = e.GetPosition(canvas);
+                Point position = e.GetPosition(canvas);
+                _startPoint = position;
+
                 if (CurrentTool == ShapeType.Select)
                 {
-                    // Implement selection logic
-                    _isSelecting = true;
-                }
-                if (CurrentTool == ShapeType.Text)
-                {
-                    // If there's an active textbox, finalize it
-                    //if (_currentTextboxModel != null && !string.IsNullOrEmpty(TextInput) )
-                    if(IsTextBoxActive==true)
+                    // Hit test to find the shape under the mouse
+                    IShape hitShape = HitTestShape(position);
+                    if (hitShape != null)
                     {
-                        FinalizeTextBox();
+                        SelectShape(hitShape);
+                        _lastMousePosition = position;
                     }
-                    // Get the position of the click
-                    var position = e.GetPosition((IInputElement)e.Source);
+                    else
+                    {
+                        SelectedShape = null;
+                    }
+                }
+                else if (CurrentTool == ShapeType.Text)
+                {
                     var textboxModel = new TextboxModel
                     {
                         X = position.X,
                         Y = position.Y,
                         Width = 150,
                         Height = 30,
+                        FontSize = TextBoxFontSize,
+                        Color = SelectedColor.ToString()
                     };
 
                     _currentTextboxModel = textboxModel;
                     TextInput = string.Empty;
                     IsTextBoxActive = true;
                     Shapes.Add(textboxModel);
-                    OnPropertyChanged(nameof(TextBoxVisibility));  
+                    OnPropertyChanged(nameof(TextBoxVisibility));
                 }
                 else
                 {
@@ -319,7 +366,6 @@ namespace WhiteboardGUI.ViewModel
                     if (newShape != null)
                     {
                         Shapes.Add(newShape);
-                        _networkingService._synchronizedShapes.Add(newShape);
                         SelectedShape = newShape;
                     }
                 }
@@ -328,28 +374,42 @@ namespace WhiteboardGUI.ViewModel
 
         private void OnCanvasMouseMove(MouseEventArgs e)
         {
-            //without textbox
-            if (e.LeftButton == MouseButtonState.Pressed && SelectedShape != null)
+            var canvas = e.Source as FrameworkElement;
+            if (canvas != null)
             {
-                var canvas = e.Source as FrameworkElement;
-                if (canvas != null)
+                Point currentPoint = e.GetPosition(canvas);
+
+                if (e.LeftButton == MouseButtonState.Pressed)
                 {
-                    Point currentPoint = e.GetPosition(canvas);
-                    UpdateShape(SelectedShape, currentPoint);
+                    if (CurrentTool == ShapeType.Select && SelectedShape != null)
+                    {
+                        // Move the selected shape
+                        MoveShape(SelectedShape, currentPoint);
+                        _lastMousePosition = currentPoint;
+                    }
+                    else if (SelectedShape != null)
+                    {
+                        UpdateShape(SelectedShape, currentPoint);
+                    }
                 }
             }
         }
 
         private void OnCanvasMouseUp(MouseButtonEventArgs e)
         {
-            //without textbox
-            if (SelectedShape != null)
+            if (SelectedShape != null && CurrentTool != ShapeType.Select)
             {
                 // Finalize shape drawing
-                DrawShape(SelectedShape, "CREATE");
+                DrawShape(SelectedShape);
                 SelectedShape = null;
             }
-            _isSelecting = false;
+            else if (SelectedShape != null && CurrentTool == ShapeType.Select)
+            {
+                // Broadcast updated position of the shape
+                string serializedShape = SerializationService.SerializeShape(SelectedShape);
+                string updateMessage = $"UPDATE:{serializedShape}";
+                _networkingService.BroadcastShapeData(updateMessage, -1);
+            }
         }
 
         private IShape CreateShape(Point startPoint)
@@ -364,7 +424,6 @@ namespace WhiteboardGUI.ViewModel
                         StrokeThickness = SelectedThickness,
                         Points = new System.Collections.Generic.List<Point> { startPoint }
                     };
-                 
                     shape = scribbleShape;
                     break;
                 case ShapeType.Line:
@@ -377,7 +436,6 @@ namespace WhiteboardGUI.ViewModel
                         Color = SelectedColor.ToString(),
                         StrokeThickness = SelectedThickness
                     };
-                    
                     shape = lineShape;
                     break;
                 case ShapeType.Circle:
@@ -390,12 +448,9 @@ namespace WhiteboardGUI.ViewModel
                         Color = SelectedColor.ToString(),
                         StrokeThickness = SelectedThickness
                     };
-                
                     shape = circleShape;
                     break;
             }
-            shape.UserID = _networkingService._clientID;
-            shape.ShapeId = Guid.NewGuid();
             return shape;
         }
 
@@ -417,44 +472,100 @@ namespace WhiteboardGUI.ViewModel
             }
         }
 
+        private void MoveShape(IShape shape, Point currentPoint)
+        {
+            Vector delta = currentPoint - _lastMousePosition;
+
+            switch (shape)
+            {
+                case LineShape line:
+                    line.StartX += delta.X;
+                    line.StartY += delta.Y;
+                    line.EndX += delta.X;
+                    line.EndY += delta.Y;
+                    break;
+                case CircleShape circle:
+                    circle.CenterX += delta.X;
+                    circle.CenterY += delta.Y;
+                    break;
+                case ScribbleShape scribble:
+                    for (int i = 0; i < scribble.Points.Count; i++)
+                    {
+                        scribble.Points[i] = new Point(scribble.Points[i].X + delta.X, scribble.Points[i].Y + delta.Y);
+                    }
+                    break;
+                case TextShape text:
+                    text.X += delta.X;
+                    text.Y += delta.Y;
+                    break;
+                case TextboxModel textbox:
+                    textbox.X += delta.X;
+                    textbox.Y += delta.Y;
+                    break;
+            }
+
+            // Notify property changes
+            if (shape is ShapeBase shapeBase)
+            {
+                shapeBase.OnPropertyChanged(null); // Notify all properties have changed
+            }
+        }
+
+        private IShape HitTestShape(Point position)
+        {
+            // Reverse order to hit test top-most shape first
+            foreach (var shape in Shapes.Reverse())
+            {
+                if (IsPointOverShape(shape, position))
+                {
+                    return shape;
+                }
+            }
+            return null;
+        }
+
+        private bool IsPointOverShape(IShape shape, Point point)
+        {
+            // Simple bounding box hit testing
+            Rect bounds = shape.GetBounds();
+            return bounds.Contains(point);
+        }
+
         private void OnShapeReceived(IShape shape)
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
                 Shapes.Add(shape);
-                _networkingService._synchronizedShapes.Add(shape);
             });
         }
-
-        private void OnShapeModified( IShape shape)
-        {
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                Shapes.Add(shape);
-                _networkingService._synchronizedShapes.Add(shape);
-                _undoRedoService.RemoveLastModified(_networkingService, shape);
-            });
-        }
-
-
 
         private void OnShapeDeleted(IShape shape)
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                Shapes.Remove(shape);
-                _networkingService._synchronizedShapes.Remove(shape);
+                var existingShape = Shapes.FirstOrDefault(s => s.ShapeId == shape.ShapeId);
+                if (existingShape != null)
+                {
+                    Shapes.Remove(existingShape);
+                }
             });
         }
+
         public void CancelTextBox()
         {
             TextInput = string.Empty;
             IsTextBoxActive = false;
+            if (_currentTextboxModel != null)
+            {
+                Shapes.Remove(_currentTextboxModel);
+                _currentTextboxModel = null;
+            }
             OnPropertyChanged(nameof(TextBoxVisibility));
         }
+
         public void FinalizeTextBox()
         {
-            if ((_currentTextboxModel != null && !string.IsNullOrEmpty(_currentTextboxModel.Text)))
+            if (_currentTextboxModel != null && !string.IsNullOrEmpty(_currentTextboxModel.Text))
             {
                 var textShape = new TextShape
                 {
@@ -464,12 +575,7 @@ namespace WhiteboardGUI.ViewModel
                     Color = SelectedColor.ToString(),
                     FontSize = TextBoxFontSize
                 };
-                textShape.ShapeId = Guid.NewGuid();
-                textShape.UserID = _networkingService._clientID;
-                textShape.LastModifierID = _networkingService._clientID;
                 Shapes.Add(textShape);
-                _undoRedoService.UpdateLastModified(textShape, null);
-                _networkingService._synchronizedShapes.Add(textShape);
                 string serializedShape = SerializationService.SerializeShape(textShape);
                 _networkingService.BroadcastShapeData(serializedShape, -1);
 
@@ -480,9 +586,14 @@ namespace WhiteboardGUI.ViewModel
                 _currentTextboxModel = null;
                 OnPropertyChanged(nameof(TextBoxVisibility));
             }
+            else
+            {
+                // If text is empty, remove the textbox
+                CancelTextBox();
+            }
         }
+
         protected void OnPropertyChanged(string propertyName) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-
     }
 }

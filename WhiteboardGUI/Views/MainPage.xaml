@@ -4,22 +4,18 @@
       xmlns:local="clr-namespace:WhiteboardGUI.Views"
       xmlns:vm="clr-namespace:WhiteboardGUI.ViewModel"
       xmlns:models="clr-namespace:WhiteboardGUI.Models"
-      xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
       Title="MainPage">
+
+    <!-- Add this Resource Section -->
+    <Page.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </Page.Resources>
 
     <Page.DataContext>
         <vm:MainPageViewModel />
     </Page.DataContext>
 
-    <Page.InputBindings>
-        <!-- Bind Shift + Z key to UndoCommand -->
-        <KeyBinding Key="Z" Modifiers="Shift" Command="{Binding UndoCommand}" />
-        <KeyBinding Key="X" Modifiers="Shift" Command="{Binding RedoCommand}" />
-    </Page.InputBindings>
-
-
-
-        <Grid>
+    <Grid>
         <!-- Define two rows: one for the toolbar, one for the canvas -->
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -33,9 +29,25 @@
             <Button Content="Circle" Command="{Binding SelectToolCommand}" CommandParameter="{x:Static models:ShapeType.Circle}" />
             <Button Content="Text" Command="{Binding SelectToolCommand}" CommandParameter="{x:Static models:ShapeType.Text}" />
             <Button Content="Select" Command="{Binding SelectToolCommand}" CommandParameter="{x:Static models:ShapeType.Select}" />
-            <Button Content="Delete" Command="{Binding DeleteShapeCommand}" />
+            <Button Content="Delete" Command="{Binding DeleteShapeCommand}" IsEnabled="{Binding IsShapeSelected}" />
+
             <CheckBox Content="Server Mode" IsChecked="{Binding IsHost, Mode=TwoWay}" Command="{Binding StartHostCommand}" />
             <CheckBox Content="Client Mode" IsChecked="{Binding IsClient, Mode=TwoWay}" Command="{Binding StartClientCommand}" />
+
+            <!-- New controls for color selection -->
+            <TextBlock Text="Red:" VerticalAlignment="Center" Margin="10,0,0,0"/>
+            <Slider Minimum="0" Maximum="255" Width="100" Value="{Binding Red, Mode=TwoWay}" />
+            <TextBlock Text="Green:" VerticalAlignment="Center" Margin="10,0,0,0"/>
+            <Slider Minimum="0" Maximum="255" Width="100" Value="{Binding Green, Mode=TwoWay}" />
+            <TextBlock Text="Blue:" VerticalAlignment="Center" Margin="10,0,0,0"/>
+            <Slider Minimum="0" Maximum="255" Width="100" Value="{Binding Blue, Mode=TwoWay}" />
+
+            <!-- Display selected color -->
+            <Rectangle Width="20" Height="20" Fill="{Binding SelectedColor}" Stroke="Black" Margin="10,0,0,0" />
+
+            <!-- New control for thickness selection -->
+            <TextBlock Text="Thickness:" VerticalAlignment="Center" Margin="10,0,0,0"/>
+            <Slider Minimum="1" Maximum="10" Width="100" Value="{Binding SelectedThickness, Mode=TwoWay}" />
         </StackPanel>
 
         <!-- Canvas Section -->
@@ -60,41 +72,64 @@
                                     <Ellipse Width="{Binding Width}" Height="{Binding Height}"
                                              Stroke="{Binding Stroke}" StrokeThickness="{Binding StrokeThickness}"
                                              Canvas.Left="{Binding Left}" Canvas.Top="{Binding Top}" />
+                                    <!-- Bounding box if selected -->
+                                    <Rectangle Width="{Binding Width}" Height="{Binding Height}"
+                                               Stroke="Blue" StrokeThickness="1" StrokeDashArray="2"
+                                               Canvas.Left="{Binding Left}" Canvas.Top="{Binding Top}"
+                                               Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                 </Canvas>
                             </DataTemplate>
 
                             <!-- LineShape Template -->
                             <DataTemplate DataType="{x:Type models:LineShape}">
-                                <Line X1="{Binding StartX}" Y1="{Binding StartY}"
-                                      X2="{Binding EndX}" Y2="{Binding EndY}"
-                                      Stroke="{Binding Stroke}" StrokeThickness="{Binding StrokeThickness}" />
+                                <Canvas>
+                                    <Line X1="{Binding StartX}" Y1="{Binding StartY}"
+                                          X2="{Binding EndX}" Y2="{Binding EndY}"
+                                          Stroke="{Binding Stroke}" StrokeThickness="{Binding StrokeThickness}" />
+                                    <!-- Bounding box if selected -->
+                                    <Rectangle Width="{Binding Width}" Height="{Binding Height}"
+                                               Stroke="Blue" StrokeThickness="1" StrokeDashArray="2"
+                                               Canvas.Left="{Binding Left}" Canvas.Top="{Binding Top}"
+                                               Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                </Canvas>
                             </DataTemplate>
 
                             <!-- ScribbleShape Template -->
                             <DataTemplate DataType="{x:Type models:ScribbleShape}">
-                                <Polyline Points="{Binding PointCollection}" Stroke="{Binding Stroke}" StrokeThickness="{Binding StrokeThickness}" />
+                                <Canvas>
+                                    <Polyline Points="{Binding PointCollection}" Stroke="{Binding Stroke}" StrokeThickness="{Binding StrokeThickness}" />
+                                    <!-- Bounding box if selected -->
+                                    <Rectangle Width="{Binding Width}" Height="{Binding Height}"
+                                               Stroke="Blue" StrokeThickness="1" StrokeDashArray="2"
+                                               Canvas.Left="{Binding Left}" Canvas.Top="{Binding Top}"
+                                               Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                </Canvas>
                             </DataTemplate>
 
+                            <!-- TextboxModel Template -->
                             <DataTemplate DataType="{x:Type models:TextboxModel}">
                                 <Canvas>
                                     <TextBox Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"
-                                     Width="{Binding Width}"
-                                     Height="{Binding Height}"
-                                     Canvas.Left="{Binding X}"
-                                     Canvas.Top="{Binding Y}"
-                                     FontSize="{Binding FontSize}"
-                                     Background="#F0F0F0"
-                                     BorderBrush="#007ACC"
-                                     AcceptsReturn="False">
+                                             Width="{Binding Width}"
+                                             Height="{Binding Height}"
+                                             Canvas.Left="{Binding X}"
+                                             Canvas.Top="{Binding Y}"
+                                             FontSize="{Binding FontSize}"
+                                             Background="{Binding Background}"
+                                             BorderBrush="{Binding BorderBrush}"
+                                             AcceptsReturn="False">
                                         <TextBox.InputBindings>
                                             <KeyBinding Key="Enter"
-                            Command="{Binding DataContext.FinalizeTextBoxCommand, RelativeSource={RelativeSource AncestorType=Page}}" />
-                                            <KeyBinding Key="Z" Modifiers="Shift"
-                    Command="{Binding DataContext.UndoCommand, RelativeSource={RelativeSource AncestorType=Page}}" />
-        <KeyBinding Key="X" Modifiers="Shift"
-                    Command="{Binding DataContext.RedoCommand, RelativeSource={RelativeSource AncestorType=Page}}" />
+                                                        Command="{Binding DataContext.FinalizeTextBoxCommand, RelativeSource={RelativeSource AncestorType=Page}}" />
+                                            <KeyBinding Key="Escape"
+                                                        Command="{Binding DataContext.CancelTextBoxCommand, RelativeSource={RelativeSource AncestorType=Page}}" />
                                         </TextBox.InputBindings>
                                     </TextBox>
+                                    <!-- Bounding box if selected -->
+                                    <Rectangle Width="{Binding Width}" Height="{Binding Height}"
+                                               Stroke="Blue" StrokeThickness="1" StrokeDashArray="2"
+                                               Canvas.Left="{Binding Left}" Canvas.Top="{Binding Top}"
+                                               Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                 </Canvas>
                             </DataTemplate>
 
@@ -102,15 +137,26 @@
                             <DataTemplate DataType="{x:Type models:TextShape}">
                                 <Canvas>
                                     <TextBlock Text="{Binding Text}" Foreground="{Binding Foreground}" FontSize="{Binding FontSize}"
-                                           Canvas.Left="{Binding X}" Canvas.Top="{Binding Y}" />
+                                               Canvas.Left="{Binding X}" Canvas.Top="{Binding Y}" />
+                                    <!-- Bounding box if selected -->
+                                    <Rectangle Width="{Binding Width}" Height="{Binding Height}"
+                                               Stroke="Blue" StrokeThickness="1" StrokeDashArray="2"
+                                               Canvas.Left="{Binding Left}" Canvas.Top="{Binding Top}"
+                                               Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                 </Canvas>
                             </DataTemplate>
                         </ContentControl.Resources>
                     </ContentControl>
-                    
-                    
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
+            <ItemsControl.ItemContainerStyle>
+                <Style TargetType="ContentPresenter">
+                    <Setter Property="Canvas.Left" Value="0" />
+                    <Setter Property="Canvas.Top" Value="0" />
+                    <EventSetter Event="MouseLeftButtonDown" Handler="Shape_MouseLeftButtonDown" />
+                </Style>
+            </ItemsControl.ItemContainerStyle>
+
         </ItemsControl>
     </Grid>
 </Page>

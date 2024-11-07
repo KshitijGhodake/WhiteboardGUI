@@ -1,15 +1,21 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Windows;
 
 namespace WhiteboardGUI.Models
 {
     public abstract class ShapeBase : IShape
     {
         private Guid _shapeId;
-        private string _color;
+        private string _color = "#000000"; // Default color
         private double _strokeThickness;
         private double _userID;
-        private double _lastModifierID;
+        private bool _isSelected;
+
+        public ShapeBase()
+        {
+            ShapeId = Guid.NewGuid();
+        }
 
         public Guid ShapeId
         {
@@ -36,15 +42,18 @@ namespace WhiteboardGUI.Models
             get => _userID;
             set { _userID = value; OnPropertyChanged(nameof(UserID)); }
         }
-        public double LastModifierID
+
+        public bool IsSelected
         {
-            get => _lastModifierID;
-            set { _lastModifierID = value; OnPropertyChanged(nameof(LastModifierID)); }
+            get => _isSelected;
+            set { _isSelected = value; OnPropertyChanged(nameof(IsSelected)); }
         }
 
+        public abstract Rect GetBounds();
 
+        // Changed access modifier to public
         public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged(string propertyName) =>
+        public void OnPropertyChanged(string propertyName) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }

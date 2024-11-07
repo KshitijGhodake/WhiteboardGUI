@@ -1,6 +1,8 @@
-﻿using System.Windows.Controls;
+﻿using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using WhiteboardGUI.ViewModel;
+using WhiteboardGUI.Models;
 
 namespace WhiteboardGUI.Views
 {
@@ -30,7 +32,26 @@ namespace WhiteboardGUI.Views
 
         private void InputTextBox_KeyDown(object sender, KeyEventArgs e)
         {
+            // You can implement any key handling for the text input here if needed
+        }
 
+        private void Shape_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (ViewModel != null)
+            {
+                if (ViewModel.CurrentTool == ShapeType.Select)
+                {
+                    // Prevent event from bubbling up to the Canvas
+                    e.Handled = true;
+
+                    // Get the shape associated with this item
+                    if (sender is FrameworkElement element && element.DataContext is IShape shape)
+                    {
+                        ViewModel.SelectShapeCommand.Execute(shape);
+                        ViewModel.CanvasMouseDownCommand.Execute(e);
+                    }
+                }
+            }
         }
     }
 }
