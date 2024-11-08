@@ -335,15 +335,15 @@
                             </StackPanel>
                         </Border>
                     </Popup>
-                <!--    end -->
-                    <Ellipse Width="20" Height="20" Fill="{Binding SelectedColor}" Stroke="Black" Margin="1,0,15,0" />
+                    <!--    end                   {Binding SelectedColor} -->
+                    <Ellipse Width="20" Height="20" Fill="Brown" Stroke="Black" Margin="1,0,15,0" />
             <!-- New control for thickness selection -->
                     <StackPanel VerticalAlignment="Center" Orientation="Vertical" HorizontalAlignment="Center">
                         <Image Source="Assets/thickness.png" Width="20" Height="20"/>
                         <TextBlock Text="Thickness:" VerticalAlignment="Center" Margin="10,0,0,0"/>
                     </StackPanel>
-
-            <Slider  Margin="0,0,3,0"  VerticalAlignment="Center" Minimum="1" Maximum="10" Width="100" Value="{Binding SelectedThickness, Mode=TwoWay}" />
+                    <!--                                                                  {Binding SelectedThickness, Mode=TwoWay}                                        -->
+            <Slider  Margin="0,0,3,0"  VerticalAlignment="Center" Minimum="1" Maximum="10" Width="100" Value="2.0" />
 
                     <Button x:Name="UploadButton"
                         Style="{StaticResource ToolBarStyle}" 
@@ -413,6 +413,15 @@
                                                Stroke="Blue" StrokeThickness="1" StrokeDashArray="2"
                                                Canvas.Left="{Binding Left}" Canvas.Top="{Binding Top}"
                                                Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}" />
+
+                                    <Rectangle Width="{Binding HandleSize}" Height="{Binding HandleSize}" Fill="White" Stroke="Black"
+                                               Canvas.Left="{Binding TopLeftHandleX}" Canvas.Top="{Binding TopLeftHandleY}"
+                                               Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                               Cursor="SizeNWSE"
+                                               MouseLeftButtonDown="ResizeHandle_MouseLeftButtonDown"
+                                               MouseMove="ResizeHandle_MouseMove"
+                                               MouseLeftButtonUp="ResizeHandle_MouseLeftButtonUp"
+                                               Tag="TopLeft" />
                                 </Canvas>
                             </DataTemplate>
 

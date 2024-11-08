@@ -352,7 +352,7 @@ namespace WhiteboardGUI.ViewModel
             return prevShape;
         }
 
-        private void RenderShape(IShape currentShape, string command)
+        public void RenderShape(IShape currentShape, string command)
         {
           
             if (command == "CREATE")
@@ -760,21 +760,24 @@ namespace WhiteboardGUI.ViewModel
         }
         public void FinalizeTextBox()
         {
-            if ((_currentTextboxModel != null && !string.IsNullOrEmpty(_currentTextboxModel.Text)))
+            if ((_currentTextboxModel != null ))
             {
-                var textShape = new TextShape
+                if (!string.IsNullOrEmpty(_currentTextboxModel.Text))
                 {
-                    X = _currentTextboxModel.X,
-                    Y = _currentTextboxModel.Y,
-                    Text = _currentTextboxModel.Text,
-                    Color = SelectedColor.ToString(),
-                    FontSize = TextBoxFontSize
-                };
-                textShape.ShapeId = Guid.NewGuid();
-                textShape.UserID = _networkingService._clientID;
-                textShape.LastModifierID = _networkingService._clientID;
-                Shapes.Add(textShape);
-                RenderShape(textShape, "CREATE");
+                    var textShape = new TextShape
+                    {
+                        X = _currentTextboxModel.X,
+                        Y = _currentTextboxModel.Y,
+                        Text = _currentTextboxModel.Text,
+                        Color = SelectedColor.ToString(),
+                        FontSize = TextBoxFontSize
+                    };
+                    textShape.ShapeId = Guid.NewGuid();
+                    textShape.UserID = _networkingService._clientID;
+                    textShape.LastModifierID = _networkingService._clientID;
+                    Shapes.Add(textShape);
+                    RenderShape(textShape, "CREATE");
+                }
                 // Reset input and hide TextBox
                 TextInput = string.Empty;
                 IsTextBoxActive = false;

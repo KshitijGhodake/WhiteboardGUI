@@ -4,6 +4,9 @@ using System.Windows;
 
 namespace WhiteboardGUI.Models
 {
+    /// <summary>
+    /// A template class which all the available shapes implement
+    /// </summary>
     public abstract class ShapeBase : IShape
     {
         private Guid _shapeId;

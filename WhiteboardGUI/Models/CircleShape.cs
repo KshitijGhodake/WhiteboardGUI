@@ -12,6 +12,9 @@ namespace WhiteboardGUI.Models
         private double _centerY;
         private double _radiusX;
         private double _radiusY;
+        public double HandleSize => 8;
+        public double TopLeftHandleX => Left - HandleSize / 2;
+        public double TopLeftHandleY => Top - HandleSize / 2;
 
         public double CenterX
         {
@@ -87,7 +90,8 @@ namespace WhiteboardGUI.Models
                 CenterY = this.CenterY,
                 RadiusX = this.RadiusX,
                 RadiusY = this.RadiusY
-                // If ShapeBase has additional properties, copy them here
+                
+
             };
         }
     }
