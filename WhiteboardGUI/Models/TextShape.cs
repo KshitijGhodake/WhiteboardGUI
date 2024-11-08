@@ -13,6 +13,7 @@ namespace WhiteboardGUI.Models
         private double _y;
         private double _fontSize;
 
+
         public string Text
         {
             get => _text;

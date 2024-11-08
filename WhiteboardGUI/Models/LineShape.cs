@@ -11,6 +11,7 @@ namespace WhiteboardGUI.Models
         private double _startY;
         private double _endX;
         private double _endY;
+    
 
         public double StartX
         {

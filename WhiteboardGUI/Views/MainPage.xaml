@@ -350,7 +350,10 @@
                             <SolidColorBrush Color="{Binding SelectedColor}" />
                         </Ellipse.Fill>
                     </Ellipse>
-                    <Slider Margin="0,0,15,0" VerticalAlignment="Center" Minimum="1" Maximum="10" Width="100" Value="{Binding SelectedThickness, Mode=TwoWay}" />
+                    <Slider Margin="0,0,15,0" VerticalAlignment="Center" Minimum="1" Maximum="10" Width="100" Value="{Binding SelectedThickness, Mode=TwoWay}"  TickFrequency="1" 
+Ticks="1,5,10"
+IsSnapToTickEnabled="True" />
+
 
                     <Button x:Name="UploadButton"
                         Style="{StaticResource ToolBarStyle}" 
@@ -414,7 +417,7 @@
                             <DataTemplate DataType="{x:Type models:CircleShape}">
                                 <Canvas>
                                     <Ellipse Width="{Binding Width}" Height="{Binding Height}"
-                                             Stroke="{Binding Stroke}" StrokeThickness="{Binding StrokeThickness}"
+                                             Stroke="{Binding Color}" StrokeThickness="{Binding StrokeThickness}"
                                              Canvas.Left="{Binding Left}" Canvas.Top="{Binding Top}" />
                                     <Rectangle Width="{Binding Width}" Height="{Binding Height}"
                                                Stroke="Blue" StrokeThickness="1" StrokeDashArray="2"
@@ -422,13 +425,40 @@
                                                Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}" />
 
                                     <Rectangle Width="{Binding HandleSize}" Height="{Binding HandleSize}" Fill="White" Stroke="Black"
-                                               Canvas.Left="{Binding TopLeftHandleX}" Canvas.Top="{Binding TopLeftHandleY}"
+                                               Canvas.Left="{Binding Left}" Canvas.Top="{Binding Top}"
                                                Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}"
                                                Cursor="SizeNWSE"
                                                MouseLeftButtonDown="ResizeHandle_MouseLeftButtonDown"
                                                MouseMove="ResizeHandle_MouseMove"
                                                MouseLeftButtonUp="ResizeHandle_MouseLeftButtonUp"
                                                Tag="TopLeft" />
+                                 <!--   <Rectangle Width="{Binding HandleSize}" Height="{Binding HandleSize}" Fill="White" Stroke="Black"
+                                               Canvas.Left="{Binding TopRightHandleX}" Canvas.Top="{Binding Top}"
+                                               Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                               Cursor="SizeNWSE"
+                                               MouseLeftButtonDown="ResizeHandle_MouseLeftButtonDown"
+                                               MouseMove="ResizeHandle_MouseMove"
+                                               MouseLeftButtonUp="ResizeHandle_MouseLeftButtonUp"
+                                               Tag="TopLeft" />
+                                    <Rectangle Width="{Binding HandleSize}" Height="{Binding HandleSize}" Fill="White" Stroke="Black"
+                                               Canvas.Left="{Binding Left}" Canvas.Top="{Binding DownLeftHandleY}"
+                                               Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                               Cursor="SizeNWSE"
+                                               MouseLeftButtonDown="ResizeHandle_MouseLeftButtonDown"
+                                               MouseMove="ResizeHandle_MouseMove"
+                                               MouseLeftButtonUp="ResizeHandle_MouseLeftButtonUp"
+                                               Tag="TopLeft" />
+
+                                    <Rectangle Width="{Binding HandleSize}" Height="{Binding HandleSize}" Fill="White" Stroke="Black"
+                                               Canvas.Left="{Binding TopRightHandleX}" Canvas.Top="{Binding DownLeftHandleY}"
+                                               Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                               Cursor="SizeNWSE"
+                                               MouseLeftButtonDown="ResizeHandle_MouseLeftButtonDown"
+                                               MouseMove="ResizeHandle_MouseMove"
+                                               MouseLeftButtonUp="ResizeHandle_MouseLeftButtonUp"
+                                               Tag="TopLeft" /> -->
+
+
                                 </Canvas>
                             </DataTemplate>
 
@@ -437,7 +467,7 @@
                                 <Canvas>
                                     <Line X1="{Binding StartX}" Y1="{Binding StartY}"
                                       X2="{Binding EndX}" Y2="{Binding EndY}"
-                                      Stroke="{Binding Stroke}" StrokeThickness="{Binding StrokeThickness}" />
+                                      Stroke="{Binding Color}" StrokeThickness="{Binding StrokeThickness}" />
                                     <Rectangle Width="{Binding Width}" Height="{Binding Height}"
                                             Stroke="Blue" StrokeThickness="1" StrokeDashArray="2"
                                             Canvas.Left="{Binding Left}" Canvas.Top="{Binding Top}"
@@ -448,7 +478,7 @@
                             <!-- ScribbleShape Template -->
                             <DataTemplate DataType="{x:Type models:ScribbleShape}">
                                 <Canvas>
-                                    <Polyline Points="{Binding PointCollection}" Stroke="{Binding Stroke}" StrokeThickness="{Binding StrokeThickness}" />
+                                    <Polyline Points="{Binding PointCollection}" Stroke="{Binding Color}" StrokeThickness="{Binding StrokeThickness}" />
                                     <!-- Bounding box if selected -->
                                     <Rectangle Width="{Binding Width}" Height="{Binding Height}"
                                             Stroke="Blue" StrokeThickness="1" StrokeDashArray="2"

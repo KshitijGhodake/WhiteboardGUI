@@ -13,8 +13,9 @@ namespace WhiteboardGUI.Models
         private double _radiusX;
         private double _radiusY;
         public double HandleSize => 8;
-        public double TopLeftHandleX => Left - HandleSize / 2;
-        public double TopLeftHandleY => Top - HandleSize / 2;
+        public double TopRightHandleX => Left + 2*_radiusX;
+        public double DownLeftHandleY => Top + 2 * _radiusY;
+
 
         public double CenterX
         {
@@ -61,6 +62,8 @@ namespace WhiteboardGUI.Models
                 OnPropertyChanged(nameof(Height));
             }
         }
+
+    
 
         // Corrected properties for binding in XAML
         public double Left => CenterX - RadiusX;

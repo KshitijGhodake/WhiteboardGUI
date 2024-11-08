@@ -27,6 +27,7 @@ namespace WhiteboardGUI.Models
             }
         }
 
+
         // Property for binding in XAML
         public PointCollection PointCollection => new PointCollection(Points);
 

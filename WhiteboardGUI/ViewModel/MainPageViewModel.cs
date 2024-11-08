@@ -69,27 +69,17 @@ namespace WhiteboardGUI.ViewModel
                 {
                     _selectedThickness = value;
                     OnPropertyChanged(nameof(SelectedThickness));
-                    if (SelectedShape != null)
+                    if (SelectedShape is ShapeBase shapeBase)
                     {
                         SelectedShape.StrokeThickness = _selectedThickness;
-                        UpdateSelectedShapeProperties();
+                        shapeBase.OnPropertyChanged(nameof(SelectedShape.StrokeThickness));
+                        RenderShape(SelectedShape, "MODIFY");
+
                     }
                 }
             }
         }
-        //public double SelectedThickness
-        //{
-        //    get => _selectedThickness;
-        //    set
-        //    {
-        //        _selectedThickness = value;
-        //        OnPropertyChanged(nameof(SelectedThickness));
-        //        if (SelectedShape != null)
-        //        {
-        //            UpdateSelectedShapeProperties();
-        //        }
-        //    }
-        //}
+   
 
         private Color _selectedColor = Colors.Black;
         public Color SelectedColor
@@ -101,28 +91,17 @@ namespace WhiteboardGUI.ViewModel
                 {
                     _selectedColor = value;
                     OnPropertyChanged(nameof(SelectedColor));
-                    if (SelectedShape != null)
+                    if (SelectedShape is ShapeBase shapeBase)
                     {
                         SelectedShape.Color = _selectedColor.ToString();
-                        UpdateSelectedShapeProperties();
+                        shapeBase.OnPropertyChanged(nameof(SelectedShape.Color));
+                        RenderShape(SelectedShape, "MODIFY");
                     }
                 }
             }
         }
        
-        //public Color SelectedColor
-        //{
-        //    get => _selectedColor;
-        //    set
-        //    {
-        //        _selectedColor = value;
-        //        OnPropertyChanged(nameof(SelectedColor));
-        //        if (SelectedShape != null)
-        //        {
-        //            UpdateSelectedShapeProperties();
-        //        }
-        //    }
-        //}
+      
         public string TextInput
         {
             get => _textInput;
@@ -184,30 +163,11 @@ namespace WhiteboardGUI.ViewModel
 
                     OnPropertyChanged(nameof(SelectedShape));
                     OnPropertyChanged(nameof(IsShapeSelected));
-                    UpdateColorAndThicknessFromSelectedShape();
+                    //UpdateColorAndThicknessFromSelectedShape();
                 }
             }
         }
 
-        private void UpdateColorAndThicknessFromSelectedShape()
-        {
-            if (SelectedShape == null) return;
-
-            // Parse color from SelectedShape.Color
-            try
-            {
-                var color = (Color)ColorConverter.ConvertFromString(SelectedShape.Color);
-                Red = color.R;
-                Green = color.G;
-                Blue = color.B;
-            }
-            catch
-            {
-                // Ignore parsing errors
-            }
-
-            SelectedThickness = SelectedShape.StrokeThickness;
-        }
 
         public bool IsShapeSelected => SelectedShape != null;
 
@@ -311,23 +271,6 @@ namespace WhiteboardGUI.ViewModel
                 SelectedColor = color;
         }
 
-        private void UpdateSelectedShapeProperties()
-        {
-            if (SelectedShape == null) return;
-
-            SelectedShape.Color = SelectedColor.ToString();
-            SelectedShape.StrokeThickness = SelectedThickness;
-
-            // Notify property changes for the shape
-            if (SelectedShape is ShapeBase shapeBase)
-            {
-                shapeBase.OnPropertyChanged(nameof(SelectedShape.Color));
-                shapeBase.OnPropertyChanged(nameof(SelectedShape.StrokeThickness));
-            }
-
-            // Broadcast updated shape
-            RenderShape(SelectedShape, "MODIFY");
-        }
         private void CallUndo()
         {
             if (_undoRedoService.UndoList.Count > 0)
@@ -402,6 +345,7 @@ namespace WhiteboardGUI.ViewModel
             {
                 var newShape = currentShape.Clone();
                 _networkingService._synchronizedShapes.Add(newShape);
+                newShape.IsSelected = false;
                 _undoRedoService.UpdateLastDrawing(newShape, null);
 
             }
@@ -409,6 +353,7 @@ namespace WhiteboardGUI.ViewModel
             {
                 var newShape = currentShape.Clone();
                 var prevShape = UpdateSynchronizedShapes(newShape);
+                newShape.IsSelected = false;
                 _undoRedoService.UpdateLastDrawing(newShape, prevShape);
 
             }
@@ -565,6 +510,12 @@ namespace WhiteboardGUI.ViewModel
                             Debug.WriteLine(shape.IsSelected);
                             _lastMousePosition = _startPoint;
                             break;
+                        }
+                        else
+                        {
+                            _isSelecting = false;
+                            SelectedShape = null;
+                            
                         }
                     }
                 }
