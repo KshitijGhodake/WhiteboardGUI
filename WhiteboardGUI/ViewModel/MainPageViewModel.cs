@@ -280,6 +280,7 @@ namespace WhiteboardGUI.ViewModel
 
         }
 
+
         private void CallRedo()
         {
             if (_undoRedoService.RedoList.Count > 0)
@@ -509,6 +510,7 @@ namespace WhiteboardGUI.ViewModel
                             SelectedShape = shape;
                             Debug.WriteLine(shape.IsSelected);
                             _lastMousePosition = _startPoint;
+                            _isSelecting = true;
                             break;
                         }
                         else

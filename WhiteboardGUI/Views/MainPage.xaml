@@ -338,18 +338,17 @@
                             </WrapPanel>
                         </Border>
                     </Popup>
-                    <!--    end                   {Binding SelectedColor} -->
-                    <!-- New control for thickness selection -->
+                    <Ellipse Width="20" Height="20" Stroke="Black" Margin="0,0,10,0">
+                        <Ellipse.Fill>
+                            <SolidColorBrush Color="{Binding SelectedColor}" />
+                        </Ellipse.Fill>
+                    </Ellipse>
                     <!-- Thickness Slider -->
                     <StackPanel VerticalAlignment="Center" Orientation="Vertical" HorizontalAlignment="Center" Margin="10,0,0,0">
                         <Image Source="Assets/thickness.png" Width="20" Height="20"/>
                         <TextBlock Text="Thickness" HorizontalAlignment="Center" FontSize="12"/>
                     </StackPanel>
-                    <Ellipse Width="20" Height="20" Stroke="Black">
-                        <Ellipse.Fill>
-                            <SolidColorBrush Color="{Binding SelectedColor}" />
-                        </Ellipse.Fill>
-                    </Ellipse>
+                    
                     <Slider Margin="0,0,15,0" VerticalAlignment="Center" Minimum="1" Maximum="10" Width="100" Value="{Binding SelectedThickness, Mode=TwoWay}"  TickFrequency="1" 
 Ticks="1,5,10"
 IsSnapToTickEnabled="True" />
