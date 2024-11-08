@@ -1,131 +1,535 @@
-<Page x:Class="WhiteboardGUI.MainPage"
+<Page x:Class="WhiteboardGUI.Views.MainPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-      xmlns:local="clr-namespace:WhiteboardGUI"
-      mc:Ignorable="d"
-      d:DesignHeight="450" d:DesignWidth="800">
+      xmlns:local="clr-namespace:WhiteboardGUI.Views"
+      xmlns:vm="clr-namespace:WhiteboardGUI.ViewModel"
+      xmlns:models="clr-namespace:WhiteboardGUI.Models"
+      Title="MainPage" Background="Gray">
 
     <Page.Resources>
-        <!-- Style for Buttons -->
-        <Style TargetType="Button">
-            <Setter Property="Background" Value="#007ACC"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Margin" Value="5"/>
-            <Setter Property="Padding" Value="10,5"/>
-            <Setter Property="BorderBrush" Value="Transparent"/>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+
+        <!-- Style for standard toolbar buttons -->
+        <Style TargetType="Button" x:Key="ToolBarStyle">
+            <Setter Property="Background" Value="WhiteSmoke"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="BorderThickness" Value="2"/>
-            <Setter Property="MinWidth" Value="80"/>
-            <Setter Property="MinHeight" Value="35"/>
-            <Setter Property="Effect">
+            <Setter Property="Template">
                 <Setter.Value>
-                    <DropShadowEffect BlurRadius="4" ShadowDepth="2" Color="Gray" Opacity="0.5"/>
+                    <ControlTemplate TargetType="Button">
+                        <Border Width="40" Height="40" CornerRadius="10" Background="{TemplateBinding Background}" Margin="5">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="SkyBlue"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="LightBlue"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
                 </Setter.Value>
             </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#005BA1"/>
-                </Trigger>
-                <Trigger Property="IsPressed" Value="True">
-                    <Setter Property="Background" Value="#003D7A"/>
-                </Trigger>
-            </Style.Triggers>
         </Style>
 
-        <!-- Style for ComboBox -->
-        <Style TargetType="ComboBox">
-            <Setter Property="Background" Value="#F0F0F0"/>
-            <Setter Property="BorderBrush" Value="#007ACC"/>
+        <!-- Style for standard toggle toolbar buttons -->
+        <Style TargetType="ToggleButton" x:Key="ToolBarToggleStyle">
+            <Setter Property="Background" Value="WhiteSmoke"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border Width="40" Height="40" CornerRadius="10" Background="{TemplateBinding Background}" Margin="5">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="SkyBlue"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="LightBlue"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="Background" Value="LightGray"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Style for top bar toggle buttons -->
+        <Style TargetType="ToggleButton" x:Key="TopBarStyle">
+            <Setter Property="Background" Value="WhiteSmoke"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border Width="40" Height="40" CornerRadius="10" Background="{TemplateBinding Background}" Margin="5">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="LightBlue"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="Blue"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="Background" Value="Gray"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="CircularColorButton" TargetType="Button">
+            <Setter Property="Width" Value="30"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Background" Value="Gray"/>
+            <!-- Default Background -->
+            <Setter Property="BorderBrush" Value="Black"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Ellipse Fill="{TemplateBinding Background}" 
+                                 Stroke="{TemplateBinding BorderBrush}" 
+                                 StrokeThickness="{TemplateBinding BorderThickness}"/>
+                            <!-- Optional: Add a ContentPresenter if you want to display content inside -->
+                            <!--<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>-->
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Opacity" Value="0.8"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Opacity" Value="0.6"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Corrected Style for TextBox with Placeholder -->
+        <Style x:Key="WatermarkTextBox" TargetType="TextBox">
             <Setter Property="Foreground" Value="Black"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="Gray"/>
+            <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="5"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="MinWidth" Value="100"/>
-            <Setter Property="Height" Value="35"/>
-        </Style>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Grid>
+                            <!-- The actual TextBox content -->
+                            <ScrollViewer x:Name="PART_ContentHost" />
 
-        <!-- Style for TextBoxes -->
-        <Style TargetType="TextBox">
-            <Setter Property="Background" Value="#F0F0F0"/>
-            <Setter Property="BorderBrush" Value="#007ACC"/>
-            <Setter Property="Foreground" Value="Black"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Padding" Value="5"/>
-            <Setter Property="Height" Value="35"/>
-            <Setter Property="MinWidth" Value="150"/>
-        </Style>
-
-        <!-- Style for TextBlock -->
-        <Style TargetType="TextBlock">
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Margin" Value="0,0,10,0"/>
-            <Setter Property="Foreground" Value="#333333"/>
+                            <!-- Placeholder TextBlock -->
+                            <TextBlock Text="Enter filename"
+                                   Foreground="Gray"
+                                   Margin="5,5,0,0"
+                                   IsHitTestVisible="False"
+                                   Visibility="Collapsed"
+                                   x:Name="PlaceholderText"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <!-- Show placeholder when Text is empty -->
+                            <Trigger Property="Text" Value="">
+                                <Setter TargetName="PlaceholderText" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <!-- Hide placeholder when TextBox is focused -->
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="PlaceholderText" Property="Visibility" Value="Collapsed"/>
+                            </Trigger>
+                            <!-- Hide placeholder when Text is not empty -->
+                            <Trigger Property="Text" Value="{x:Null}">
+                                <Setter TargetName="PlaceholderText" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource Self}}" Value="{x:Null}">
+                                <Setter TargetName="PlaceholderText" Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Text.Length, RelativeSource={RelativeSource Self}}" Value="0">
+                                <Setter TargetName="PlaceholderText" Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Text.Length, RelativeSource={RelativeSource Self}}" Value="1">
+                                <Setter TargetName="PlaceholderText" Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </Page.Resources>
 
-    <DockPanel Background="#EAEAEA">
-        <!-- Toolbar Section at the Top -->
-        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" HorizontalAlignment="Left" Margin="10,10,0,10" VerticalAlignment="Center">
+    <Page.DataContext>
+        <vm:MainPageViewModel />
+    </Page.DataContext>
 
-            <!-- Shape and Action Buttons -->
-            <StackPanel Orientation="Horizontal" Margin="0,0,20,0">
-                <Button Content="Pencil" Click="Pencil_Click"/>
-                <Button Content="Line" Click="Line_Click"/>
-                <Button Content="Circle" Click="Circle_Click"/>
-                <Button Content="Text" Click="Text_Click"/>
-                <Button Content="Select" Click="Select_Click"/>
-                <Button Content="Delete" Click="DeleteButton_Click"/>
-                <CheckBox Name="ServerCheckBox" Content="Server Mode" Checked="HostCheckBox_Checked" 
-                      Unchecked="HostCheckBox_Unchecked" Margin="0,0,10,0" />
-                <CheckBox Name="ClientCheckBox" Content="Client Mode" Checked="ClientCheckBox_Checked" 
-                      Unchecked="ClientCheckBox_Unchecked" />
-                <TextBlock x:Name="StatusTextBlock" Text="Status: Disconnected" Margin="10" FontSize="14" Foreground="Red"/>
-
-                <!-- Other UI elements -->
-            </StackPanel>
+    <Page.InputBindings>
+        <!-- Bind Shift + Z key to UndoCommand -->
+        <KeyBinding Key="Z" Modifiers="Shift" Command="{Binding UndoCommand}" />
+        <KeyBinding Key="X" Modifiers="Shift" Command="{Binding RedoCommand}" />
+    </Page.InputBindings>
 
 
+    <Grid Background="#F5F5F5">
+        <!-- Define two rows: one for the toolbar, one for the canvas -->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
-            <!-- Clear Button -->
-            <Button Name="clearButton" Content="Clear" Click="ClearButton_Click"/>
+        <!-- Toolbar Section -->
+        <Border Grid.Row="0" Padding="10" Margin="10">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#E0E0E0" Offset="0.0" />
+                    <GradientStop Color="#C0C0C0" Offset="1.0" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <ScrollViewer HorizontalScrollBarVisibility="Auto">
 
-            <!-- Hidden Text Input for 'Text' Tool -->
-            <TextBox x:Name="textInput" Visibility="Collapsed"/>
-            
-            <StackPanel Orientation="Horizontal" Margin="6">
-                <TextBlock Text="Stroke Thickness:" VerticalAlignment="Center" Margin="0,0,5,0"/>
-                <ComboBox x:Name="ThicknessPicker" Width="60" SelectionChanged="ThicknessPicker_SelectionChanged">
-                    <ComboBoxItem Content="1"/>
-                    <ComboBoxItem Content="2" IsSelected="True"/>
-                    <!-- Default selected thickness -->
-                    <ComboBoxItem Content="3"/>
-                    <ComboBoxItem Content="4"/>
-                    <ComboBoxItem Content="5"/>
-                    <ComboBoxItem Content="6"/>
-                    <ComboBoxItem Content="7"/>
-                    <ComboBoxItem Content="8"/>
-                    <ComboBoxItem Content="9"/>
-                    <ComboBoxItem Content="10"/>
-                </ComboBox>
-            </StackPanel>
-            <!-- Color Picker Dropdown -->
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,20,0">
-                <TextBlock Text="Color:" VerticalAlignment="Center"/>
-                <ComboBox x:Name="colorPicker" SelectionChanged="ColorPicker_SelectionChanged">
-                    <ComboBoxItem Content="Black" IsSelected="True"/>
-                    <ComboBoxItem Content="Red"/>
-                    <ComboBoxItem Content="Blue"/>
-                    <ComboBoxItem Content="Green"/>
-                </ComboBox>
-            </StackPanel>
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Background="#EAEAEA" Margin="10,10,0,10">
+                    <Button Style="{StaticResource ToolBarStyle}" 
+                        Command="{Binding SelectToolCommand}" 
+                        CommandParameter="{x:Static models:ShapeType.Pencil}" 
+                        ToolTip="Pencil">
+                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                            <Image Source="Assets/PencilIcon.png" Width="20" Height="20"/>
+                            <TextBlock Text="Pencil" HorizontalAlignment="Center" FontSize="12"/>
+                        </StackPanel>
+                    </Button>
 
-            <!-- Port TextBox (Hidden by Default) -->
-            <TextBox x:Name="PortTextBox" Visibility="Collapsed"/>
-        </StackPanel>
+                    <Button Style="{StaticResource ToolBarStyle}" 
+                            Command="{Binding SelectToolCommand}" 
+                            CommandParameter="{x:Static models:ShapeType.Line}" 
+                            ToolTip="Line">
+                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                            <Image Source="Assets/LineIcon.png" Width="20" Height="20"/>
+                            <TextBlock Text="Line" HorizontalAlignment="Center" FontSize="12"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource ToolBarStyle}" 
+                        Command="{Binding SelectToolCommand}" 
+                        CommandParameter="{x:Static models:ShapeType.Circle}" 
+                        ToolTip="Circle">
+                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                            <Image Source="Assets/circleicon.png" Width="20" Height="20"/>
+                            <TextBlock Text="Circle" HorizontalAlignment="Center" FontSize="12"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource ToolBarStyle}" 
+                        Command="{Binding SelectToolCommand}" 
+                        CommandParameter="{x:Static models:ShapeType.Text}" 
+                        ToolTip="Text">
+                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                            <Image Source="Assets/texticon.png" Width="20" Height="20"/>
+                            <TextBlock Text="Text" HorizontalAlignment="Center" FontSize="12"/>
+                        </StackPanel>
+                    </Button>
 
-        <!-- Drawing Canvas -->
-        <Canvas x:Name="drawingCanvas" Background="White" Margin="10" />
-    </DockPanel>
+                    <Button Style="{StaticResource ToolBarStyle}" 
+                        Command="{Binding SelectToolCommand}" 
+                        CommandParameter="{x:Static models:ShapeType.Select}" 
+                        ToolTip="Select">
+                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                            <Image Source="Assets/selecticon.png" Width="20" Height="20"/>
+                            <TextBlock Text="Select" HorizontalAlignment="Center" FontSize="12"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource ToolBarStyle}" 
+                    Command="{Binding DeleteShapeCommand}" IsEnabled="{Binding IsShapeSelected}" 
+                    ToolTip="Delete">
+                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                            <Image Source="Assets/deleteicon.png" Width="20" Height="20"/>
+                            <TextBlock Text="Delete" HorizontalAlignment="Center" FontSize="12"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource ToolBarStyle}" 
+                    Command="{Binding UndoCommand}"
+                    ToolTip="Undo">
+                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                            <Image Source="Assets/undo-circle.png" Width="20" Height="20"/>
+                            <TextBlock Text="Undo" HorizontalAlignment="Center" FontSize="12"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Style="{StaticResource ToolBarStyle}" 
+                    Command="{Binding RedoCommand}"
+                    ToolTip="Redo">
+                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                            <Image Source="Assets/redo-circle.png" Width="20" Height="20"/>
+                            <TextBlock Text="Redo" HorizontalAlignment="Center" FontSize="12"/>
+                        </StackPanel>
+                    </Button>
+                    <!-- Toggle Buttons for Server and Client Modes -->
+                    <ToggleButton Style="{StaticResource ToolBarToggleStyle}" 
+                                  Command="{Binding StartHostCommand}" 
+                                  IsChecked="{Binding IsHost, Mode=TwoWay}" 
+                                  ToolTip="Server Mode">
+                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                            <Image Source="Assets/servericon.png" Width="20" Height="20"/>
+                            <TextBlock Text="Server" HorizontalAlignment="Center" FontSize="12"/>
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton Style="{StaticResource ToolBarToggleStyle}" 
+                          Command="{Binding StartClientCommand}" 
+                          IsChecked="{Binding IsClient, Mode=TwoWay}" 
+                          ToolTip="Client Mode">
+                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                            <Image Source="Assets/clienticon.png" Width="20" Height="20"/>
+                            <TextBlock Text="Client" HorizontalAlignment="Center" FontSize="12"/>
+                        </StackPanel>
+                    </ToggleButton>
+                    <!-- New controls for color selection -->
+                    <!--<TextBlock Text="Red:" VerticalAlignment="Center" Margin="10,0,0,0"/>
+            <Slider Margin="10" VerticalAlignment="Center" Minimum="0" Maximum="255" Width="100" Value="{Binding Red, Mode=TwoWay}" />
+            <TextBlock Text="Green:" VerticalAlignment="Center" Margin="10,0,0,0"/>
+            <Slider Margin="10" VerticalAlignment="Center" Minimum="0" Maximum="255" Width="100" Value="{Binding Green, Mode=TwoWay}" />
+            <TextBlock Text="Blue:" VerticalAlignment="Center" Margin="10,0,0,0"/>
+            <Slider Margin="10"  VerticalAlignment="Center" Minimum="0" Maximum="255" Width="100" Value="{Binding Blue, Mode=TwoWay}" />-->
+                    <!-- Display selected color -->
+                    <!-- start -->
+                    <ToggleButton x:Name="PaletteToggleButton"
+                      Style="{StaticResource ToolBarToggleStyle}"
+                      ToolTip="Color Palette"
+                      Checked="PaletteToggleButton_Checked"
+                      Unchecked="PaletteToggleButton_Unchecked">
+                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                            <Image Source="Assets/palette.png" Width="20" Height="20"/>
+                            <TextBlock Text="Palette" HorizontalAlignment="Center" FontSize="12"/>
+                        </StackPanel>
+                    </ToggleButton>
+                    <!-- Popup containing color options -->
+                    <Popup x:Name="ColorPopup"
+               PlacementTarget="{Binding ElementName=PaletteToggleButton}"
+               Placement="Bottom"
+               StaysOpen="False"
+               AllowsTransparency="True"
+               PopupAnimation="Fade">
+                        <Border Background="White" 
+                    BorderBrush="Gray" 
+                    BorderThickness="1" 
+                    CornerRadius="5"
+                    Padding="10">
+                            <WrapPanel>
+                                <!-- Define color buttons -->
+                                <Button Style="{StaticResource CircularColorButton}" Background="Black" Command="{Binding SelectColorCommand}" CommandParameter="Black" Margin="5"/>
+                                <Button Style="{StaticResource CircularColorButton}" Background="Red" Command="{Binding SelectColorCommand}" CommandParameter="Red" Margin="5"/>
+                                <Button Style="{StaticResource CircularColorButton}" Background="Green" Command="{Binding SelectColorCommand}" CommandParameter="Green" Margin="5"/>
+                                <Button Style="{StaticResource CircularColorButton}" Background="Blue" Command="{Binding SelectColorCommand}" CommandParameter="Blue" Margin="5"/>
+                                <Button Style="{StaticResource CircularColorButton}" Background="Yellow" Command="{Binding SelectColorCommand}" CommandParameter="Yellow" Margin="5"/>
+                                <Button Style="{StaticResource CircularColorButton}" Background="Orange" Command="{Binding SelectColorCommand}" CommandParameter="Orange" Margin="5"/>
+                                <Button Style="{StaticResource CircularColorButton}" Background="Purple" Command="{Binding SelectColorCommand}" CommandParameter="Purple" Margin="5"/>
+                                <!-- Add more colors as needed -->
+                            </WrapPanel>
+                        </Border>
+                    </Popup>
+                    <Ellipse Width="20" Height="20" Stroke="Black" Margin="0,0,10,0">
+                        <Ellipse.Fill>
+                            <SolidColorBrush Color="{Binding SelectedColor}" />
+                        </Ellipse.Fill>
+                    </Ellipse>
+                    <!-- Thickness Slider -->
+                    <StackPanel VerticalAlignment="Center" Orientation="Vertical" HorizontalAlignment="Center" Margin="10,0,0,0">
+                        <Image Source="Assets/thickness.png" Width="20" Height="20"/>
+                        <TextBlock Text="Thickness" HorizontalAlignment="Center" FontSize="12"/>
+                    </StackPanel>
+                    
+                    <Slider Margin="0,0,15,0" VerticalAlignment="Center" Minimum="1" Maximum="10" Width="100" Value="{Binding SelectedThickness, Mode=TwoWay}"  TickFrequency="1" 
+Ticks="1,5,10"
+IsSnapToTickEnabled="True" />
+
+
+                    <Button x:Name="UploadButton"
+                        Style="{StaticResource ToolBarStyle}" 
+                ToolTip="Upload"
+                Click="UploadButton_Click">
+                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                            <Image Source="Assets/cloud-upload.png" Width="20" Height="20"/>
+                            <TextBlock Text="Snap" HorizontalAlignment="Center" FontSize="12"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Popup containing the TextBox for filename -->
+                    <!-- Popup containing the TextBox for filename -->
+                    <Popup x:Name="UploadPopup"
+       PlacementTarget="{Binding ElementName=UploadButton}"
+       Placement="Bottom"
+       StaysOpen="False"
+       AllowsTransparency="True"
+       PopupAnimation="Fade">
+                        <Border Background="White" 
+            BorderBrush="Gray" 
+            BorderThickness="1" 
+            CornerRadius="5"
+            Padding="10">
+                            <StackPanel>
+                                <!-- TextBox with Placeholder -->
+                                <TextBox Style="{StaticResource WatermarkTextBox}" 
+                     Text="{Binding SnapShotFileName, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+                                <!-- Submit Button -->
+                                <Button Content="Submit"
+                    Width="60"
+                    Height="25"
+                    HorizontalAlignment="Right"
+                    Margin="0,10,0,0"
+                    Click="SubmitFileName_Click"/>
+                            </StackPanel>
+                        </Border>
+                    </Popup>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <!-- Canvas Section -->
+        <ItemsControl Grid.Row="1" ItemsSource="{Binding Shapes}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Canvas Background="White"
+                            MouseLeftButtonDown="Canvas_MouseLeftButtonDown"
+                            MouseMove="Canvas_MouseMove"
+                            MouseLeftButtonUp="Canvas_MouseLeftButtonUp" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+
+            <!-- Define templates for each shape type -->
+            <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="{x:Type models:ShapeBase}">
+                    <ContentControl Content="{Binding}">
+                        <ContentControl.Resources>
+                            <!-- CircleShape Template -->
+                            <DataTemplate DataType="{x:Type models:CircleShape}">
+                                <Canvas>
+                                    <Ellipse Width="{Binding Width}" Height="{Binding Height}"
+                                             Stroke="{Binding Color}" StrokeThickness="{Binding StrokeThickness}"
+                                             Canvas.Left="{Binding Left}" Canvas.Top="{Binding Top}" />
+                                    <Rectangle Width="{Binding Width}" Height="{Binding Height}"
+                                               Stroke="Blue" StrokeThickness="1" StrokeDashArray="2"
+                                               Canvas.Left="{Binding Left}" Canvas.Top="{Binding Top}"
+                                               Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}" />
+
+                                    <Rectangle Width="{Binding HandleSize}" Height="{Binding HandleSize}" Fill="White" Stroke="Black"
+                                               Canvas.Left="{Binding Left}" Canvas.Top="{Binding Top}"
+                                               Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                               Cursor="SizeNWSE"
+                                               MouseLeftButtonDown="ResizeHandle_MouseLeftButtonDown"
+                                               MouseMove="ResizeHandle_MouseMove"
+                                               MouseLeftButtonUp="ResizeHandle_MouseLeftButtonUp"
+                                               Tag="TopLeft" />
+                                 <!--   <Rectangle Width="{Binding HandleSize}" Height="{Binding HandleSize}" Fill="White" Stroke="Black"
+                                               Canvas.Left="{Binding TopRightHandleX}" Canvas.Top="{Binding Top}"
+                                               Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                               Cursor="SizeNWSE"
+                                               MouseLeftButtonDown="ResizeHandle_MouseLeftButtonDown"
+                                               MouseMove="ResizeHandle_MouseMove"
+                                               MouseLeftButtonUp="ResizeHandle_MouseLeftButtonUp"
+                                               Tag="TopLeft" />
+                                    <Rectangle Width="{Binding HandleSize}" Height="{Binding HandleSize}" Fill="White" Stroke="Black"
+                                               Canvas.Left="{Binding Left}" Canvas.Top="{Binding DownLeftHandleY}"
+                                               Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                               Cursor="SizeNWSE"
+                                               MouseLeftButtonDown="ResizeHandle_MouseLeftButtonDown"
+                                               MouseMove="ResizeHandle_MouseMove"
+                                               MouseLeftButtonUp="ResizeHandle_MouseLeftButtonUp"
+                                               Tag="TopLeft" />
+
+                                    <Rectangle Width="{Binding HandleSize}" Height="{Binding HandleSize}" Fill="White" Stroke="Black"
+                                               Canvas.Left="{Binding TopRightHandleX}" Canvas.Top="{Binding DownLeftHandleY}"
+                                               Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                               Cursor="SizeNWSE"
+                                               MouseLeftButtonDown="ResizeHandle_MouseLeftButtonDown"
+                                               MouseMove="ResizeHandle_MouseMove"
+                                               MouseLeftButtonUp="ResizeHandle_MouseLeftButtonUp"
+                                               Tag="TopLeft" /> -->
+
+
+                                </Canvas>
+                            </DataTemplate>
+
+                            <!-- LineShape Template -->
+                            <DataTemplate DataType="{x:Type models:LineShape}">
+                                <Canvas>
+                                    <Line X1="{Binding StartX}" Y1="{Binding StartY}"
+                                      X2="{Binding EndX}" Y2="{Binding EndY}"
+                                      Stroke="{Binding Color}" StrokeThickness="{Binding StrokeThickness}" />
+                                    <Rectangle Width="{Binding Width}" Height="{Binding Height}"
+                                            Stroke="Blue" StrokeThickness="1" StrokeDashArray="2"
+                                            Canvas.Left="{Binding Left}" Canvas.Top="{Binding Top}"
+                                            Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                </Canvas>
+                            </DataTemplate>
+
+                            <!-- ScribbleShape Template -->
+                            <DataTemplate DataType="{x:Type models:ScribbleShape}">
+                                <Canvas>
+                                    <Polyline Points="{Binding PointCollection}" Stroke="{Binding Color}" StrokeThickness="{Binding StrokeThickness}" />
+                                    <!-- Bounding box if selected -->
+                                    <Rectangle Width="{Binding Width}" Height="{Binding Height}"
+                                            Stroke="Blue" StrokeThickness="1" StrokeDashArray="2"
+                                            Canvas.Left="{Binding Left}" Canvas.Top="{Binding Top}"
+                                            Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                </Canvas>
+                            </DataTemplate>
+
+                            <DataTemplate DataType="{x:Type models:TextboxModel}">
+                                <Canvas>
+                                    <TextBox Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"
+                                             Width="{Binding Width}"
+                                             Height="{Binding Height}"
+                                             Canvas.Left="{Binding X}"
+                                             Canvas.Top="{Binding Y}"
+                                             FontSize="{Binding FontSize}"
+                                             Background="{Binding Background}"
+                                             BorderBrush="{Binding BorderBrush}"
+                                             AcceptsReturn="False">
+                                        <TextBox.InputBindings>
+                                            <KeyBinding Key="Enter"
+                                                        Command="{Binding DataContext.FinalizeTextBoxCommand, RelativeSource={RelativeSource AncestorType=Page}}" />
+                                            <KeyBinding Key="Escape"
+                                                        Command="{Binding DataContext.CancelTextBoxCommand, RelativeSource={RelativeSource AncestorType=Page}}" />
+                                        </TextBox.InputBindings>
+                                    </TextBox>
+                                    <!-- Bounding box if selected -->
+                                    <Rectangle Width="{Binding Width}" Height="{Binding Height}"
+                                               Stroke="Blue" StrokeThickness="1" StrokeDashArray="2"
+                                               Canvas.Left="{Binding Left}" Canvas.Top="{Binding Top}"
+                                               Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                </Canvas>
+                            </DataTemplate>
+
+                            <!-- TextShape Template -->
+                            <DataTemplate DataType="{x:Type models:TextShape}">
+                                <Canvas>
+                                    <TextBlock Text="{Binding Text}" Foreground="{Binding Foreground}" FontSize="{Binding FontSize}"
+                                               Canvas.Left="{Binding X}" Canvas.Top="{Binding Y}" />
+                                    <!-- Bounding box if selected -->
+                                    <Rectangle Width="{Binding Width}" Height="{Binding Height}"
+                                               Stroke="Blue" StrokeThickness="1" StrokeDashArray="2"
+                                               Canvas.Left="{Binding Left}" Canvas.Top="{Binding Top}"
+                                               Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                </Canvas>
+                            </DataTemplate>
+                        </ContentControl.Resources>
+                    </ContentControl>
+
+
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </Grid>
 </Page>

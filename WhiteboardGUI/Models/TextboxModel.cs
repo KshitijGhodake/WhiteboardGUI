@@ -4,20 +4,33 @@ using System.Windows.Media;
 
 namespace WhiteboardGUI.Models
 {
-    public class TextShape : ShapeBase
+    public class TextboxModel : ShapeBase
     {
-        public override string ShapeType => "TextShape";
+        public override string ShapeType => "TextboxModel";
 
         private string _text;
+        private double _width;
+        private double _height;
         private double _x;
         private double _y;
         private double _fontSize;
 
-
         public string Text
         {
             get => _text;
-            set { _text = value; OnPropertyChanged(nameof(Text)); OnPropertyChanged(nameof(Width)); }
+            set { _text = value; OnPropertyChanged(nameof(Text)); }
+        }
+
+        public double Width
+        {
+            get => _width;
+            set { _width = value; OnPropertyChanged(nameof(Width)); }
+        }
+
+        public double Height
+        {
+            get => _height;
+            set { _height = value; OnPropertyChanged(nameof(Height)); }
         }
 
         public double X
@@ -35,18 +48,16 @@ namespace WhiteboardGUI.Models
         public double FontSize
         {
             get => _fontSize;
-            set { _fontSize = value; OnPropertyChanged(nameof(FontSize)); OnPropertyChanged(nameof(Height)); OnPropertyChanged(nameof(Width)); }
+            set { _fontSize = value; OnPropertyChanged(nameof(FontSize)); }
         }
 
         // Properties for binding in XAML
         public double Left => X;
         public double Top => Y;
 
+        public Brush Background => new SolidColorBrush(Colors.LightGray);
+        public Brush BorderBrush => new SolidColorBrush(Colors.Blue);
         public Brush Foreground => new SolidColorBrush((Color)ColorConverter.ConvertFromString(Color));
-
-        // Estimate Width and Height based on text length and font size
-        public double Width => EstimateTextWidth();
-        public double Height => EstimateTextHeight();
 
         // Implement IsSelected property
         private bool _isSelected;
@@ -62,20 +73,9 @@ namespace WhiteboardGUI.Models
             return new Rect(Left, Top, Width, Height);
         }
 
-        // Methods to estimate text dimensions
-        private double EstimateTextWidth()
-        {
-            return Text.Length * FontSize * 0.5; // Adjust the multiplier based on average character width
-        }
-
-        private double EstimateTextHeight()
-        {
-            return FontSize * 1.2; // Adjust based on line height
-        }
-
         public override IShape Clone()
         {
-            return new TextShape
+            return new TextboxModel
             {
                 ShapeId = this.ShapeId, // Assign a new unique ID
                 UserID = this.UserID,
@@ -84,10 +84,12 @@ namespace WhiteboardGUI.Models
                 LastModifierID = this.LastModifierID,
                 IsSelected = false, // New shape should not be selected by default
                 Text = this.Text,
+                Width = this.Width,
+                Height = this.Height,
                 X = this.X,
                 Y = this.Y,
                 FontSize = this.FontSize
-                // If ShapeBase has additional properties, copy them here
+                // Copy additional properties from ShapeBase if necessary
             };
         }
 

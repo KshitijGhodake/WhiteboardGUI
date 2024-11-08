@@ -1,17 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.ComponentModel;
+using System.Windows;
 
 namespace WhiteboardGUI.Models
 {
-    public abstract class IShape
+    public interface IShape : INotifyPropertyChanged
     {
-        public string ShapeType { get; set; }
-        public string Color { get; set; } 
-        public double StrokeThickness { get; set; }
-        public Guid ShapeId { get; set; }
-        public double UserID { get; set; }
+        Guid ShapeId { get; set; }
+        string ShapeType { get; }
+        string Color { get; set; }
+        double StrokeThickness { get; set; }
+        double UserID { get; set; }
+        double LastModifierID { get; set; }
+
+        bool IsSelected { get; set; }
+        Rect GetBounds();
+
+        IShape Clone();
     }
 }
