@@ -11,6 +11,8 @@ using System.Windows.Xps;
 using WhiteboardGUI.ViewModel;
 using System.Windows.Shapes;
 using System.Windows.Controls;
+using System.Linq;
+using Microsoft.Windows.Input;
 
 namespace WhiteboardGUI.ViewModel
 {
@@ -22,10 +24,11 @@ namespace WhiteboardGUI.ViewModel
         private IShape _selectedShape;
         private ShapeType _currentTool = ShapeType.Pencil;
         private Point _startPoint;
+        private Point _lastMousePosition;
         private bool _isSelecting;
         private bool _isDragging;
         public ObservableCollection<IShape> _shapes;
-        
+
         //for textbox
         private string _textInput;
         private bool _isTextBoxActive;
@@ -35,12 +38,64 @@ namespace WhiteboardGUI.ViewModel
         // bouding box
         private bool isBoundingBoxActive;
 
+        private byte _red = 0;
+        public byte Red
+        {
+            get => _red;
+            set { _red = value; OnPropertyChanged(nameof(Red)); UpdateSelectedColor(); }
+        }
 
+        private byte _green = 0;
+        public byte Green
+        {
+            get => _green;
+            set { _green = value; OnPropertyChanged(nameof(Green)); UpdateSelectedColor(); }
+        }
+
+        private byte _blue = 0;
+        public byte Blue
+        {
+            get => _blue;
+            set { _blue = value; OnPropertyChanged(nameof(Blue)); UpdateSelectedColor(); }
+        }
+
+        private double SelectedThickness = 2.0;
+        //public double SelectedThickness
+        //{
+        //    get => _selectedThickness;
+        //    set
+        //    {
+        //        _selectedThickness = value;
+        //        OnPropertyChanged(nameof(SelectedThickness));
+        //        if (SelectedShape != null)
+        //        {
+        //            UpdateSelectedShapeProperties();
+        //        }
+        //    }
+        //}
+
+        private Color SelectedColor = Colors.Black;
+        //public Color SelectedColor
+        //{
+        //    get => _selectedColor;
+        //    set
+        //    {
+        //        _selectedColor = value;
+        //        OnPropertyChanged(nameof(SelectedColor));
+        //        if (SelectedShape != null)
+        //        {
+        //            UpdateSelectedShapeProperties();
+        //        }
+        //    }
+        //}
         public string TextInput
         {
             get => _textInput;
-            set { _textInput = value; OnPropertyChanged(nameof(TextInput));
-                Debug.WriteLine(_textInput); }
+            set
+            {
+                _textInput = value; OnPropertyChanged(nameof(TextInput));
+                Debug.WriteLine(_textInput);
+            }
         }
 
         public bool IsTextBoxActive
@@ -56,9 +111,6 @@ namespace WhiteboardGUI.ViewModel
 
         public Rect TextBoxBounds { get; set; }
 
-        private double txx;
-        private double tyy;
-
         public double TextBoxFontSize { get; set; } = 16;
 
         // Visibility property that directly converts IsTextBoxActive to a Visibility value
@@ -69,17 +121,65 @@ namespace WhiteboardGUI.ViewModel
             get => _shapes;
             set { _shapes = value; OnPropertyChanged(nameof(Shapes)); }
         }
+        private string _snapShotFileName;
+        public string SnapShotFileName
+        {
+            get => _snapShotFileName;
+            set { _snapShotFileName = value; }
+        }
 
         public IShape SelectedShape
         {
             get => _selectedShape;
-            set { _selectedShape = value; OnPropertyChanged(nameof(SelectedShape)); }
+            set
+            {
+                if (_selectedShape != value)
+                {
+                    if (_selectedShape != null)
+                    {
+                        _selectedShape.IsSelected = false;
+                    }
+
+                    _selectedShape = value;
+
+                    if (_selectedShape != null)
+                    {
+                        _selectedShape.IsSelected = true;
+                    }
+
+                    OnPropertyChanged(nameof(SelectedShape));
+                    OnPropertyChanged(nameof(IsShapeSelected));
+                    UpdateColorAndThicknessFromSelectedShape();
+                }
+            }
         }
+
+        private void UpdateColorAndThicknessFromSelectedShape()
+        {
+            if (SelectedShape == null) return;
+
+            // Parse color from SelectedShape.Color
+            try
+            {
+                var color = (Color)ColorConverter.ConvertFromString(SelectedShape.Color);
+                Red = color.R;
+                Green = color.G;
+                Blue = color.B;
+            }
+            catch
+            {
+                // Ignore parsing errors
+            }
+
+            SelectedThickness = SelectedShape.StrokeThickness;
+        }
+
+        public bool IsShapeSelected => SelectedShape != null;
 
         public ShapeType CurrentTool
         {
             get => _currentTool;
-            set 
+            set
             {
                 //without textbox
                 _currentTool = value; OnPropertyChanged(nameof(CurrentTool));
@@ -89,10 +189,9 @@ namespace WhiteboardGUI.ViewModel
         public bool IsHost { get; set; }
         public bool IsClient { get; set; }
 
-        public Brush SelectedColor { get; set; } = Brushes.Black;
-        public double SelectedThickness { get; set; } = 2.0;
 
-        
+
+
 
         // Commands
         public ICommand StartHostCommand { get; }
@@ -141,7 +240,7 @@ namespace WhiteboardGUI.ViewModel
             {
                 if (parameter is Tuple<IShape, string> args)
                 {
-                    DrawShape(args.Item1, args.Item2);
+                    RenderShape(args.Item1, args.Item2);
                 }
             });
 
@@ -155,19 +254,42 @@ namespace WhiteboardGUI.ViewModel
             CancelTextBoxCommand = new RelayCommand(CancelTextBox);
             UndoCommand = new RelayCommand(CallUndo);
             RedoCommand = new RelayCommand(CallRedo);
+
+            Red = 0;
+            Green = 0;
+            Blue = 0;
+            UpdateSelectedColor();
+
         }
 
+        private void UpdateSelectedColor()
+        {
+            SelectedColor = Color.FromRgb(Red, Green, Blue);
+        }
+
+        private void UpdateSelectedShapeProperties()
+        {
+            if (SelectedShape == null) return;
+
+            SelectedShape.Color = SelectedColor.ToString();
+            SelectedShape.StrokeThickness = SelectedThickness;
+
+            // Notify property changes for the shape
+            if (SelectedShape is ShapeBase shapeBase)
+            {
+                shapeBase.OnPropertyChanged(nameof(SelectedShape.Color));
+                shapeBase.OnPropertyChanged(nameof(SelectedShape.StrokeThickness));
+            }
+
+            // Broadcast updated shape
+            RenderShape(SelectedShape, "MODIFY");
+            //_networkingService.BroadcastShapeData(updateMessage, -1);
+        }
         private void CallUndo()
         {
             if (_undoRedoService.UndoList.Count > 0)
             {
-                var prevShape = _undoRedoService.UndoList[_undoRedoService.UndoList.Count - 1].Item2;
-                var currentShape = _undoRedoService.UndoList[_undoRedoService.UndoList.Count - 1].Item1;
-                _undoRedoService.Undo();
-                if (prevShape == null)
-                {
-                    DeleteShape(currentShape);
-                }
+                RenderShape(null, "UNDO");
             }
 
         }
@@ -176,24 +298,18 @@ namespace WhiteboardGUI.ViewModel
         {
             if (_undoRedoService.RedoList.Count > 0)
             {
-                var prevShape = _undoRedoService.RedoList[_undoRedoService.RedoList.Count - 1].Item2;
-                var currentShape = _undoRedoService.RedoList[_undoRedoService.RedoList.Count - 1].Item1;
-                _undoRedoService.Redo();
-                if (currentShape == null)
-                {
-                    DrawShape(prevShape, "REDO");
-                }
+                RenderShape(null, "REDO");
             }
-
         }
 
         // Methods
         private async System.Threading.Tasks.Task TriggerHostCheckbox()
         {
-            if (IsHost==true){
-            Debug.WriteLine("ViewModel host start");
-            await _networkingService.StartHost();
-        }
+            if (IsHost == true)
+            {
+                Debug.WriteLine("ViewModel host start");
+                await _networkingService.StartHost();
+            }
             else
             {
                 _networkingService.StopHost();
@@ -202,7 +318,6 @@ namespace WhiteboardGUI.ViewModel
 
         private async System.Threading.Tasks.Task TriggerClientCheckBox(int port)
         {
-            //IsClient = true;
             Debug.WriteLine("IsClient:", IsClient.ToString());
             if (IsClient == false)
             {
@@ -221,7 +336,7 @@ namespace WhiteboardGUI.ViewModel
             _networkingService.StopHost();
         }
 
-     
+
 
         private void SelectTool(ShapeType tool)
         {
@@ -229,53 +344,165 @@ namespace WhiteboardGUI.ViewModel
             //for textbox
             //TextInput = string.Empty;
         }
-
-        private void DrawShape(IShape shape, string command)
+        private IShape UpdateSynchronizedShapes(IShape shape)
         {
-            if (shape == null) return;
-            if (command != "CREATE")
-            {
-                Shapes.Add(shape);
-            }
-
-            shape.LastModifierID = _networkingService._clientID;
-            string serializedShape = SerializationService.SerializeShape(shape);
-
-            _networkingService.BroadcastShapeData(serializedShape, -1);
-
-            if (command == "REDO") { return; }
-            _undoRedoService.UpdateLastModified(shape, null);
-            
+            var prevShape = _networkingService._synchronizedShapes.Where(s => s.ShapeId == shape.ShapeId && s.UserID == shape.UserID).FirstOrDefault();
+            _networkingService._synchronizedShapes.Remove(prevShape);
+            _networkingService._synchronizedShapes.Add(shape);
+            return prevShape;
         }
 
-        
+        private void RenderShape(IShape currentShape, string command)
+        {
+          
+            if (command == "CREATE")
+            {
+                var newShape = currentShape.Clone();
+                _networkingService._synchronizedShapes.Add(newShape);
+                _undoRedoService.UpdateLastDrawing(newShape, null);
+
+            }
+            else if (command == "MODIFY")
+            {
+                var newShape = currentShape.Clone();
+                var prevShape = UpdateSynchronizedShapes(newShape);
+                _undoRedoService.UpdateLastDrawing(newShape, prevShape);
+
+            }
+            else if (command == "UNDO")
+            {
+                var prevShape = _undoRedoService.UndoList[_undoRedoService.UndoList.Count - 1].Item1;
+                var _currentShape = _undoRedoService.UndoList[_undoRedoService.UndoList.Count - 1].Item2;
+                if (_currentShape == null)
+                {
+                    currentShape = prevShape;
+                    foreach (var s in Shapes)
+                    {
+                        if (s.ShapeId == currentShape.ShapeId)
+                        {
+                            Shapes.Remove(s);
+                            break;
+                        }
+                    }
+                    _networkingService._synchronizedShapes.Remove(currentShape);
+                    prevShape.LastModifierID = _networkingService._clientID;
+                    command = "DELETE";
+                }
+                else if (prevShape == null)
+                {
+                    currentShape = _currentShape;
+                    var newShape = currentShape.Clone();
+                    Shapes.Add(newShape);
+                    _networkingService._synchronizedShapes.Add(newShape);
+                    command = "CREATE";
+                }
+                else
+                {
+                    currentShape = _currentShape;
+                    var newShape = currentShape.Clone();
+                    UpdateSynchronizedShapes(newShape);
+                    foreach (var s in Shapes)
+                    {
+                        if (s.ShapeId == prevShape.ShapeId)
+                        {
+                            Shapes.Remove(s);
+                            break;
+                        }
+                    }
+                    Shapes.Add(currentShape);
+                    _currentShape.LastModifierID = _networkingService._clientID;
+                    command = "MODIFY";
+
+                }
+                _undoRedoService.Undo();
+            }
+            else if (command == "REDO")
+            {
+                var prevShape = _undoRedoService.RedoList[_undoRedoService.RedoList.Count - 1].Item1;
+                var _currentShape = _undoRedoService.RedoList[_undoRedoService.RedoList.Count - 1].Item2;
+                if (_currentShape == null)
+                {
+                    currentShape = prevShape;
+                    foreach (var s in Shapes)
+                    {
+                        if (s.ShapeId == prevShape.ShapeId)
+                        {
+                            Shapes.Remove(s);
+                            break;
+                        }
+                    }
+                    _networkingService._synchronizedShapes.Remove(currentShape);
+                    prevShape.LastModifierID = _networkingService._clientID;
+                    command = "DELETE";
+                }
+                else if (prevShape == null)
+                {
+                    currentShape = _currentShape;
+                    var newShape = currentShape.Clone();
+                    Shapes.Add(newShape);
+                    _networkingService._synchronizedShapes.Add(newShape);
+                    command = "CREATE";
+                }
+                else
+                {
+                    currentShape = _currentShape;
+                    var newShape = currentShape.Clone();
+                    UpdateSynchronizedShapes(newShape);
+                    foreach (var s in Shapes)
+                    {
+                        if (s.ShapeId == currentShape.ShapeId)
+                        {
+                            Shapes.Remove(s);
+                            break;
+                        }
+                    }
+                    Shapes.Add(currentShape);
+                    _currentShape.LastModifierID = _networkingService._clientID;
+                    command = "MODIFY";
+
+                }
+                _undoRedoService.Redo();
+            }
+            else if (command == "DELETE")
+            {
+                Shapes.Remove(currentShape);
+                _networkingService._synchronizedShapes.Remove(currentShape);
+                _undoRedoService.UpdateLastDrawing(null, currentShape);
+            }
+
+            currentShape.LastModifierID = _networkingService._clientID;
+            string serializedShape = SerializationService.SerializeShape(currentShape);
+            string serializedMessage = $"{command}:{serializedShape}";
+            Debug.WriteLine(serializedMessage);
+            _networkingService.BroadcastShapeData(serializedMessage, -1);
+
+        }
+
+
 
         private void SelectShape(IShape shape)
         {
-            SelectedShape = shape;
+            
         }
 
         private void DeleteShape(IShape shape)
         {
-            Shapes.Remove(shape);
-            _networkingService._synchronizedShapes.Remove(shape);
-            string serializedShape = SerializationService.SerializeShape(shape);
-            string deletionMessage = $"DELETE:{serializedShape}";
-            _networkingService.BroadcastShapeData(deletionMessage, -1);
+            RenderShape(shape, "DELETE");
         }
         private void DeleteSelectedShape()
         {
             if (SelectedShape != null)
             {
-                Shapes.Remove(SelectedShape);
-                _networkingService._synchronizedShapes.Remove(SelectedShape);
-                string serializedShape = SerializationService.SerializeShape(SelectedShape);
-                string deletionMessage = $"DELETE:{serializedShape}";
-                _networkingService.BroadcastShapeData(deletionMessage, -1);
+                RenderShape(SelectedShape, "DELETE");
                 SelectedShape = null;
             }
         }
-
+        private bool IsPointOverShape(IShape shape, Point point)
+        {
+            // Simple bounding box hit testing
+            Rect bounds = shape.GetBounds();
+            return bounds.Contains(point);
+        }
         private void OnCanvasMouseDown(MouseButtonEventArgs e)
         {
             // Pass the canvas as the element
@@ -287,12 +514,22 @@ namespace WhiteboardGUI.ViewModel
                 {
                     // Implement selection logic
                     _isSelecting = true;
+                    foreach (var shape in Shapes.Reverse())
+                    {
+                        if (IsPointOverShape(shape, _startPoint))
+                        {
+                            SelectedShape = shape;
+                            Debug.WriteLine(shape.IsSelected);
+                            _lastMousePosition = _startPoint;
+                            break;
+                        }
+                    }
                 }
-                if (CurrentTool == ShapeType.Text)
+                else if (CurrentTool == ShapeType.Text)
                 {
                     // If there's an active textbox, finalize it
                     //if (_currentTextboxModel != null && !string.IsNullOrEmpty(TextInput) )
-                    if(IsTextBoxActive==true)
+                    if (IsTextBoxActive == true)
                     {
                         FinalizeTextBox();
                     }
@@ -310,7 +547,7 @@ namespace WhiteboardGUI.ViewModel
                     TextInput = string.Empty;
                     IsTextBoxActive = true;
                     Shapes.Add(textboxModel);
-                    OnPropertyChanged(nameof(TextBoxVisibility));  
+                    OnPropertyChanged(nameof(TextBoxVisibility));
                 }
                 else
                 {
@@ -319,10 +556,44 @@ namespace WhiteboardGUI.ViewModel
                     if (newShape != null)
                     {
                         Shapes.Add(newShape);
-                        _networkingService._synchronizedShapes.Add(newShape);
                         SelectedShape = newShape;
                     }
                 }
+            }
+        }
+
+        private void MoveShape(IShape shape, Point currentPoint)
+        {
+            Vector delta = currentPoint - _lastMousePosition;
+
+            switch (shape)
+            {
+                case LineShape line:
+                    line.StartX += delta.X;
+                    line.StartY += delta.Y;
+                    line.EndX += delta.X;
+                    line.EndY += delta.Y;
+                    break;
+                case CircleShape circle:
+                    circle.CenterX += delta.X;
+                    circle.CenterY += delta.Y;
+                    break;
+                case ScribbleShape scribble:
+                    for (int i = 0; i < scribble.Points.Count; i++)
+                    {
+                        scribble.Points[i] = new Point(scribble.Points[i].X + delta.X, scribble.Points[i].Y + delta.Y);
+                    }
+                    break;
+                case TextShape text:
+                    text.X += delta.X;
+                    text.Y += delta.Y;
+                    break;
+            }
+
+            // Notify property changes
+            if (shape is ShapeBase shapeBase)
+            {
+                shapeBase.OnPropertyChanged(null); // Notify all properties have changed
             }
         }
 
@@ -335,7 +606,21 @@ namespace WhiteboardGUI.ViewModel
                 if (canvas != null)
                 {
                     Point currentPoint = e.GetPosition(canvas);
-                    UpdateShape(SelectedShape, currentPoint);
+                    if (e.LeftButton == MouseButtonState.Pressed)
+                    {
+                        if (CurrentTool == ShapeType.Select && SelectedShape != null)
+                        {
+                            MoveShape(SelectedShape, currentPoint);
+                            _lastMousePosition = currentPoint;
+                            
+                            
+                        }
+                        else if (SelectedShape != null)
+                        {
+                            UpdateShape(SelectedShape, currentPoint);
+                        }
+                    }
+
                 }
             }
         }
@@ -343,13 +628,22 @@ namespace WhiteboardGUI.ViewModel
         private void OnCanvasMouseUp(MouseButtonEventArgs e)
         {
             //without textbox
-            if (SelectedShape != null)
+            if (SelectedShape != null && !_isSelecting)
             {
                 // Finalize shape drawing
-                DrawShape(SelectedShape, "CREATE");
+                RenderShape(SelectedShape, "CREATE");
                 SelectedShape = null;
+                
+            }
+            else if (IsShapeSelected)
+            {
+                RenderShape(SelectedShape, "MODIFY");
+                Debug.WriteLine(SelectedShape.IsSelected);
+                //SelectedShape = null;
             }
             _isSelecting = false;
+
+
         }
 
         private IShape CreateShape(Point startPoint)
@@ -364,7 +658,7 @@ namespace WhiteboardGUI.ViewModel
                         StrokeThickness = SelectedThickness,
                         Points = new System.Collections.Generic.List<Point> { startPoint }
                     };
-                 
+
                     shape = scribbleShape;
                     break;
                 case ShapeType.Line:
@@ -377,7 +671,7 @@ namespace WhiteboardGUI.ViewModel
                         Color = SelectedColor.ToString(),
                         StrokeThickness = SelectedThickness
                     };
-                    
+
                     shape = lineShape;
                     break;
                 case ShapeType.Circle:
@@ -390,7 +684,7 @@ namespace WhiteboardGUI.ViewModel
                         Color = SelectedColor.ToString(),
                         StrokeThickness = SelectedThickness
                     };
-                
+
                     shape = circleShape;
                     break;
             }
@@ -421,17 +715,22 @@ namespace WhiteboardGUI.ViewModel
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
+                shape.IsSelected = false;
                 Shapes.Add(shape);
-                _networkingService._synchronizedShapes.Add(shape);
+                var newShape = shape.Clone();
+                _networkingService._synchronizedShapes.Add(newShape);
+                _undoRedoService.RemoveLastModified(_networkingService, shape);
             });
         }
 
-        private void OnShapeModified( IShape shape)
+        private void OnShapeModified(IShape shape)
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
+                shape.IsSelected = false;
                 Shapes.Add(shape);
-                _networkingService._synchronizedShapes.Add(shape);
+                var newShape = shape.Clone();
+                _networkingService._synchronizedShapes.Add(newShape);
                 _undoRedoService.RemoveLastModified(_networkingService, shape);
             });
         }
@@ -442,7 +741,14 @@ namespace WhiteboardGUI.ViewModel
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                Shapes.Remove(shape);
+                foreach (var s in Shapes)
+                {
+                    if (s.ShapeId == shape.ShapeId)
+                    {
+                        Shapes.Remove(s);
+                        break;
+                    }
+                }
                 _networkingService._synchronizedShapes.Remove(shape);
             });
         }
@@ -468,11 +774,7 @@ namespace WhiteboardGUI.ViewModel
                 textShape.UserID = _networkingService._clientID;
                 textShape.LastModifierID = _networkingService._clientID;
                 Shapes.Add(textShape);
-                _undoRedoService.UpdateLastModified(textShape, null);
-                _networkingService._synchronizedShapes.Add(textShape);
-                string serializedShape = SerializationService.SerializeShape(textShape);
-                _networkingService.BroadcastShapeData(serializedShape, -1);
-
+                RenderShape(textShape, "CREATE");
                 // Reset input and hide TextBox
                 TextInput = string.Empty;
                 IsTextBoxActive = false;

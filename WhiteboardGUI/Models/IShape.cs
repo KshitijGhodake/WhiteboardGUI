@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Windows;
 
 namespace WhiteboardGUI.Models
 {
@@ -11,5 +12,10 @@ namespace WhiteboardGUI.Models
         double StrokeThickness { get; set; }
         double UserID { get; set; }
         double LastModifierID { get; set; }
+
+        bool IsSelected { get; set; }
+        Rect GetBounds();
+
+        IShape Clone();
     }
 }

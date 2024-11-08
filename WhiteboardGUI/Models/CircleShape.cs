@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Media;
 
 namespace WhiteboardGUI.Models
@@ -7,7 +8,6 @@ namespace WhiteboardGUI.Models
     {
         public override string ShapeType => "Circle";
 
-        // Existing properties
         private double _centerX;
         private double _centerY;
         private double _radiusX;
@@ -16,32 +16,79 @@ namespace WhiteboardGUI.Models
         public double CenterX
         {
             get => _centerX;
-            set { _centerX = value; OnPropertyChanged(nameof(CenterX)); OnPropertyChanged(nameof(Left)); }
+            set
+            {
+                _centerX = value;
+                OnPropertyChanged(nameof(CenterX));
+                OnPropertyChanged(nameof(Left));
+            }
         }
 
         public double CenterY
         {
             get => _centerY;
-            set { _centerY = value; OnPropertyChanged(nameof(CenterY)); OnPropertyChanged(nameof(Top)); }
+            set
+            {
+                _centerY = value;
+                OnPropertyChanged(nameof(CenterY));
+                OnPropertyChanged(nameof(Top));
+            }
         }
 
         public double RadiusX
         {
             get => _radiusX;
-            set { _radiusX = value; OnPropertyChanged(nameof(RadiusX)); OnPropertyChanged(nameof(Width)); }
+            set
+            {
+                _radiusX = value;
+                OnPropertyChanged(nameof(RadiusX));
+                OnPropertyChanged(nameof(Left));
+                OnPropertyChanged(nameof(Width));
+            }
         }
 
         public double RadiusY
         {
             get => _radiusY;
-            set { _radiusY = value; OnPropertyChanged(nameof(RadiusY)); OnPropertyChanged(nameof(Height)); }
+            set
+            {
+                _radiusY = value;
+                OnPropertyChanged(nameof(RadiusY));
+                OnPropertyChanged(nameof(Top));
+                OnPropertyChanged(nameof(Height));
+            }
         }
 
-        // Properties for binding in XAML
-        public double Left => CenterX;
-        public double Top => CenterY;
+        // Corrected properties for binding in XAML
+        public double Left => CenterX - RadiusX;
+        public double Top => CenterY - RadiusY;
         public double Width => 2 * RadiusX;
         public double Height => 2 * RadiusY;
+
         public Brush Stroke => new SolidColorBrush((Color)ColorConverter.ConvertFromString(Color));
+
+        // Implement the GetBounds method
+        public override Rect GetBounds()
+        {
+            return new Rect(Left, Top, Width, Height);
+        }
+
+        public override IShape Clone()
+        {
+            return new CircleShape
+            {
+                ShapeId = this.ShapeId, // Assign a new unique ID
+                UserID = this.UserID,
+                Color = this.Color,
+                StrokeThickness = this.StrokeThickness,
+                LastModifierID = this.LastModifierID,
+                IsSelected = this.IsSelected, // New shape should not be selected by default
+                CenterX = this.CenterX,
+                CenterY = this.CenterY,
+                RadiusX = this.RadiusX,
+                RadiusY = this.RadiusY
+                // If ShapeBase has additional properties, copy them here
+            };
+        }
     }
 }

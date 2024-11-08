@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -61,8 +62,8 @@ namespace WhiteboardGUI.Services
                         string serializedShape = SerializationService.SerializeShape(shape);
                         await BroadcastShapeData(serializedShape, -1);
 
+                    }
                 }
-            }
             }
             catch (Exception ex)
             {
@@ -81,8 +82,10 @@ namespace WhiteboardGUI.Services
                 // Send the current whiteboard state (all shapes) to the new client
                 foreach (var shape in _synchronizedShapes)
                 {
+
                     string serializedShape = SerializationService.SerializeShape(shape);
-                    await writer.WriteLineAsync(serializedShape);
+                    string serializedMessage = $"CREATE:{serializedShape}";
+                    await writer.WriteLineAsync(serializedMessage);
                 }
 
                 while (true)
@@ -107,7 +110,7 @@ namespace WhiteboardGUI.Services
                             if (currentShape != null)
                             {
                                 ShapeDeleted?.Invoke(currentShape);
-                               
+
                             }
                         }
                     }
@@ -128,12 +131,13 @@ namespace WhiteboardGUI.Services
                                 ShapeModified?.Invoke(shape);
 
                             }
-                            
+
                         }
                     }
-                    else
+                    else if (receivedData.StartsWith("CREATE:"))
                     {
-                        var shape = SerializationService.DeserializeShape(receivedData);
+                        string data = receivedData.Substring(7);
+                        var shape = SerializationService.DeserializeShape(data);
                         if (shape != null)
                         {
                             ShapeReceived?.Invoke(shape);
@@ -200,7 +204,7 @@ namespace WhiteboardGUI.Services
                             if (currentShape != null)
                             {
                                 ShapeDeleted?.Invoke(currentShape);
-                              
+
                             }
                         }
                     }
@@ -219,14 +223,15 @@ namespace WhiteboardGUI.Services
                             {
                                 ShapeDeleted?.Invoke(currentShape);
                                 ShapeModified?.Invoke(shape);
-                            
+
                             }
-                            
+
                         }
                     }
-                    else
+                    else if (receivedData.StartsWith("CREATE:"))
                     {
-                        var shape = SerializationService.DeserializeShape(receivedData);
+                        string data = receivedData.Substring(7);
+                        var shape = SerializationService.DeserializeShape(data);
                         if (shape != null)
                         {
                             ShapeReceived?.Invoke(shape);

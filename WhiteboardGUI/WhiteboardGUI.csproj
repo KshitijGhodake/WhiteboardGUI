@@ -6,12 +6,66 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>Views\assets\whiteboard-icon.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Views\assets\circleicon.png" />
+    <None Remove="Views\assets\clienticon.png" />
+    <None Remove="Views\assets\cloud-download.png" />
+    <None Remove="Views\assets\cloud-upload.png" />
+    <None Remove="Views\assets\deleteicon.png" />
+    <None Remove="Views\assets\lineicon.png" />
+    <None Remove="Views\assets\palette.png" />
+    <None Remove="Views\assets\pencilicon.png" />
+    <None Remove="Views\assets\redo-circle.png" />
+    <None Remove="Views\assets\selecticon.png" />
+    <None Remove="Views\assets\servericon.png" />
+    <None Remove="Views\assets\texticon.png" />
+    <None Remove="Views\assets\thickness.png" />
+    <None Remove="Views\assets\undo-circle.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Views\assets\whiteboard-icon.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
     <PackageReference Include="MvvmLightLibs" Version="5.4.1.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Views\assets\circleicon.png" />
+    <Resource Include="Views\assets\clienticon.png" />
+    <Resource Include="Views\assets\cloud-download.png" />
+    <Resource Include="Views\assets\cloud-upload.png" />
+    <Resource Include="Views\assets\deleteicon.png" />
+    <Resource Include="Views\assets\lineicon.png" />
+    <Resource Include="Views\assets\palette.png" />
+    <Resource Include="Views\assets\pencilicon.png" />
+    <Resource Include="Views\assets\redo-circle.png" />
+    <Resource Include="Views\assets\selecticon.png" />
+    <Resource Include="Views\assets\servericon.png" />
+    <Resource Include="Views\assets\texticon.png" />
+    <Resource Include="Views\assets\thickness.png" />
+    <Resource Include="Views\assets\undo-circle.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

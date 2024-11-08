@@ -16,18 +16,22 @@ namespace WhiteboardGUI.Services
         public List<(IShape, IShape?)> RedoList = new();
         public void RemoveLastModified(NetworkingService _networkingService, IShape shape)
         {
-           //_synchronizedShapes = _networkingService._synchronizedShapes;
+            //_synchronizedShapes = _networkingService._synchronizedShapes;
             UndoList.RemoveAll(item =>
+            item.Item1 != null &&
             item.Item1.ShapeId == shape.ShapeId &&
             item.Item1.UserID == shape.UserID);
 
+            
+
             RedoList.RemoveAll(item =>
+            item.Item1 != null &&
             item.Item1.ShapeId == shape.ShapeId &&
             item.Item1.UserID == shape.UserID);
 
         }
 
-        public void UpdateLastModified(IShape currentShape, IShape previousShape)
+        public void UpdateLastDrawing(IShape currentShape, IShape previousShape)
         {
             UndoList.Add((currentShape, previousShape));
             if (UndoList.Count > 5)
@@ -54,10 +58,10 @@ namespace WhiteboardGUI.Services
         }
         public void Redo()
         {
-            if(RedoList.Count > 0)
+            if (RedoList.Count > 0)
             {
-                UndoList.Add((RedoList[RedoList.Count-1].Item2, RedoList[RedoList.Count-1].Item1));
-                RedoList.RemoveAt(RedoList.Count-1);
+                UndoList.Add((RedoList[RedoList.Count - 1].Item2, RedoList[RedoList.Count - 1].Item1));
+                RedoList.RemoveAt(RedoList.Count - 1);
             }
         }
     }

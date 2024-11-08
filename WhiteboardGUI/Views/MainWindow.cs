@@ -11,5 +11,6 @@ namespace WhiteboardGUI
             MainPage mainPage = new MainPage();
             this.Content = mainPage;
         }
+
     }
 }
