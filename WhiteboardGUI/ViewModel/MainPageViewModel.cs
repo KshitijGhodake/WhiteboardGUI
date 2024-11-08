@@ -59,7 +59,24 @@ namespace WhiteboardGUI.ViewModel
             set { _blue = value; OnPropertyChanged(nameof(Blue)); UpdateSelectedColor(); }
         }
 
-        private double SelectedThickness = 2.0;
+        private double _selectedThickness = 2.0;
+        public double SelectedThickness
+        {
+            get => _selectedThickness;
+            set
+            {
+                if (_selectedThickness != value)
+                {
+                    _selectedThickness = value;
+                    OnPropertyChanged(nameof(SelectedThickness));
+                    if (SelectedShape != null)
+                    {
+                        SelectedShape.StrokeThickness = _selectedThickness;
+                        UpdateSelectedShapeProperties();
+                    }
+                }
+            }
+        }
         //public double SelectedThickness
         //{
         //    get => _selectedThickness;
@@ -74,7 +91,25 @@ namespace WhiteboardGUI.ViewModel
         //    }
         //}
 
-        private Color SelectedColor = Colors.Black;
+        private Color _selectedColor = Colors.Black;
+        public Color SelectedColor
+        {
+            get => _selectedColor;
+            set
+            {
+                if (_selectedColor != value)
+                {
+                    _selectedColor = value;
+                    OnPropertyChanged(nameof(SelectedColor));
+                    if (SelectedShape != null)
+                    {
+                        SelectedShape.Color = _selectedColor.ToString();
+                        UpdateSelectedShapeProperties();
+                    }
+                }
+            }
+        }
+       
         //public Color SelectedColor
         //{
         //    get => _selectedColor;
@@ -213,6 +248,8 @@ namespace WhiteboardGUI.ViewModel
         public ICommand UndoCommand { get; }
         public ICommand RedoCommand { get; }
 
+        public ICommand SelectColorCommand { get; }
+
 
         // Events
         public event PropertyChangedEventHandler PropertyChanged;
@@ -254,6 +291,7 @@ namespace WhiteboardGUI.ViewModel
             CancelTextBoxCommand = new RelayCommand(CancelTextBox);
             UndoCommand = new RelayCommand(CallUndo);
             RedoCommand = new RelayCommand(CallRedo);
+            SelectColorCommand = new RelayCommand<string>(SelectColor);
 
             Red = 0;
             Green = 0;
@@ -265,6 +303,12 @@ namespace WhiteboardGUI.ViewModel
         private void UpdateSelectedColor()
         {
             SelectedColor = Color.FromRgb(Red, Green, Blue);
+        }
+
+        private void SelectColor(string colorName)
+        {
+                var color = (Color)ColorConverter.ConvertFromString(colorName);
+                SelectedColor = color;
         }
 
         private void UpdateSelectedShapeProperties()
@@ -283,7 +327,6 @@ namespace WhiteboardGUI.ViewModel
 
             // Broadcast updated shape
             RenderShape(SelectedShape, "MODIFY");
-            //_networkingService.BroadcastShapeData(updateMessage, -1);
         }
         private void CallUndo()
         {

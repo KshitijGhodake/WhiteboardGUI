@@ -202,7 +202,7 @@
             </Border.Background>
             <ScrollViewer HorizontalScrollBarVisibility="Auto">
 
-            <StackPanel Grid.Row="0" Orientation="Horizontal" Background="#EAEAEA" Margin="10,10,0,10">
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Background="#EAEAEA" Margin="10,10,0,10">
                     <Button Style="{StaticResource ToolBarStyle}" 
                         Command="{Binding SelectToolCommand}" 
                         CommandParameter="{x:Static models:ShapeType.Pencil}" 
@@ -288,21 +288,21 @@
                     <ToggleButton Style="{StaticResource ToolBarToggleStyle}" 
                           Command="{Binding StartClientCommand}" 
                           IsChecked="{Binding IsClient, Mode=TwoWay}" 
-                          ToolTip="Client Mode">    
+                          ToolTip="Client Mode">
                         <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
                             <Image Source="Assets/clienticon.png" Width="20" Height="20"/>
                             <TextBlock Text="Client" HorizontalAlignment="Center" FontSize="12"/>
                         </StackPanel>
                     </ToggleButton>
                     <!-- New controls for color selection -->
-            <!--<TextBlock Text="Red:" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                    <!--<TextBlock Text="Red:" VerticalAlignment="Center" Margin="10,0,0,0"/>
             <Slider Margin="10" VerticalAlignment="Center" Minimum="0" Maximum="255" Width="100" Value="{Binding Red, Mode=TwoWay}" />
             <TextBlock Text="Green:" VerticalAlignment="Center" Margin="10,0,0,0"/>
             <Slider Margin="10" VerticalAlignment="Center" Minimum="0" Maximum="255" Width="100" Value="{Binding Green, Mode=TwoWay}" />
             <TextBlock Text="Blue:" VerticalAlignment="Center" Margin="10,0,0,0"/>
             <Slider Margin="10"  VerticalAlignment="Center" Minimum="0" Maximum="255" Width="100" Value="{Binding Blue, Mode=TwoWay}" />-->
-            <!-- Display selected color -->
-                <!-- start -->
+                    <!-- Display selected color -->
+                    <!-- start -->
                     <ToggleButton x:Name="PaletteToggleButton"
                       Style="{StaticResource ToolBarToggleStyle}"
                       ToolTip="Color Palette"
@@ -325,25 +325,32 @@
                     BorderThickness="1" 
                     CornerRadius="5"
                     Padding="10">
-                            <StackPanel Orientation="Horizontal">
-                                <!-- Red Color Button -->
-                                <Button Style="{StaticResource CircularColorButton}" Width="20" Height="20" Margin="5" Background="Red" Command="{Binding Red, Mode=TwoWay}"  Tag="Red"/>
-                                <!-- Yellow Color Button -->
-                                <Button Style="{StaticResource CircularColorButton}" Width="20" Height="20" Margin="5" Background="Blue" Command="{Binding Blue, Mode=TwoWay}" Tag="Yellow"/>
-                                <!-- Green Color Button -->
-                                <Button Style="{StaticResource CircularColorButton}" Width="20" Height="20" Margin="5" Background="Green" Command="{Binding Green, Mode=TwoWay}" Tag="Green"/>
-                            </StackPanel>
+                            <WrapPanel>
+                                <!-- Define color buttons -->
+                                <Button Style="{StaticResource CircularColorButton}" Background="Black" Command="{Binding SelectColorCommand}" CommandParameter="Black" Margin="5"/>
+                                <Button Style="{StaticResource CircularColorButton}" Background="Red" Command="{Binding SelectColorCommand}" CommandParameter="Red" Margin="5"/>
+                                <Button Style="{StaticResource CircularColorButton}" Background="Green" Command="{Binding SelectColorCommand}" CommandParameter="Green" Margin="5"/>
+                                <Button Style="{StaticResource CircularColorButton}" Background="Blue" Command="{Binding SelectColorCommand}" CommandParameter="Blue" Margin="5"/>
+                                <Button Style="{StaticResource CircularColorButton}" Background="Yellow" Command="{Binding SelectColorCommand}" CommandParameter="Yellow" Margin="5"/>
+                                <Button Style="{StaticResource CircularColorButton}" Background="Orange" Command="{Binding SelectColorCommand}" CommandParameter="Orange" Margin="5"/>
+                                <Button Style="{StaticResource CircularColorButton}" Background="Purple" Command="{Binding SelectColorCommand}" CommandParameter="Purple" Margin="5"/>
+                                <!-- Add more colors as needed -->
+                            </WrapPanel>
                         </Border>
                     </Popup>
                     <!--    end                   {Binding SelectedColor} -->
-                    <Ellipse Width="20" Height="20" Fill="Brown" Stroke="Black" Margin="1,0,15,0" />
-            <!-- New control for thickness selection -->
-                    <StackPanel VerticalAlignment="Center" Orientation="Vertical" HorizontalAlignment="Center">
+                    <!-- New control for thickness selection -->
+                    <!-- Thickness Slider -->
+                    <StackPanel VerticalAlignment="Center" Orientation="Vertical" HorizontalAlignment="Center" Margin="10,0,0,0">
                         <Image Source="Assets/thickness.png" Width="20" Height="20"/>
-                        <TextBlock Text="Thickness:" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                        <TextBlock Text="Thickness" HorizontalAlignment="Center" FontSize="12"/>
                     </StackPanel>
-                    <!--                                                                  {Binding SelectedThickness, Mode=TwoWay}                                        -->
-            <Slider  Margin="0,0,3,0"  VerticalAlignment="Center" Minimum="1" Maximum="10" Width="100" Value="2.0" />
+                    <Ellipse Width="20" Height="20" Stroke="Black">
+                        <Ellipse.Fill>
+                            <SolidColorBrush Color="{Binding SelectedColor}" />
+                        </Ellipse.Fill>
+                    </Ellipse>
+                    <Slider Margin="0,0,15,0" VerticalAlignment="Center" Minimum="1" Maximum="10" Width="100" Value="{Binding SelectedThickness, Mode=TwoWay}" />
 
                     <Button x:Name="UploadButton"
                         Style="{StaticResource ToolBarStyle}" 
