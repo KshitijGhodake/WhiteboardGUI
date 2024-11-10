@@ -38,6 +38,13 @@ namespace WhiteboardGUI.Services
                 _undoRedoService.UpdateLastDrawing(newShape, null);
 
             }
+            else if (command == "DOWNLOAD")
+            {
+                var newShape = currentShape.Clone();
+                _networkingService._synchronizedShapes.Add(newShape);
+                newShape.IsSelected = false;
+
+            }
             else if (command == "MODIFY")
             {
                 var newShape = currentShape.Clone();

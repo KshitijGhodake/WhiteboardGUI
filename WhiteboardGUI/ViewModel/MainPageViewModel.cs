@@ -22,6 +22,7 @@ namespace WhiteboardGUI.ViewModel
         private readonly NetworkingService _networkingService;
         private readonly UndoRedoService _undoRedoService = new();
         public readonly RenderingService _renderingService;
+        private readonly SnapShotService _snapShotService;
         private IShape _selectedShape;
         private ShapeType _currentTool = ShapeType.Pencil;
         private Point _startPoint;
@@ -60,6 +61,27 @@ namespace WhiteboardGUI.ViewModel
             set { _blue = value; OnPropertyChanged(nameof(Blue)); UpdateSelectedColor(); }
         }
 
+        private bool _isUploading;
+        public bool IsUploading
+        {
+            get => _isUploading;
+            set
+            {
+                _isUploading = value;
+                OnPropertyChanged(nameof(IsUploading));
+            }
+        }
+
+        private bool _isDownloading;
+        public bool IsDownloading
+        {
+            get => _isDownloading;
+            set
+            {
+                _isDownloading = value;
+                OnPropertyChanged(nameof(IsDownloading));
+            }
+        }
         private double _selectedThickness = 2.0;
         public double SelectedThickness
         {
@@ -124,6 +146,20 @@ namespace WhiteboardGUI.ViewModel
             }
         }
 
+        private bool _isPopupOpen;
+        public bool IsPopupOpen
+        {
+            get => _isPopupOpen;
+            set
+            {
+                if (_isPopupOpen != value)
+                {
+                    _isPopupOpen = value;
+                    OnPropertyChanged(nameof(IsPopupOpen));
+                }
+            }
+        }
+
         public Rect TextBoxBounds { get; set; }
 
         public double TextBoxFontSize { get; set; } = 16;
@@ -140,7 +176,14 @@ namespace WhiteboardGUI.ViewModel
         public string SnapShotFileName
         {
             get => _snapShotFileName;
-            set { _snapShotFileName = value; }
+            set
+            {
+                if (_snapShotFileName != value)
+                {
+                    _snapShotFileName = value;
+                    OnPropertyChanged(nameof(SnapShotFileName));
+                }
+            }
         }
 
         public IShape SelectedShape
@@ -186,7 +229,21 @@ namespace WhiteboardGUI.ViewModel
         public bool IsClient { get; set; }
 
 
+        public ObservableCollection<string> DownloadItems { get; set; }
 
+        private string _selectedDownloadItem;
+        public string SelectedDownloadItem
+        {
+            get => _selectedDownloadItem;
+            set
+            {
+                _selectedDownloadItem = value;
+                OnPropertyChanged(SelectedDownloadItem);
+                OnPropertyChanged(nameof(CanDownload)); // Notify change for CanDownload
+            }
+        }
+        public bool CanDownload => !string.IsNullOrEmpty(SelectedDownloadItem);
+        public bool IsDownloadPopupOpen { get; set; }
 
 
         // Commands
@@ -210,6 +267,11 @@ namespace WhiteboardGUI.ViewModel
         public ICommand RedoCommand { get; }
 
         public ICommand SelectColorCommand { get; }
+        public ICommand SubmitCommand { get; }
+        public ICommand OpenPopupCommand { get; }
+        public ICommand ClearShapesCommand { get; }
+        public ICommand OpenDownloadPopupCommand { get; }
+        public ICommand DownloadItemCommand { get; }
 
 
         // Events
@@ -223,6 +285,10 @@ namespace WhiteboardGUI.ViewModel
             Shapes = new ObservableCollection<IShape>();
             _networkingService = new NetworkingService();
             _renderingService = new RenderingService(_networkingService, _undoRedoService, Shapes);
+            _snapShotService = new SnapShotService(_networkingService,_renderingService, Shapes, _undoRedoService);
+
+            DownloadItems = new ObservableCollection<string>(_snapShotService.getSnaps("a"));
+            _snapShotService.OnSnapShotUploaded += RefreshDownloadItems;
 
             // Subscribe to networking events
             _networkingService.ShapeReceived += OnShapeReceived;
@@ -256,6 +322,11 @@ namespace WhiteboardGUI.ViewModel
             RedoCommand = new RelayCommand(CallRedo);
             SelectColorCommand = new RelayCommand<string>(SelectColor);
 
+            SubmitCommand = new RelayCommand(async () => await SubmitFileName());
+            OpenDownloadPopupCommand = new RelayCommand(OpenDownloadPopup);
+            DownloadItemCommand = new RelayCommand(DownloadSelectedItem, () => CanDownload);
+
+            OpenPopupCommand = new RelayCommand(OpenPopup);
             ClearShapesCommand = new RelayCommand(ClearShapes);
             Red = 0;
             Green = 0;
@@ -263,6 +334,54 @@ namespace WhiteboardGUI.ViewModel
             UpdateSelectedColor();
 
         }
+
+        // Function to open the download popup
+        private void OpenDownloadPopup()
+        {
+            IsDownloadPopupOpen = true;
+            OnPropertyChanged(nameof(IsDownloadPopupOpen));
+        }
+
+        private void DownloadSelectedItem()
+        {
+            if (!string.IsNullOrEmpty(SelectedDownloadItem))
+            {
+                IsDownloading = false;
+                try
+                {
+                    Debug.WriteLine($"Downloading item: {SelectedDownloadItem}");
+                    _snapShotService.DownloadSnapShot(SelectedDownloadItem);
+                    Debug.WriteLine("Download Complete");
+                }
+                catch(Exception ex)
+                {
+                    Debug.WriteLine($"Download failed: {ex.Message}");
+                }
+                finally
+                {
+                    // Re-enable UI elements
+                    IsDownloading = false;
+                }
+            }
+            
+            // Close the popup after download
+            IsDownloadPopupOpen = false;
+            OnPropertyChanged(nameof(IsDownloadPopupOpen));
+        }
+
+        private void RefreshDownloadItems()
+        {
+            DownloadItems.Clear();
+            var newSnaps = _snapShotService.getSnaps("a");
+            foreach (var snap in newSnaps)
+            {
+                DownloadItems.Add(snap);
+            }
+
+            OnPropertyChanged(nameof(DownloadItems));
+        }
+
+
 
         private void UpdateSelectedColor()
         {
@@ -289,6 +408,34 @@ namespace WhiteboardGUI.ViewModel
             if (_undoRedoService.RedoList.Count > 0)
             {
                 _renderingService.RenderShape(null, "REDO");
+            }
+        }
+        private void OpenPopup()
+        {
+            SnapShotFileName = "";
+            IsPopupOpen = true;
+
+        }
+
+        private async Task SubmitFileName()
+        {
+            IsUploading = true;
+
+            try
+            {
+                // Call the asynchronous upload method
+                await _snapShotService.UploadSnapShot(SnapShotFileName, Shapes);
+                IsPopupOpen = false;
+                Debug.WriteLine("Snapshot uploaded successfully.");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Upload failed: {ex.Message}");
+            }
+            finally
+            {
+                // Re-enable UI elements
+                IsUploading = false;
             }
         }
         private void ClearShapes()
@@ -338,9 +485,9 @@ namespace WhiteboardGUI.ViewModel
             //for textbox
             //TextInput = string.Empty;
         }
+       
 
-
-
+        
 
 
 
@@ -435,7 +582,6 @@ namespace WhiteboardGUI.ViewModel
         private void MoveShape(IShape shape, Point currentPoint)
         {
             Vector delta = currentPoint - _lastMousePosition;
-
             switch (shape)
             {
                 case LineShape line:
@@ -581,7 +727,7 @@ namespace WhiteboardGUI.ViewModel
             }
         }
 
-        private void OnShapeReceived(IShape shape)
+        private void OnShapeReceived(IShape shape, bool addToUndo)
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
@@ -589,7 +735,9 @@ namespace WhiteboardGUI.ViewModel
                 Shapes.Add(shape);
                 var newShape = shape.Clone();
                 _networkingService._synchronizedShapes.Add(newShape);
-                _undoRedoService.RemoveLastModified(_networkingService, shape);
+                if(addToUndo){
+                    _undoRedoService.RemoveLastModified(_networkingService, shape);
+                }
             });
         }
 

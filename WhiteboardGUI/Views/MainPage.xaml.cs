@@ -43,22 +43,8 @@ namespace WhiteboardGUI.Views
             ColorPopup.IsOpen = false;
         }
 
-        private void UploadButton_Click(object sender, RoutedEventArgs e)
-        {
-            UploadPopup.IsOpen = true;
-        }
 
         // Event handler for Submit Button Click in Upload Popup
-        private void SubmitFileName_Click(object sender, RoutedEventArgs e)
-        {
-            // Close the Popup
-            UploadPopup.IsOpen = false;
-
-            // Optionally, perform actions with the filename
-            // For example, validate the filename or trigger a save operation
-
-            MessageBox.Show($"Filename '{ViewModel.SnapShotFileName}' has been set.", "Filename Set", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
 
         private void ResizeHandle_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
