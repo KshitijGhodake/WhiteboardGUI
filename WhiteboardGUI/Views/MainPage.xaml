@@ -259,6 +259,14 @@
                         </StackPanel>
                     </Button>
                     <Button Style="{StaticResource ToolBarStyle}" 
+                            Command="{Binding ClearShapesCommand}"
+                            ToolTip="Clear All Shapes">
+                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                            <Image Source="Assets/clearicon.png" Width="20" Height="20"/>
+                            <TextBlock Text="Clear" HorizontalAlignment="Center" FontSize="12"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource ToolBarStyle}" 
                     Command="{Binding UndoCommand}"
                     ToolTip="Undo">
                         <StackPanel Orientation="Vertical" HorizontalAlignment="Center">

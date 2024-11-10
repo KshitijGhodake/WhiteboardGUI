@@ -23,6 +23,7 @@ namespace WhiteboardGUI.Services
         public event Action<IShape> ShapeReceived; // Event for shape received
         public event Action<IShape> ShapeDeleted;
         public event Action<IShape> ShapeModified;
+        public event Action ShapesClear;
         //public NetworkingService(List<IShape> synchronizedShapes)
         //{
         //    _synchronizedShapes = synchronizedShapes;
@@ -113,6 +114,10 @@ namespace WhiteboardGUI.Services
 
                             }
                         }
+                    }
+                    else if (receivedData.StartsWith("CLEAR:"))
+                    {
+                        ShapesClear?.Invoke();
                     }
                     else if (receivedData.StartsWith("MODIFY:"))
                     {
@@ -207,6 +212,10 @@ namespace WhiteboardGUI.Services
 
                             }
                         }
+                    }
+                    else if (receivedData.StartsWith("CLEAR:"))
+                    {
+                        ShapesClear?.Invoke();
                     }
                     else if (receivedData.StartsWith("MODIFY:"))
                     {

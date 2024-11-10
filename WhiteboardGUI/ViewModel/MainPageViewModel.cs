@@ -27,7 +27,7 @@ namespace WhiteboardGUI.ViewModel
         private Point _lastMousePosition;
         private bool _isSelecting;
         private bool _isDragging;
-        public ObservableCollection<IShape> _shapes;
+        private ObservableCollection<IShape> _shapes;
 
         //for textbox
         private string _textInput;
@@ -226,6 +226,7 @@ namespace WhiteboardGUI.ViewModel
             _networkingService.ShapeReceived += OnShapeReceived;
             _networkingService.ShapeDeleted += OnShapeDeleted;
             _networkingService.ShapeModified += OnShapeModified;
+            _networkingService.ShapesClear += OnShapeClear;
 
             // Initialize commands
             Debug.WriteLine("ViewModel init start");
@@ -253,6 +254,7 @@ namespace WhiteboardGUI.ViewModel
             RedoCommand = new RelayCommand(CallRedo);
             SelectColorCommand = new RelayCommand<string>(SelectColor);
 
+            ClearShapesCommand = new RelayCommand(ClearShapes);
             Red = 0;
             Green = 0;
             Blue = 0;
@@ -286,6 +288,9 @@ namespace WhiteboardGUI.ViewModel
             {
                 RenderShape(null, "REDO");
             }
+        private void ClearShapes()
+        {
+            RenderShape(null, "CLEAR");
         }
 
         // Methods
@@ -356,6 +361,17 @@ namespace WhiteboardGUI.ViewModel
                 newShape.IsSelected = false;
                 _undoRedoService.UpdateLastDrawing(newShape, prevShape);
 
+            }
+            else if(command == "CLEAR")
+            {
+                Shapes.Clear();
+                _undoRedoService.UndoList.Clear();
+                _undoRedoService.RedoList.Clear();
+                _networkingService._synchronizedShapes.Clear();
+                string clearMessage = $"{command}:";
+                Debug.WriteLine(clearMessage);
+                _networkingService.BroadcastShapeData(clearMessage, -1);
+                return;
             }
             else if (command == "UNDO")
             {
@@ -744,6 +760,17 @@ namespace WhiteboardGUI.ViewModel
                     }
                 }
                 _networkingService._synchronizedShapes.Remove(shape);
+            });
+        }
+
+        private void OnShapeClear()
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                Shapes.Clear();
+                _undoRedoService.RedoList.Clear();
+                _undoRedoService.UndoList.Clear();
+                _networkingService._synchronizedShapes.Clear();
             });
         }
         public void CancelTextBox()
