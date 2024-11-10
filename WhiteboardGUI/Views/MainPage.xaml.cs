@@ -96,7 +96,7 @@ namespace WhiteboardGUI.Views
                 var viewModel = this.DataContext as MainPageViewModel;
                 if (viewModel != null)
                 {
-                    viewModel.RenderShape(_resizingShape, "MODIFY");
+                    viewModel._renderingService.RenderShape(_resizingShape, "MODIFY");
                 }
                 _resizingShape = null;
                 _currentHandle = null;
