@@ -20,9 +20,10 @@ namespace WhiteboardGUI.Services
         public double _clientID;
         public List<IShape> _synchronizedShapes = new();
 
-        public event Action<IShape> ShapeReceived; // Event for shape received
+        public event Action<IShape, Boolean> ShapeReceived; // Event for shape received
         public event Action<IShape> ShapeDeleted;
         public event Action<IShape> ShapeModified;
+        public event Action ShapesClear;
         //public NetworkingService(List<IShape> synchronizedShapes)
         //{
         //    _synchronizedShapes = synchronizedShapes;
@@ -114,6 +115,10 @@ namespace WhiteboardGUI.Services
                             }
                         }
                     }
+                    else if (receivedData.StartsWith("CLEAR:"))
+                    {
+                        ShapesClear?.Invoke();
+                    }
                     else if (receivedData.StartsWith("MODIFY:"))
                     {
                         string data = receivedData.Substring(7);
@@ -140,7 +145,16 @@ namespace WhiteboardGUI.Services
                         var shape = SerializationService.DeserializeShape(data);
                         if (shape != null)
                         {
-                            ShapeReceived?.Invoke(shape);
+                            ShapeReceived?.Invoke(shape,true);
+                        }
+                    }
+                    else if (receivedData.StartsWith("DOWNLOAD:"))
+                    {
+                        string data = receivedData.Substring(9);
+                        var shape = SerializationService.DeserializeShape(data);
+                        if (shape != null)
+                        {
+                            ShapeReceived?.Invoke(shape,false);
                         }
                     }
                 }
@@ -208,6 +222,10 @@ namespace WhiteboardGUI.Services
                             }
                         }
                     }
+                    else if (receivedData.StartsWith("CLEAR:"))
+                    {
+                        ShapesClear?.Invoke();
+                    }
                     else if (receivedData.StartsWith("MODIFY:"))
                     {
                         string data = receivedData.Substring(7);
@@ -234,7 +252,17 @@ namespace WhiteboardGUI.Services
                         var shape = SerializationService.DeserializeShape(data);
                         if (shape != null)
                         {
-                            ShapeReceived?.Invoke(shape);
+                            ShapeReceived?.Invoke(shape, true);
+                        }
+                    }
+
+                    else if (receivedData.StartsWith("DOWNLOAD:"))
+                    {
+                        string data = receivedData.Substring(9);
+                        var shape = SerializationService.DeserializeShape(data);
+                        if (shape != null)
+                        {
+                            ShapeReceived?.Invoke(shape, false);
                         }
                     }
                 }
