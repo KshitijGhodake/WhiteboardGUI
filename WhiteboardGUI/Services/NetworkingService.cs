@@ -22,6 +22,8 @@ namespace WhiteboardGUI.Services
 
         public event Action<IShape, Boolean> ShapeReceived; // Event for shape received
         public event Action<IShape> ShapeDeleted;
+        public event Action<IShape> ShapeSendToBack;
+        public event Action<IShape> ShapeSendBackward;
         public event Action<IShape> ShapeModified;
         public event Action ShapesClear;
         //public NetworkingService(List<IShape> synchronizedShapes)
@@ -118,6 +120,40 @@ namespace WhiteboardGUI.Services
                     else if (receivedData.StartsWith("CLEAR:"))
                     {
                         ShapesClear?.Invoke();
+                    }
+                    else if (receivedData.StartsWith("INDEX-BACK:"))
+                    {
+                        string data = receivedData.Substring(11);
+                        var shape = SerializationService.DeserializeShape(data);
+
+                        if (shape != null)
+                        {
+                            var shapeId = shape.ShapeId;
+                            var shapeUserId = shape.UserID;
+
+                            var currentShape = _synchronizedShapes.Where(s => s.ShapeId == shapeId && s.UserID == shapeUserId).FirstOrDefault();
+                            if (currentShape != null)
+                            {
+                                ShapeSendToBack?.Invoke(currentShape);
+                            }
+                        }
+                    }
+                    else if (receivedData.StartsWith("INDEX-BACKWARD:"))
+                    {
+                        string data = receivedData.Substring(15);
+                        var shape = SerializationService.DeserializeShape(data);
+
+                        if (shape != null)
+                        {
+                            var shapeId = shape.ShapeId;
+                            var shapeUserId = shape.UserID;
+
+                            var currentShape = _synchronizedShapes.Where(s => s.ShapeId == shapeId && s.UserID == shapeUserId).FirstOrDefault();
+                            if (currentShape != null)
+                            {
+                                ShapeSendBackward?.Invoke(currentShape);
+                            }
+                        }
                     }
                     else if (receivedData.StartsWith("MODIFY:"))
                     {
@@ -244,6 +280,40 @@ namespace WhiteboardGUI.Services
 
                             }
 
+                        }
+                    }
+                    else if (receivedData.StartsWith("INDEX-BACK:"))
+                    {
+                        string data = receivedData.Substring(11);
+                        var shape = SerializationService.DeserializeShape(data);
+
+                        if (shape != null)
+                        {
+                            var shapeId = shape.ShapeId;
+                            var shapeUserId = shape.UserID;
+
+                            var currentShape = _synchronizedShapes.Where(s => s.ShapeId == shapeId && s.UserID == shapeUserId).FirstOrDefault();
+                            if (currentShape != null)
+                            {
+                                ShapeSendToBack?.Invoke(currentShape);
+                            }
+                        }
+                    }
+                    else if (receivedData.StartsWith("INDEX-BACKWARD:"))
+                    {
+                        string data = receivedData.Substring(15);
+                        var shape = SerializationService.DeserializeShape(data);
+
+                        if (shape != null)
+                        {
+                            var shapeId = shape.ShapeId;
+                            var shapeUserId = shape.UserID;
+
+                            var currentShape = _synchronizedShapes.Where(s => s.ShapeId == shapeId && s.UserID == shapeUserId).FirstOrDefault();
+                            if (currentShape != null)
+                            {
+                                ShapeSendBackward?.Invoke(currentShape);
+                            }
                         }
                     }
                     else if (receivedData.StartsWith("CREATE:"))

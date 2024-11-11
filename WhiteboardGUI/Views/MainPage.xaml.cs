@@ -392,10 +392,45 @@ namespace WhiteboardGUI.Views
             }
         }
 
-
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void Shape_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
+            // Get the ViewModel
+            var vm = this.DataContext as MainPageViewModel;
 
+            // Check if the current tool is Select
+            if (vm.CurrentTool != ShapeType.Select)
+                return;
+
+            // Get the shape from the sender's DataContext
+            var shapeElement = sender as FrameworkElement;
+            var shape = shapeElement.DataContext as IShape;
+
+            // Check if the shape is the selected shape
+            if (vm.SelectedShape != shape)
+                return;
+
+            // Create the ContextMenu
+            var contextMenu = new ContextMenu();
+
+            var sendBackwardMenuItem = new MenuItem() { Header = "Send Backward" };
+            sendBackwardMenuItem.Command = vm.SendBackwardCommand;
+            sendBackwardMenuItem.CommandParameter = shape;
+
+            var sendToBackMenuItem = new MenuItem() { Header = "Send to Back" };
+            sendToBackMenuItem.Command = vm.SendToBackCommand;
+            sendToBackMenuItem.CommandParameter = shape;
+
+            contextMenu.Items.Add(sendBackwardMenuItem);
+            contextMenu.Items.Add(sendToBackMenuItem);
+
+            // Assign the ContextMenu to the shape element
+            shapeElement.ContextMenu = contextMenu;
+
+            // Open the ContextMenu
+            contextMenu.IsOpen = true;
+
+            // Mark the event as handled to prevent further processing
+            e.Handled = true;
         }
     }
 }

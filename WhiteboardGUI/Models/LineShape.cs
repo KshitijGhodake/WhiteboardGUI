@@ -137,7 +137,8 @@ namespace WhiteboardGUI.Models
                 StartY = this.StartY,
                 EndX = this.EndX,
                 EndY = this.EndY,
-                RotationAngle = this.RotationAngle
+                RotationAngle = this.RotationAngle,
+                ZIndex = this.ZIndex
             };
         }
 

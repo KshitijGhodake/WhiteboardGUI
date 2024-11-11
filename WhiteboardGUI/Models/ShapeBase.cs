@@ -16,6 +16,19 @@ namespace WhiteboardGUI.Models
         private double _userID;
         private double _lastModifierID;
         private bool _isSelected;
+        private int zIndex;
+        public int ZIndex
+        {
+            get => zIndex;
+            set
+            {
+                if (zIndex != value)
+                {
+                    zIndex = value;
+                    OnPropertyChanged(nameof(ZIndex));
+                }
+            }
+        }
 
         public bool IsSelected
         {

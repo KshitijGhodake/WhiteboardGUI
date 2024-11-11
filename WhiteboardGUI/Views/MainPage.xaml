@@ -462,7 +462,7 @@ IsSnapToTickEnabled="True" />
         </Border>
 
         <!-- Canvas Section -->
-        <ItemsControl Grid.Row="1" ItemsSource="{Binding Shapes}">
+        <ItemsControl x:Name="ShapesItemsControl" Grid.Row="1" ItemsSource="{Binding Shapes}">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <Canvas Background="White"
@@ -472,18 +472,29 @@ IsSnapToTickEnabled="True" />
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
 
+            <ItemsControl.ItemContainerStyle>
+                <Style TargetType="ContentPresenter">
+                    <Setter Property="Canvas.ZIndex" Value="{Binding ZIndex}" />
+                </Style>
+            </ItemsControl.ItemContainerStyle>
+            
             <!-- Define templates for each shape type -->
             <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="{x:Type models:ShapeBase}">
-                    <ContentControl Content="{Binding}">
+                    <ContentControl Content="{Binding}"
+                Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Page}}">
+
                         <ContentControl.Resources>
                             <!-- CircleShape Template -->
                             <DataTemplate DataType="{x:Type models:CircleShape}">
                                 <Canvas>
                                     <Ellipse Width="{Binding Width}" Height="{Binding Height}"
+                                        Fill="Transparent"
                                         Stroke="{Binding Color}" StrokeThickness="{Binding StrokeThickness}"
-                                        Canvas.Left="{Binding Left}" Canvas.Top="{Binding Top}" />
-                                                                            <Rectangle Width="{Binding Width}" Height="{Binding Height}"
+                                        Canvas.Left="{Binding Left}" Canvas.Top="{Binding Top}"
+                                        MouseRightButtonDown="Shape_MouseRightButtonDown" />
+
+                                    <Rectangle Width="{Binding Width}" Height="{Binding Height}"
                                           Stroke="Blue" StrokeThickness="1" StrokeDashArray="2"
                                           Canvas.Left="{Binding Left}" Canvas.Top="{Binding Top}"
                                           Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}" />
@@ -530,7 +541,7 @@ IsSnapToTickEnabled="True" />
                                 </Canvas>
                             </DataTemplate>
 
-                            
+
                             <!-- LineShape Template -->
                             <DataTemplate DataType="{x:Type models:LineShape}">
                                 <Canvas>
@@ -550,9 +561,11 @@ IsSnapToTickEnabled="True" />
 
                                     <!-- Selection Rectangle -->
                                     <Rectangle Width="{Binding RotatedWidth}" Height="{Binding RotatedHeight}"
+                                       Fill="Transparent"
                                        Stroke="Blue" StrokeThickness="1" StrokeDashArray="2"
                                        Canvas.Left="{Binding RotatedLeft}" Canvas.Top="{Binding RotatedTop}"
-                                       Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                       Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                       MouseRightButtonDown="Shape_MouseRightButtonDown"/>
 
                                     <!-- Start Handle -->
                                     <Ellipse Width="{Binding HandleSize}" Height="{Binding HandleSize}" Fill="White" Stroke="Black"
@@ -596,14 +609,16 @@ IsSnapToTickEnabled="True" />
                                 <Canvas>
                                     <!-- The Polyline Element -->
                                     <Polyline Points="{Binding PointCollection}" 
-                         Stroke="{Binding Color}" 
-                         StrokeThickness="{Binding StrokeThickness}" />
+                                              Stroke="{Binding Color}" 
+                                              StrokeThickness="{Binding StrokeThickness}"/>
 
                                     <!-- Selection Rectangle -->
                                     <Rectangle Width="{Binding Width}" Height="{Binding Height}"
-                          Stroke="Blue" StrokeThickness="1" StrokeDashArray="2"
-                          Canvas.Left="{Binding Left}" Canvas.Top="{Binding Top}"
-                          Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                               Fill="Transparent"
+                                               Stroke="Blue" StrokeThickness="1" StrokeDashArray="2"
+                                               Canvas.Left="{Binding Left}" Canvas.Top="{Binding Top}"
+                                               Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                               MouseRightButtonDown="Shape_MouseRightButtonDown" />
 
                                     <!-- Top-Left Handle -->
                                     <Rectangle Width="{Binding HandleSize}" Height="{Binding HandleSize}" 
@@ -678,8 +693,10 @@ IsSnapToTickEnabled="True" />
                             <!-- TextShape Template -->
                             <DataTemplate DataType="{x:Type models:TextShape}">
                                 <Canvas>
-                                    <TextBlock Text="{Binding Text}" Foreground="{Binding Foreground}" FontSize="{Binding FontSize}"
-                                               Canvas.Left="{Binding X}" Canvas.Top="{Binding Y}" />
+                                    <TextBlock Text="{Binding Text}" Foreground="{Binding Foreground}"
+                                               FontSize="{Binding FontSize}"
+                                               Canvas.Left="{Binding X}" Canvas.Top="{Binding Y}"
+                                               MouseRightButtonDown="Shape_MouseRightButtonDown" />
                                     <!-- Bounding box if selected -->
                                     <Rectangle Width="{Binding Width}" Height="{Binding Height}"
                                                Stroke="Blue" StrokeThickness="1" StrokeDashArray="2"

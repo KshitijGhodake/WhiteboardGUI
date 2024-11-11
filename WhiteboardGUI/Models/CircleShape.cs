@@ -98,8 +98,8 @@ namespace WhiteboardGUI.Models
                 CenterX = this.CenterX,
                 CenterY = this.CenterY,
                 RadiusX = this.RadiusX,
-                RadiusY = this.RadiusY
-
+                RadiusY = this.RadiusY,
+                ZIndex = this.ZIndex
 
             };
         }

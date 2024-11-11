@@ -86,7 +86,8 @@ namespace WhiteboardGUI.Models
                 Text = this.Text,
                 X = this.X,
                 Y = this.Y,
-                FontSize = this.FontSize
+                FontSize = this.FontSize,
+                ZIndex = this.ZIndex
                 // If ShapeBase has additional properties, copy them here
             };
         }

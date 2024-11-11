@@ -37,6 +37,11 @@ namespace WhiteboardGUI.Services
                 newShape.IsSelected = false;
                 _undoRedoService.UpdateLastDrawing(newShape, null);
 
+            }else if (command.StartsWith("INDEX"))
+            {
+                var newShape = currentShape.Clone();
+                UpdateAllSynchronizedShapes();
+                newShape.IsSelected = false;
             }
             else if (command == "DOWNLOAD")
             {
@@ -170,6 +175,15 @@ namespace WhiteboardGUI.Services
             string serializedMessage = $"{command}:{serializedShape}";
             Debug.WriteLine(serializedMessage);
             _networkingService.BroadcastShapeData(serializedMessage, -1);
+        }
+
+        private void UpdateAllSynchronizedShapes()
+        {
+            _networkingService._synchronizedShapes.Clear();
+            foreach(IShape shape in Shapes)
+            {
+                _networkingService._synchronizedShapes.Add(shape);
+            }
         }
     }
 }

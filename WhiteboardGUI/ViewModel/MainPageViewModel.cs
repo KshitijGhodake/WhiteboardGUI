@@ -13,6 +13,7 @@ using System.Windows.Shapes;
 using System.Windows.Controls;
 using System.Linq;
 using Microsoft.Windows.Input;
+using System.Collections.Specialized;
 
 namespace WhiteboardGUI.ViewModel
 {
@@ -123,8 +124,12 @@ namespace WhiteboardGUI.ViewModel
                 }
             }
         }
-       
-      
+
+        private void Shapes_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            UpdateZIndices();
+        }
+
         public string TextInput
         {
             get => _textInput;
@@ -161,7 +166,6 @@ namespace WhiteboardGUI.ViewModel
         }
 
         public Rect TextBoxBounds { get; set; }
-
         public double TextBoxFontSize { get; set; } = 16;
 
         // Visibility property that directly converts IsTextBoxActive to a Visibility value
@@ -272,6 +276,8 @@ namespace WhiteboardGUI.ViewModel
         public ICommand ClearShapesCommand { get; }
         public ICommand OpenDownloadPopupCommand { get; }
         public ICommand DownloadItemCommand { get; }
+        public ICommand SendBackwardCommand { get; }
+        public ICommand SendToBackCommand { get; }
 
 
         // Events
@@ -295,6 +301,10 @@ namespace WhiteboardGUI.ViewModel
             _networkingService.ShapeDeleted += OnShapeDeleted;
             _networkingService.ShapeModified += OnShapeModified;
             _networkingService.ShapesClear += OnShapeClear;
+            _networkingService.ShapeSendBackward += MoveShapeBackward;
+            _networkingService.ShapeSendToBack += MoveShapeBack;
+
+            Shapes.CollectionChanged += Shapes_CollectionChanged;
 
             // Initialize commands
             Debug.WriteLine("ViewModel init start");
@@ -321,6 +331,10 @@ namespace WhiteboardGUI.ViewModel
             UndoCommand = new RelayCommand(CallUndo);
             RedoCommand = new RelayCommand(CallRedo);
             SelectColorCommand = new RelayCommand<string>(SelectColor);
+
+            // Z-Index Commands
+            SendBackwardCommand = new RelayCommand<ShapeBase>(SendBackward);
+            SendToBackCommand = new RelayCommand<ShapeBase>(SendToBack);
 
             SubmitCommand = new RelayCommand(async () => await SubmitFileName());
             OpenDownloadPopupCommand = new RelayCommand(OpenDownloadPopup);
@@ -381,7 +395,54 @@ namespace WhiteboardGUI.ViewModel
             OnPropertyChanged(nameof(DownloadItems));
         }
 
+        //Z-Index
+        private void SendBackward(IShape shape)
+        {
+            MoveShapeBackward(shape);
+            _renderingService.RenderShape(shape, "INDEX-BACKWARD");
+        }
 
+        private void MoveShapeBackward(IShape shape)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                if (shape == null || !(bool)Shapes.Any(s => (s as dynamic).ShapeId.Equals(shape.ShapeId))) return;
+
+                int index = Shapes.Select((shape, index) => new { shape, index })
+                         .FirstOrDefault(item => (item.shape as dynamic).ShapeId == shape.ShapeId)?.index ?? -1;
+                if (index > 0)
+                {
+                    Shapes.Move(index, index - 1);
+                    UpdateZIndices();
+                }
+            });
+        }
+
+        private void SendToBack(IShape shape)
+        {
+            MoveShapeBack(shape);
+            _renderingService.RenderShape(shape, "INDEX-BACK");
+        }
+
+        private void MoveShapeBack(IShape shape)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                if (shape == null || !(bool)Shapes.Any(s => (s as dynamic).ShapeId.Equals(shape.ShapeId))) return;
+
+                Shapes.Remove(Shapes.FirstOrDefault(s => (s as dynamic).ShapeId == shape.ShapeId));
+                Shapes.Insert(0, shape);
+                UpdateZIndices();
+            });
+        }
+
+        private void UpdateZIndices()
+        {
+            for (int i = 0; i < Shapes.Count; i++)
+            {
+                Shapes[i].ZIndex = i;
+            }
+        }
 
         private void UpdateSelectedColor()
         {
