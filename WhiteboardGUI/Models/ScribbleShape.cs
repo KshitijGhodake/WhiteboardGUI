@@ -24,6 +24,8 @@ namespace WhiteboardGUI.Models
                 OnPropertyChanged(nameof(Top));
                 OnPropertyChanged(nameof(Width));
                 OnPropertyChanged(nameof(Height));
+                OnPropertyChanged(nameof(DownLeftHandleY));
+                OnPropertyChanged(nameof(TopRightHandleX));
             }
         }
 
@@ -42,6 +44,8 @@ namespace WhiteboardGUI.Models
             OnPropertyChanged(nameof(Top));
             OnPropertyChanged(nameof(Width));
             OnPropertyChanged(nameof(Height));
+            OnPropertyChanged(nameof(DownLeftHandleY));
+            OnPropertyChanged(nameof(TopRightHandleX));
         }
 
         // Properties for binding in XAML
@@ -49,6 +53,10 @@ namespace WhiteboardGUI.Models
         public double Top => GetBounds().Top;
         public double Width => GetBounds().Width;
         public double Height => GetBounds().Height;
+
+        public double HandleSize => 8;
+        public double TopRightHandleX => Left + Width - HandleSize;
+        public double DownLeftHandleY => Top + Height - HandleSize;
 
         // Implement the GetBounds method
         public override Rect GetBounds()

@@ -12,9 +12,6 @@ namespace WhiteboardGUI.Models
         private double _centerY;
         private double _radiusX;
         private double _radiusY;
-        public double HandleSize => 8;
-        public double TopRightHandleX => Left + 2*_radiusX;
-        public double DownLeftHandleY => Top + 2 * _radiusY;
 
 
         public double CenterX
@@ -25,6 +22,7 @@ namespace WhiteboardGUI.Models
                 _centerX = value;
                 OnPropertyChanged(nameof(CenterX));
                 OnPropertyChanged(nameof(Left));
+                OnPropertyChanged(nameof(TopRightHandleX));
             }
         }
 
@@ -36,6 +34,7 @@ namespace WhiteboardGUI.Models
                 _centerY = value;
                 OnPropertyChanged(nameof(CenterY));
                 OnPropertyChanged(nameof(Top));
+                OnPropertyChanged(nameof(DownLeftHandleY));
             }
         }
 
@@ -48,6 +47,7 @@ namespace WhiteboardGUI.Models
                 OnPropertyChanged(nameof(RadiusX));
                 OnPropertyChanged(nameof(Left));
                 OnPropertyChanged(nameof(Width));
+                OnPropertyChanged(nameof(TopRightHandleX));
             }
         }
 
@@ -60,16 +60,22 @@ namespace WhiteboardGUI.Models
                 OnPropertyChanged(nameof(RadiusY));
                 OnPropertyChanged(nameof(Top));
                 OnPropertyChanged(nameof(Height));
+                OnPropertyChanged(nameof(DownLeftHandleY));
+
             }
         }
 
-    
+
 
         // Corrected properties for binding in XAML
         public double Left => CenterX - RadiusX;
         public double Top => CenterY - RadiusY;
         public double Width => 2 * RadiusX;
         public double Height => 2 * RadiusY;
+        public double HandleSize => 8;
+        public double TopRightHandleX => Left + Width - HandleSize;
+        public double DownLeftHandleY => Top + Height - HandleSize;
+
 
         public Brush Stroke => new SolidColorBrush((Color)ColorConverter.ConvertFromString(Color));
 
@@ -93,7 +99,7 @@ namespace WhiteboardGUI.Models
                 CenterY = this.CenterY,
                 RadiusX = this.RadiusX,
                 RadiusY = this.RadiusY
-                
+
 
             };
         }
