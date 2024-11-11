@@ -105,7 +105,7 @@ namespace WhiteboardGUI.Services
             }
             DateTimeOffset currentDateTimeEpoch = DateTimeOffset.UtcNow;
             long epochTime = currentDateTimeEpoch.ToUnixTimeSeconds();
-            snapShotFileName = _networkingService._clientID + snapShotFileName + "_" + epochTime.ToString();
+            snapShotFileName = _networkingService._clientID + "_" + snapShotFileName + "_" + epochTime.ToString();
 
             return snapShotFileName;
         }
