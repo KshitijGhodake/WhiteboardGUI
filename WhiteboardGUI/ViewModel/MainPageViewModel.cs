@@ -293,7 +293,8 @@ namespace WhiteboardGUI.ViewModel
             _renderingService = new RenderingService(_networkingService, _undoRedoService, Shapes);
             _snapShotService = new SnapShotService(_networkingService,_renderingService, Shapes, _undoRedoService);
 
-            DownloadItems = new ObservableCollection<string>(_snapShotService.getSnaps("a"));
+            DownloadItems = new ObservableCollection<string>();
+            InitializeDownloadItems();
             _snapShotService.OnSnapShotUploaded += RefreshDownloadItems;
 
             // Subscribe to networking events
@@ -383,10 +384,21 @@ namespace WhiteboardGUI.ViewModel
             OnPropertyChanged(nameof(IsDownloadPopupOpen));
         }
 
-        private void RefreshDownloadItems()
+        private async void InitializeDownloadItems()
         {
             DownloadItems.Clear();
-            var newSnaps = _snapShotService.getSnaps("a");
+            ObservableCollection<string> newSnaps = await _snapShotService.getSnaps("a",true);
+            foreach (var snap in newSnaps)
+            {
+                DownloadItems.Add(snap);
+            }
+
+            OnPropertyChanged(nameof(DownloadItems));
+        }
+        private async void RefreshDownloadItems()
+        {
+            DownloadItems.Clear();
+            ObservableCollection<string> newSnaps = await _snapShotService.getSnaps("a",false);
             foreach (var snap in newSnaps)
             {
                 DownloadItems.Add(snap);
