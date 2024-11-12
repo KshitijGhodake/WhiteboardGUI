@@ -13,6 +13,7 @@ using System.Windows.Shapes;
 using System.Windows.Controls;
 using System.Linq;
 using Microsoft.Windows.Input;
+using WhiteboardGUI.Adorners;
 
 namespace WhiteboardGUI.ViewModel
 {
@@ -39,6 +40,10 @@ namespace WhiteboardGUI.ViewModel
 
         // bouding box
         private bool isBoundingBoxActive;
+
+        private IShape _hoveredShape;
+        private bool _isShapeHovered;
+        public HoverAdorner CurrentHoverAdorner { get; set; }
 
         private byte _red = 0;
         public byte Red
@@ -820,5 +825,45 @@ namespace WhiteboardGUI.ViewModel
         protected void OnPropertyChanged(string propertyName) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
+        public IShape HoveredShape
+        {
+            get => _hoveredShape;
+            set
+            {
+                if (_hoveredShape != value)
+                {
+                    _hoveredShape = value;
+                    OnPropertyChanged(nameof(HoveredShape));
+                    OnPropertyChanged(nameof(HoveredShapeDetails));
+                }
+            }
+        }
+
+        public string HoveredShapeDetails
+        {
+            get
+            {
+                if (HoveredShape == null) return string.Empty;
+                string colorHex = HoveredShape.Color.ToString();
+                // Customize the details based on the shape type
+                string details =
+                                 $"Created By: {HoveredShape.UserID}\n" +
+                                 $"Last Modified By: {HoveredShape.LastModifierID}\n";
+                return details;
+            }
+        }
+
+        public bool IsShapeHovered
+        {
+            get => _isShapeHovered;
+            set
+            {
+                if (_isShapeHovered != value)
+                {
+                    _isShapeHovered = value;
+                    OnPropertyChanged(nameof(IsShapeHovered));
+                }
+            }
+        }
     }
 }

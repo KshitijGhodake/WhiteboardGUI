@@ -5,6 +5,7 @@
       xmlns:vm="clr-namespace:WhiteboardGUI.ViewModel"
       xmlns:models="clr-namespace:WhiteboardGUI.Models"
       xmlns:conv="clr-namespace:WhiteboardGUI.Converters"
+      xmlns:service="clr-namespace:WhiteboardGUI.Services"
       Title="MainPage" Background="Gray">
 
     <Page.Resources>
@@ -189,7 +190,7 @@
         <KeyBinding Key="X" Modifiers="Shift" Command="{Binding RedoCommand}" />
     </Page.InputBindings>
 
-
+    <AdornerDecorator>
     <Grid Background="#F5F5F5">
         <!-- Define two rows: one for the toolbar, one for the canvas -->
         <Grid.RowDefinitions>
@@ -480,9 +481,14 @@ IsSnapToTickEnabled="True" />
                             <!-- CircleShape Template -->
                             <DataTemplate DataType="{x:Type models:CircleShape}">
                                 <Canvas>
-                                    <Ellipse Width="{Binding Width}" Height="{Binding Height}"
-                                        Stroke="{Binding Color}" StrokeThickness="{Binding StrokeThickness}"
-                                        Canvas.Left="{Binding Left}" Canvas.Top="{Binding Top}" />
+                                    <Ellipse 
+                                        Width="{Binding Width}" 
+                                        Height="{Binding Height}"
+                                        Stroke="{Binding Color}" 
+                                        StrokeThickness="{Binding StrokeThickness}"
+                                        Canvas.Left="{Binding Left}" 
+                                        Canvas.Top="{Binding Top}"
+                                        service:HighlightingService.EnableHighlighting="True"     />
                                                                             <Rectangle Width="{Binding Width}" Height="{Binding Height}"
                                           Stroke="Blue" StrokeThickness="1" StrokeDashArray="2"
                                           Canvas.Left="{Binding Left}" Canvas.Top="{Binding Top}"
@@ -535,12 +541,15 @@ IsSnapToTickEnabled="True" />
                             <DataTemplate DataType="{x:Type models:LineShape}">
                                 <Canvas>
                                     <!-- The Line Element -->
-                                    <Line X1="{Binding StartX}"
-                                          Y1="{Binding StartY}"
-                                          X2="{Binding EndX}"
-                                          Y2="{Binding EndY}"
+                                    <Line X1="{Binding RelativeStartX}"
+                                          Y1="{Binding RelativeStartY}"
+                                          X2="{Binding RelativeEndX}"
+                                          Y2="{Binding RelativeEndY}"
                                           Stroke="{Binding Stroke}"
-                                          StrokeThickness="{Binding StrokeThickness}">
+                                          StrokeThickness="{Binding StrokeThickness}"
+                                          Canvas.Top="{Binding Bottomleft}" 
+                                          Canvas.Left="{Binding Left}"
+                                          service:HighlightingService.EnableHighlighting="True">
                                         <Line.RenderTransform>
                                             <RotateTransform Angle="{Binding RotationAngle}"
                                                  CenterX="{Binding MidX}"
@@ -595,9 +604,13 @@ IsSnapToTickEnabled="True" />
                             <DataTemplate DataType="{x:Type models:ScribbleShape}">
                                 <Canvas>
                                     <!-- The Polyline Element -->
-                                    <Polyline Points="{Binding PointCollection}" 
-                         Stroke="{Binding Color}" 
-                         StrokeThickness="{Binding StrokeThickness}" />
+                                    <Polyline 
+                                             Points="{Binding RelativePoints}" 
+                                             Stroke="{Binding Color}"
+                                             StrokeThickness="{Binding StrokeThickness}"
+                                             Canvas.Left="{Binding Left}" 
+                                             Canvas.Top="{Binding Top}"   
+                                             service:HighlightingService.EnableHighlighting="True" />
 
                                     <!-- Selection Rectangle -->
                                     <Rectangle Width="{Binding Width}" Height="{Binding Height}"
@@ -678,8 +691,13 @@ IsSnapToTickEnabled="True" />
                             <!-- TextShape Template -->
                             <DataTemplate DataType="{x:Type models:TextShape}">
                                 <Canvas>
-                                    <TextBlock Text="{Binding Text}" Foreground="{Binding Foreground}" FontSize="{Binding FontSize}"
-                                               Canvas.Left="{Binding X}" Canvas.Top="{Binding Y}" />
+                                    <TextBlock 
+                                        Text="{Binding Text}" 
+                                        Foreground="{Binding Foreground}" 
+                                        FontSize="{Binding FontSize}"
+                                        Canvas.Left="{Binding X}" 
+                                        Canvas.Top="{Binding Y}"
+                                         service:HighlightingService.EnableHighlighting="True"/>
                                     <!-- Bounding box if selected -->
                                     <Rectangle Width="{Binding Width}" Height="{Binding Height}"
                                                Stroke="Blue" StrokeThickness="1" StrokeDashArray="2"
@@ -695,4 +713,5 @@ IsSnapToTickEnabled="True" />
             </ItemsControl.ItemTemplate>
         </ItemsControl>
     </Grid>
+    </AdornerDecorator>
 </Page>

@@ -22,6 +22,12 @@ namespace WhiteboardGUI.Models
                     _startX = value;
                     OnPropertyChanged(nameof(StartX));
                     OnCoordinateChanged();
+                    OnPropertyChanged(nameof(Left));
+                    OnPropertyChanged(nameof(Width));
+                    OnPropertyChanged(nameof(RelativeStartX));
+                    // When StartX changes, RelativeEndX might change if Left changes
+                    OnPropertyChanged(nameof(RelativeEndX));
+                    OnPropertyChanged(nameof(Bottomleft));
                 }
             }
         }
@@ -36,6 +42,11 @@ namespace WhiteboardGUI.Models
                     _startY = value;
                     OnPropertyChanged(nameof(StartY));
                     OnCoordinateChanged();
+                    OnPropertyChanged(nameof(Top));
+                    OnPropertyChanged(nameof(Height));
+                    OnPropertyChanged(nameof(RelativeStartY));
+                    OnPropertyChanged(nameof(RelativeEndY));
+                    OnPropertyChanged(nameof(Bottomleft));
                 }
             }
         }
@@ -50,6 +61,11 @@ namespace WhiteboardGUI.Models
                     _endX = value;
                     OnPropertyChanged(nameof(EndX));
                     OnCoordinateChanged();
+                    OnPropertyChanged(nameof(Left));
+                    OnPropertyChanged(nameof(Width));
+                    OnPropertyChanged(nameof(RelativeEndX));
+                    OnPropertyChanged(nameof(RelativeStartX));
+                    OnPropertyChanged(nameof(Bottomleft));
                 }
             }
         }
@@ -64,6 +80,11 @@ namespace WhiteboardGUI.Models
                     _endY = value;
                     OnPropertyChanged(nameof(EndY));
                     OnCoordinateChanged();
+                    OnPropertyChanged(nameof(Top));
+                    OnPropertyChanged(nameof(Height));
+                    OnPropertyChanged(nameof(RelativeEndY));
+                    OnPropertyChanged(nameof(RelativeStartY));
+                    OnPropertyChanged(nameof(Bottomleft));
                 }
             }
         }
@@ -98,6 +119,13 @@ namespace WhiteboardGUI.Models
 
         public double MidX => (StartX + EndX) / 2;
         public double MidY => (StartY + EndY) / 2;
+
+        public double RelativeStartX => StartX - Left;
+        public double RelativeStartY => StartY - Top - Height;
+        public double RelativeEndX => EndX - Left;
+        public double RelativeEndY => EndY - Top - Height;
+
+        public double Bottomleft => Top + Height;
 
         private double _rotationAngle;
         public double RotationAngle

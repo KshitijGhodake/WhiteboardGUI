@@ -32,6 +32,8 @@ namespace WhiteboardGUI.Models
 
         // Property for binding in XAML
         public PointCollection PointCollection => new PointCollection(Points);
+        public PointCollection RelativePoints => new PointCollection(Points.Select(p => new Point(p.X - Left, p.Y - Top)));
+
 
         public Brush Stroke => new SolidColorBrush((Color)ColorConverter.ConvertFromString(Color));
 
@@ -40,6 +42,7 @@ namespace WhiteboardGUI.Models
         {
             _points.Add(point);
             OnPropertyChanged(nameof(PointCollection));
+            OnPropertyChanged(nameof(RelativePoints));
             OnPropertyChanged(nameof(Left));
             OnPropertyChanged(nameof(Top));
             OnPropertyChanged(nameof(Width));
