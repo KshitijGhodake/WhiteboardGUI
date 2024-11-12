@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Media;
 
 namespace WhiteboardGUI.Models
@@ -91,34 +92,36 @@ namespace WhiteboardGUI.Models
 
         private void OnCoordinateChanged()
         {
+            OnPropertyChanged(nameof(MidX));
+            OnPropertyChanged(nameof(MidY));
             OnPropertyChanged(nameof(Left));
             OnPropertyChanged(nameof(Top));
             OnPropertyChanged(nameof(Width));
             OnPropertyChanged(nameof(Height));
-            OnPropertyChanged(nameof(MidX));
-            OnPropertyChanged(nameof(MidY));
-            OnPropertyChanged(nameof(StartHandleXRotated));
-            OnPropertyChanged(nameof(StartHandleYRotated));
-            OnPropertyChanged(nameof(EndHandleXRotated));
-            OnPropertyChanged(nameof(EndHandleYRotated));
-            OnPropertyChanged(nameof(RotatedStartPoint));
-            OnPropertyChanged(nameof(RotatedEndPoint));
-            OnPropertyChanged(nameof(RotatedLeft));
-            OnPropertyChanged(nameof(RotatedTop));
-            OnPropertyChanged(nameof(RotatedWidth));
-            OnPropertyChanged(nameof(RotatedHeight));
-            OnPropertyChanged(nameof(RotationHandleXRotated));
-            OnPropertyChanged(nameof(RotationHandleYRotated));
+            OnPropertyChanged(nameof(StartHandleX));
+            OnPropertyChanged(nameof(StartHandleY));
+            OnPropertyChanged(nameof(EndHandleX));
+            OnPropertyChanged(nameof(EndHandleY));
         }
-
-        public double Left => Math.Min(StartX, EndX);
-        public double Top => Math.Min(StartY, EndY);
-        public double Width => Math.Abs(EndX - StartX);
-        public double Height => Math.Abs(EndY - StartY);
-        public double HandleSize => 8;
 
         public double MidX => (StartX + EndX) / 2;
         public double MidY => (StartY + EndY) / 2;
+
+        // Property for binding in XAML
+        public Brush Stroke => new SolidColorBrush((Color)ColorConverter.ConvertFromString(Color));
+
+        public double Left => Math.Min(StartX, EndX) - HandleSize / 2;
+        public double Top => Math.Min(StartY, EndY) - HandleSize / 2;
+        public double Width => Math.Abs(EndX - StartX) + HandleSize;
+        public double Height => Math.Abs(EndY - StartY) + HandleSize;
+
+        public double HandleSize => 8;
+
+        // Properties for handle positions
+        public double StartHandleX => StartX - HandleSize / 2;
+        public double StartHandleY => StartY - HandleSize / 2;
+        public double EndHandleX => EndX - HandleSize / 2;
+        public double EndHandleY => EndY - HandleSize / 2;
 
         public double RelativeStartX => StartX - Left;
         public double RelativeStartY => StartY - Top - Height;
@@ -127,28 +130,11 @@ namespace WhiteboardGUI.Models
 
         public double Bottomleft => Top + Height;
 
-        private double _rotationAngle;
-        public double RotationAngle
-        {
-            get => _rotationAngle;
-            set
-            {
-                if (_rotationAngle != value)
-                {
-                    _rotationAngle = value;
-                    OnPropertyChanged(nameof(RotationAngle));
-                    OnCoordinateChanged();
-                }
-            }
-        }
-
-        // Property for binding in XAML
-        public Brush Stroke => new SolidColorBrush((Color)ColorConverter.ConvertFromString(Color));
 
         public override Rect GetBounds()
         {
-            // Return the axis-aligned bounding box of the rotated line
-            return new Rect(RotatedLeft, RotatedTop, RotatedWidth, RotatedHeight);
+            // Return the axis-aligned bounding box of the line
+            return new Rect(Left, Top, Width, Height);
         }
 
         public override IShape Clone()
@@ -165,45 +151,8 @@ namespace WhiteboardGUI.Models
                 StartY = this.StartY,
                 EndX = this.EndX,
                 EndY = this.EndY,
-                RotationAngle = this.RotationAngle
+                // RotationAngle property removed
             };
         }
-
-        // Helper method to rotate a point around (centerX, centerY) by angle degrees
-        private Point RotatePoint(double x, double y, double centerX, double centerY, double angle)
-        {
-            double radians = angle * Math.PI / 180;
-            double cosTheta = Math.Cos(radians);
-            double sinTheta = Math.Sin(radians);
-            double dx = x - centerX;
-            double dy = y - centerY;
-            double newX = centerX + (dx * cosTheta - dy * sinTheta);
-            double newY = centerY + (dx * sinTheta + dy * cosTheta);
-            return new Point(newX, newY);
-        }
-
-        // Rotated Start and End Points
-        public Point RotatedStartPoint => RotatePoint(StartX, StartY, MidX, MidY, RotationAngle);
-        public Point RotatedEndPoint => RotatePoint(EndX, EndY, MidX, MidY, RotationAngle);
-
-        // Axis-aligned bounding box of rotated line
-        public double RotatedLeft => Math.Min(RotatedStartPoint.X, RotatedEndPoint.X);
-        public double RotatedTop => Math.Min(RotatedStartPoint.Y, RotatedEndPoint.Y);
-        public double RotatedWidth => Math.Abs(RotatedEndPoint.X - RotatedStartPoint.X);
-        public double RotatedHeight => Math.Abs(RotatedEndPoint.Y - RotatedStartPoint.Y);
-
-        // Properties for handle positions
-        public double StartHandleXRotated => RotatedStartPoint.X - HandleSize / 2;
-        public double StartHandleYRotated => RotatedStartPoint.Y - HandleSize / 2;
-        public double EndHandleXRotated => RotatedEndPoint.X - HandleSize / 2;
-        public double EndHandleYRotated => RotatedEndPoint.Y - HandleSize / 2;
-
-        // Unrotated rotation handle position
-        public double RotationHandleXUnrotated => MidX;
-        public double RotationHandleYUnrotated => MidY - 30;
-
-        // Rotated rotation handle position
-        public double RotationHandleXRotated => RotatePoint(RotationHandleXUnrotated, RotationHandleYUnrotated, MidX, MidY, RotationAngle).X - HandleSize / 2;
-        public double RotationHandleYRotated => RotatePoint(RotationHandleXUnrotated, RotationHandleYUnrotated, MidX, MidY, RotationAngle).Y - HandleSize / 2;
     }
 }

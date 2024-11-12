@@ -536,71 +536,55 @@ IsSnapToTickEnabled="True" />
                                 </Canvas>
                             </DataTemplate>
 
-                            
-                            <!-- LineShape Template -->
-                            <DataTemplate DataType="{x:Type models:LineShape}">
-                                <Canvas>
-                                    <!-- The Line Element -->
-                                    <Line X1="{Binding RelativeStartX}"
-                                          Y1="{Binding RelativeStartY}"
-                                          X2="{Binding RelativeEndX}"
-                                          Y2="{Binding RelativeEndY}"
-                                          Stroke="{Binding Stroke}"
-                                          StrokeThickness="{Binding StrokeThickness}"
-                                          Canvas.Top="{Binding Bottomleft}" 
-                                          Canvas.Left="{Binding Left}"
-                                          service:HighlightingService.EnableHighlighting="True">
-                                        <Line.RenderTransform>
-                                            <RotateTransform Angle="{Binding RotationAngle}"
-                                                 CenterX="{Binding MidX}"
-                                                 CenterY="{Binding MidY}" />
-                                        </Line.RenderTransform>
-                                    </Line>
 
-                                    <!-- Selection Rectangle -->
-                                    <Rectangle Width="{Binding RotatedWidth}" Height="{Binding RotatedHeight}"
-                                       Stroke="Blue" StrokeThickness="1" StrokeDashArray="2"
-                                       Canvas.Left="{Binding RotatedLeft}" Canvas.Top="{Binding RotatedTop}"
-                                       Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                <!-- LineShape Template -->
+                                <DataTemplate DataType="{x:Type models:LineShape}">
+                                    <Canvas>
+                                        <!-- The Line Element -->
+                                        <Line X1="{Binding RelativeStartX}"
+                                              Y1="{Binding RelativeStartY}"
+                                              X2="{Binding RelativeEndX}"
+                                              Y2="{Binding RelativeEndY}"
+                                              Stroke="{Binding Stroke}"
+                                              StrokeThickness="{Binding StrokeThickness}"
+                                              Canvas.Top="{Binding Bottomleft}" 
+                                              Canvas.Left="{Binding Left}"
+                                              service:HighlightingService.EnableHighlighting="True"/>
 
-                                    <!-- Start Handle -->
-                                    <Ellipse Width="{Binding HandleSize}" Height="{Binding HandleSize}" Fill="White" Stroke="Black"
-                                         Canvas.Left="{Binding StartHandleXRotated}"
-                                         Canvas.Top="{Binding StartHandleYRotated}"
-                                         Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                         Cursor="SizeAll"
-                                         MouseLeftButtonDown="ResizeHandle_MouseLeftButtonDown"
-                                         MouseMove="ResizeHandle_MouseMove"
-                                         MouseLeftButtonUp="ResizeHandle_MouseLeftButtonUp"
-                                         Tag="Start" />
+                                        <!-- Selection Rectangle -->
+                                        <Rectangle Width="{Binding Width}" Height="{Binding Height}"
+                   Stroke="Blue" StrokeThickness="1" StrokeDashArray="2"
+                   Canvas.Left="{Binding Left}" Canvas.Top="{Binding Top}"
+                   Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}" />
 
-                                    <!-- End Handle -->
-                                    <Ellipse Width="{Binding HandleSize}" Height="{Binding HandleSize}" Fill="White" Stroke="Black"
-                                         Canvas.Left="{Binding EndHandleXRotated}"
-                                         Canvas.Top="{Binding EndHandleYRotated}"
-                                         Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                         Cursor="SizeAll"
-                                         MouseLeftButtonDown="ResizeHandle_MouseLeftButtonDown"
-                                         MouseMove="ResizeHandle_MouseMove"
-                                         MouseLeftButtonUp="ResizeHandle_MouseLeftButtonUp"
-                                         Tag="End" />
+                                        <!-- Start Handle -->
+                                        <Ellipse Width="{Binding HandleSize}" Height="{Binding HandleSize}" Fill="White" Stroke="Black"
+                 Canvas.Left="{Binding StartHandleX}"
+                 Canvas.Top="{Binding StartHandleY}"
+                 Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}"
+                 Cursor="SizeAll"
+                 MouseLeftButtonDown="ResizeHandle_MouseLeftButtonDown"
+                 MouseMove="ResizeHandle_MouseMove"
+                 MouseLeftButtonUp="ResizeHandle_MouseLeftButtonUp"
+                 Tag="Start" />
 
-                                    <!-- Rotation Handle -->
-                                    <Ellipse Width="{Binding HandleSize}" Height="{Binding HandleSize}" 
-                                         Fill="Yellow" Stroke="Black"
-                                         Canvas.Left="{Binding RotationHandleXRotated}" Canvas.Top="{Binding RotationHandleYRotated}"
-                                         Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                         Cursor="Hand"
-                                         MouseLeftButtonDown="RotateHandle_MouseLeftButtonDown"
-                                         MouseMove="RotateHandle_MouseMove"
-                                         MouseLeftButtonUp="RotateHandle_MouseLeftButtonUp"
-                                         Tag="Rotate" />
-                                </Canvas>
-                            </DataTemplate>
+                                        <!-- End Handle -->
+                                        <Ellipse Width="{Binding HandleSize}" Height="{Binding HandleSize}" Fill="White" Stroke="Black"
+                 Canvas.Left="{Binding EndHandleX}"
+                 Canvas.Top="{Binding EndHandleY}"
+                 Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}"
+                 Cursor="SizeAll"
+                 MouseLeftButtonDown="ResizeHandle_MouseLeftButtonDown"
+                 MouseMove="ResizeHandle_MouseMove"
+                 MouseLeftButtonUp="ResizeHandle_MouseLeftButtonUp"
+                 Tag="End" />
+                                    </Canvas>
+                                </DataTemplate>
 
 
 
-                            <!-- ScribbleShape Template -->
+
+                                <!-- ScribbleShape Template -->
                             <DataTemplate DataType="{x:Type models:ScribbleShape}">
                                 <Canvas>
                                     <!-- The Polyline Element -->
