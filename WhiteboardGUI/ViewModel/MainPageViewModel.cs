@@ -24,6 +24,7 @@ namespace WhiteboardGUI.ViewModel
         private readonly UndoRedoService _undoRedoService = new();
         public readonly RenderingService _renderingService;
         private readonly SnapShotService _snapShotService;
+        private readonly MoveShapeZIndexing _moveShapeZIndexing;
         private IShape _selectedShape;
         private ShapeType _currentTool = ShapeType.Pencil;
         private Point _startPoint;
@@ -127,7 +128,7 @@ namespace WhiteboardGUI.ViewModel
 
         private void Shapes_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            UpdateZIndices();
+            _moveShapeZIndexing.UpdateZIndices();
         }
 
         public string TextInput
@@ -292,6 +293,7 @@ namespace WhiteboardGUI.ViewModel
             _networkingService = new NetworkingService();
             _renderingService = new RenderingService(_networkingService, _undoRedoService, Shapes);
             _snapShotService = new SnapShotService(_networkingService,_renderingService, Shapes, _undoRedoService);
+            _moveShapeZIndexing = new MoveShapeZIndexing(Shapes);
 
             DownloadItems = new ObservableCollection<string>();
             InitializeDownloadItems();
@@ -302,8 +304,8 @@ namespace WhiteboardGUI.ViewModel
             _networkingService.ShapeDeleted += OnShapeDeleted;
             _networkingService.ShapeModified += OnShapeModified;
             _networkingService.ShapesClear += OnShapeClear;
-            _networkingService.ShapeSendBackward += MoveShapeBackward;
-            _networkingService.ShapeSendToBack += MoveShapeBack;
+            _networkingService.ShapeSendBackward += _moveShapeZIndexing.MoveShapeBackward;
+            _networkingService.ShapeSendToBack += _moveShapeZIndexing.MoveShapeBack;
 
             Shapes.CollectionChanged += Shapes_CollectionChanged;
 
@@ -410,50 +412,14 @@ namespace WhiteboardGUI.ViewModel
         //Z-Index
         private void SendBackward(IShape shape)
         {
-            MoveShapeBackward(shape);
+            _moveShapeZIndexing.MoveShapeBackward(shape);
             _renderingService.RenderShape(shape, "INDEX-BACKWARD");
-        }
-
-        private void MoveShapeBackward(IShape shape)
-        {
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                if (shape == null || !(bool)Shapes.Any(s => (s as dynamic).ShapeId.Equals(shape.ShapeId))) return;
-
-                int index = Shapes.Select((shape, index) => new { shape, index })
-                         .FirstOrDefault(item => (item.shape as dynamic).ShapeId == shape.ShapeId)?.index ?? -1;
-                if (index > 0)
-                {
-                    Shapes.Move(index, index - 1);
-                    UpdateZIndices();
-                }
-            });
         }
 
         private void SendToBack(IShape shape)
         {
-            MoveShapeBack(shape);
+            _moveShapeZIndexing.MoveShapeBack(shape);
             _renderingService.RenderShape(shape, "INDEX-BACK");
-        }
-
-        private void MoveShapeBack(IShape shape)
-        {
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                if (shape == null || !(bool)Shapes.Any(s => (s as dynamic).ShapeId.Equals(shape.ShapeId))) return;
-
-                Shapes.Remove(Shapes.FirstOrDefault(s => (s as dynamic).ShapeId == shape.ShapeId));
-                Shapes.Insert(0, shape);
-                UpdateZIndices();
-            });
-        }
-
-        private void UpdateZIndices()
-        {
-            for (int i = 0; i < Shapes.Count; i++)
-            {
-                Shapes[i].ZIndex = i;
-            }
         }
 
         private void UpdateSelectedColor()
