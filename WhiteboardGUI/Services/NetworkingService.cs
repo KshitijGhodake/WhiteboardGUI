@@ -9,7 +9,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using WhiteboardGUI.Models;
-
+using Networking.Communication;
 namespace WhiteboardGUI.Services
 {
     public class NetworkingService

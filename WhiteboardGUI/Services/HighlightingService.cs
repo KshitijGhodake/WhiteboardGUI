@@ -10,6 +10,7 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 
 namespace WhiteboardGUI.Services
 {
@@ -35,6 +36,24 @@ namespace WhiteboardGUI.Services
             obj.SetValue(EnableHighlightingProperty, value);
         }
 
+        // Attached Property to store the hover timer for each element
+        private static readonly DependencyProperty HoverTimerProperty =
+            DependencyProperty.RegisterAttached(
+                "HoverTimer",
+                typeof(DispatcherTimer),
+                typeof(HighlightingService),
+                new PropertyMetadata(null));
+
+        private static DispatcherTimer GetHoverTimer(DependencyObject obj)
+        {
+            return (DispatcherTimer)obj.GetValue(HoverTimerProperty);
+        }
+
+        private static void SetHoverTimer(DependencyObject obj, DispatcherTimer value)
+        {
+            obj.SetValue(HoverTimerProperty, value);
+        }
+
         // Property Changed Callback
         private static void OnEnableHighlightingChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
@@ -58,53 +77,66 @@ namespace WhiteboardGUI.Services
         {
             if (sender is FrameworkElement element)
             {
-                // Retrieve the DataContext (ViewModel)
-                var viewModel = FindParentViewModel(element);
-                if (viewModel is MainPageViewModel vm)
+                DispatcherTimer hoverTimer = new DispatcherTimer();
+                hoverTimer.Interval = TimeSpan.FromSeconds(0.4);
+                hoverTimer.Tick += (s, args) =>
                 {
-                    if (element.DataContext is IShape shape)
+                    // Stop the timer
+                    hoverTimer.Stop();
+
+                    // Remove the timer from the attached property
+                    SetHoverTimer(element, null);
+
+                    var viewModel = FindParentViewModel(element);
+                    if (viewModel is MainPageViewModel vm)
                     {
-                        // Get the mouse position relative to the element
-                        Point mousePosition = e.GetPosition(element);
-
-                        Debug.WriteLine("Hi this is" + shape);
-                        Point elementPosition = element.TranslatePoint(new Point(0, 0), Application.Current.MainWindow);
-                        // Create and add the HoverAdorner
-                        AdornerLayer adornerLayer = AdornerLayer.GetAdornerLayer(element);
-                        if (adornerLayer != null)
+                        if (element.DataContext is IShape shape)
                         {
-                            // Remove existing adorner if any
-                            RemoveHoverAdorner(adornerLayer, vm);
-                            // Update ViewModel properties
-                            vm.HoveredShape = shape;
-                            vm.IsShapeHovered = true;
 
-                            // Create a new HoverAdorner with the shape details, mouse position, and color preview
-                            Color shapeColor = (Color)ColorConverter.ConvertFromString(shape.Color);
+                            Debug.WriteLine("Hi this is" + shape);
+                            Point elementPosition = element.TranslatePoint(new Point(0, 0), Application.Current.MainWindow);
+                            // Create and add the HoverAdorner
+                            AdornerLayer adornerLayer = AdornerLayer.GetAdornerLayer(element);
+                            if (adornerLayer != null)
+                            {
+                                // Remove existing adorner if any
+                                RemoveHoverAdorner(adornerLayer, vm);
+                                // Update ViewModel properties
+                                vm.HoveredShape = shape;
+                                vm.IsShapeHovered = true;
 
-                            // Get the ImageSource based on the shape
-                            ImageSource imageSource = GetImageSourceForShape(shape);
+                                // Create a new HoverAdorner with the shape details, mouse position, and color preview
+                                Color shapeColor = (Color)ColorConverter.ConvertFromString(shape.Color);
 
-                            // Create a new HoverAdorner with the shape details and mouse position
-                            HoverAdorner hoverAdorner = new HoverAdorner(element, vm.HoveredShapeDetails, elementPosition, imageSource, shapeColor);
+                                // Get the ImageSource based on the shape
+                                ImageSource imageSource = GetImageSourceForShape(shape);
 
-                            adornerLayer.Add(hoverAdorner);
+                                // Create a new HoverAdorner with the shape details and mouse position
+                                HoverAdorner hoverAdorner = new HoverAdorner(element, vm.HoveredShapeDetails, elementPosition, imageSource, shapeColor);
 
-                            // Store reference in ViewModel for potential updates/removal
-                            vm.CurrentHoverAdorner = hoverAdorner;
-                            Debug.WriteLine($"Hovered over shape: {shape.GetType().Name}");
-                            Debug.WriteLine($"HoveredShapeDetails: {vm.HoveredShapeDetails}");
-                        }
-                        else
-                        {
-                            Debug.WriteLine("AdornerLayer not found.");
+                                adornerLayer.Add(hoverAdorner);
+
+                                // Store reference in ViewModel for potential updates/removal
+                                vm.CurrentHoverAdorner = hoverAdorner;
+                                Debug.WriteLine($"Hovered over shape: {shape.GetType().Name}");
+                                Debug.WriteLine($"HoveredShapeDetails: {vm.HoveredShapeDetails}");
+                            }
+                            else
+                            {
+                                Debug.WriteLine("AdornerLayer not found.");
+                            }
                         }
                     }
-                }
-                else
-                {
-                    Debug.WriteLine("MainPageViewModel not found in DataContext.");
-                }
+                    else
+                    {
+                        Debug.WriteLine("MainPageViewModel not found in DataContext.");
+                    }
+                };
+                // Store the timer as an attached property
+                SetHoverTimer(element, hoverTimer);
+
+                // Start the timer
+                hoverTimer.Start();
             }
         }
 
@@ -129,6 +161,15 @@ namespace WhiteboardGUI.Services
         {
             if (sender is FrameworkElement element)
             {
+                // Retrieve the timer
+                DispatcherTimer hoverTimer = GetHoverTimer(element);
+                if (hoverTimer != null)
+                {
+                    // Stop and remove the timer
+                    hoverTimer.Stop();
+                    SetHoverTimer(element, null);
+                }
+
                 // Retrieve the DataContext (ViewModel)
                 var viewModel = FindParentViewModel(element);
                 if (viewModel is MainPageViewModel vm)
