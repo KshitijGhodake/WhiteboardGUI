@@ -32,8 +32,8 @@ namespace WhiteboardGUI.Adorners
             _image = new Image
             {
                 Source = imageSource,
-                Width = 24, // Set desired width
-                Height = 24, // Set desired height
+                Width = 40, // Set desired width
+                Height = 40, // Set desired height
                 Margin = new Thickness(0, 0, 5, 0), // Margin between image and text
                 IsHitTestVisible = false
             };

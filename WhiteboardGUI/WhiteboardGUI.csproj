@@ -21,6 +21,7 @@
     <None Remove="Views\assets\redo-circle.png" />
     <None Remove="Views\assets\selecticon.png" />
     <None Remove="Views\assets\servericon.png" />
+    <None Remove="Views\assets\sirPhoto.png" />
     <None Remove="Views\assets\texticon.png" />
     <None Remove="Views\assets\thickness.png" />
     <None Remove="Views\assets\undo-circle.png" />
@@ -36,9 +37,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Network\Network.csproj" />
-  </ItemGroup>
+
 
   <ItemGroup>
     <Resource Include="Views\assets\circleicon.png" />
@@ -52,6 +51,7 @@
     <Resource Include="Views\assets\redo-circle.png" />
     <Resource Include="Views\assets\selecticon.png" />
     <Resource Include="Views\assets\servericon.png" />
+    <Resource Include="Views\assets\sirphoto.png" />
     <Resource Include="Views\assets\texticon.png" />
     <Resource Include="Views\assets\thickness.png" />
     <Resource Include="Views\assets\undo-circle.png" />

@@ -143,7 +143,7 @@ namespace WhiteboardGUI.Services
         private static ImageSource GetImageSourceForShape(IShape shape)
         {
             string imagePath = "";
-            imagePath = "../Views/Assets/clienticon.png";
+            imagePath = "../Views/Assets/sirphoto.png";
 
             // Create ImageSource from the image path
             try

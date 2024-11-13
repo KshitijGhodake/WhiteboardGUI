@@ -20,6 +20,7 @@ namespace WhiteboardGUI.Models
                 _points = value;
                 OnPropertyChanged(nameof(Points));
                 OnPropertyChanged(nameof(PointCollection));
+                OnPropertyChanged(nameof(RelativePoints));
                 OnPropertyChanged(nameof(Left));
                 OnPropertyChanged(nameof(Top));
                 OnPropertyChanged(nameof(Width));
