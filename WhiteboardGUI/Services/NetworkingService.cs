@@ -122,7 +122,7 @@ namespace WhiteboardGUI.Services
                     {
                         string data = receivedData.Substring(7);
                         var shape = SerializationService.DeserializeShape(data);
-
+                        Debug.WriteLine($"Received shape: {shape}");
                         if (shape != null)
                         {
                             var shapeId = shape.ShapeId;
@@ -131,11 +131,10 @@ namespace WhiteboardGUI.Services
                             var currentShape = _synchronizedShapes.Where(s => s.ShapeId == shapeId && s.UserID == shapeUserId).FirstOrDefault();
                             if (currentShape != null)
                             {
-                                ShapeDeleted?.Invoke(currentShape);
+                                //ShapeDeleted?.Invoke(currentShape);
                                 ShapeModified?.Invoke(shape);
 
                             }
-
                         }
                     }
                     else if (receivedData.StartsWith("CREATE:"))
@@ -229,7 +228,7 @@ namespace WhiteboardGUI.Services
                     {
                         string data = receivedData.Substring(7);
                         var shape = SerializationService.DeserializeShape(data);
-
+                        Debug.WriteLine($"Received shape: {shape}");
                         if (shape != null)
                         {
                             var shapeId = shape.ShapeId;
@@ -238,7 +237,7 @@ namespace WhiteboardGUI.Services
                             var currentShape = _synchronizedShapes.Where(s => s.ShapeId == shapeId && s.UserID == shapeUserId).FirstOrDefault();
                             if (currentShape != null)
                             {
-                                ShapeDeleted?.Invoke(currentShape);
+                                //ShapeDeleted?.Invoke(currentShape);
                                 ShapeModified?.Invoke(shape);
 
                             }

@@ -753,7 +753,70 @@ namespace WhiteboardGUI.ViewModel
             Application.Current.Dispatcher.Invoke(() =>
             {
                 shape.IsSelected = false;
-                Shapes.Add(shape);
+                //Shapes.Add(shape);
+
+                var existingShape = Shapes.FirstOrDefault(s => s.ShapeId == shape.ShapeId && s.UserID == shape.UserID); 
+                
+                switch (shape.ShapeType)
+                {
+                    case "Circle":
+                        if (existingShape is CircleShape existingCircle && shape is CircleShape modifiedCircle)
+                        {
+                            existingCircle.LastModifierID = modifiedCircle.LastModifierID;
+                                    existingCircle.Color = modifiedCircle.Color;
+                                    existingCircle.StrokeThickness = modifiedCircle.StrokeThickness;
+
+                                    // Update Circle-specific properties
+                                    existingCircle.CenterX = modifiedCircle.CenterX;
+                                    existingCircle.CenterY = modifiedCircle.CenterY;
+                                    existingCircle.RadiusX = modifiedCircle.RadiusX;
+                                    existingCircle.RadiusY = modifiedCircle.RadiusY;
+                                }
+                                break;
+                    case "Line":
+                        if (existingShape is LineShape existingLine && shape is LineShape modifiedLine)
+                        {
+                            // Update common properties
+                            existingLine.LastModifierID = modifiedLine.LastModifierID;
+                            existingLine.Color = modifiedLine.Color;
+                            existingLine.StrokeThickness = modifiedLine.StrokeThickness;
+
+                            // Update Line-specific properties
+                            existingLine.StartX = modifiedLine.StartX;
+                            existingLine.StartY = modifiedLine.StartY;
+                            existingLine.EndX = modifiedLine.EndX;
+                            existingLine.EndY = modifiedLine.EndY;
+                        }
+                        break;
+                    case "Scribble":
+                        if (existingShape is ScribbleShape existingScribble && shape is ScribbleShape modifiedScribble)
+                        {
+                            // Update common properties
+                            existingScribble.LastModifierID = modifiedScribble.LastModifierID;
+                            existingScribble.Color = modifiedScribble.Color;
+                            existingScribble.StrokeThickness = modifiedScribble.StrokeThickness;
+
+                            // Update Scribble-specific properties
+                            existingScribble.Points = new List<Point>(modifiedScribble.Points);
+                        }
+                        break;
+                    case "TextShape":
+                        if (existingShape is TextShape existingText && shape is TextShape modifiedText)
+                        {
+                            // Update common properties
+                            existingText.LastModifierID = modifiedText.LastModifierID;
+                            existingText.Color = modifiedText.Color;
+                            existingText.StrokeThickness = modifiedText.StrokeThickness;
+
+                            // Update TextShape-specific properties
+                            existingText.Text = modifiedText.Text;
+                            existingText.X = modifiedText.X;
+                            existingText.Y = modifiedText.Y;
+                            existingText.FontSize = modifiedText.FontSize;
+                        }
+                        break;
+                }
+                        
                 var newShape = shape.Clone();
                 _networkingService._synchronizedShapes.Add(newShape);
                 _undoRedoService.RemoveLastModified(_networkingService, shape);
