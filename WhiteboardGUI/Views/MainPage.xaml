@@ -467,7 +467,8 @@ IsSnapToTickEnabled="True" />
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <Canvas Background="White"
-                            MouseLeftButtonDown="Canvas_MouseLeftButtonDown"
+                            MouseLeftButtonDown="Canvas_LeftMouseButtonDown"
+                            MouseRightButtonDown="Canvas_RightMouseButtonDown"
                             MouseMove="Canvas_MouseMove"
                             MouseLeftButtonUp="Canvas_MouseLeftButtonUp" />
                 </ItemsPanelTemplate>

@@ -173,6 +173,7 @@ namespace WhiteboardGUI.Services
         public async Task StartClient(int port)
         {
             _client = new TcpClient();
+            //await _client.ConnectAsync(IPAddress.Parse("10.32.10.20"), port);
             await _client.ConnectAsync(IPAddress.Loopback, port);
             Console.WriteLine("Connected to host");
 

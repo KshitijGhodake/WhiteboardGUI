@@ -260,7 +260,9 @@ namespace WhiteboardGUI.ViewModel
         public ICommand DrawShapeCommand { get; }
         public ICommand SelectShapeCommand { get; }
         public ICommand DeleteShapeCommand { get; }
-        public ICommand CanvasMouseDownCommand { get; }
+        public ICommand CanvasLeftMouseDownCommand { get; }
+
+        public ICommand CanvasRightMouseDownCommand { get; }
         public ICommand CanvasMouseMoveCommand { get; }
         public ICommand CanvasMouseUpCommand { get; }
         //public ICommand FinalizeTextBoxCommand { get; }
@@ -317,7 +319,8 @@ namespace WhiteboardGUI.ViewModel
 
             SelectShapeCommand = new RelayCommand<IShape>(SelectShape);
             DeleteShapeCommand = new RelayCommand(DeleteSelectedShape, () => SelectedShape != null);
-            CanvasMouseDownCommand = new RelayCommand<MouseButtonEventArgs>(OnCanvasMouseDown);
+            CanvasLeftMouseDownCommand = new RelayCommand<MouseButtonEventArgs>(OnCanvasLeftMouseDown);
+            CanvasRightMouseDownCommand = new RelayCommand<MouseButtonEventArgs>(OnCanvasRightMouseDown);
             CanvasMouseMoveCommand = new RelayCommand<MouseEventArgs>(OnCanvasMouseMove);
             CanvasMouseUpCommand = new RelayCommand<MouseButtonEventArgs>(OnCanvasMouseUp);
             // Initialize commands
@@ -520,9 +523,53 @@ namespace WhiteboardGUI.ViewModel
             Rect bounds = shape.GetBounds();
             return bounds.Contains(point);
         }
-        private void OnCanvasMouseDown(MouseButtonEventArgs e)
+
+        private void OnCanvasRightMouseDown(MouseButtonEventArgs e)
+        {
+            bool textShapeClicked = false;
+            var position = e.GetPosition((IInputElement)e.Source);
+           
+            foreach (var shape in Shapes.Reverse())
+            {
+                if (shape is TextShape textShape && IsPointOverShape(textShape, position))
+                {
+                    if (CurrentTool == ShapeType.Select)
+                    {
+
+                        // Found a TextShape under the click
+                        _currentTextShape = textShape;
+                        IsTextBoxActive = true;
+                        //Shapes.Remove(_currentTextShape);
+                        
+                        _currentTextShape.Color = "#FFFFFF";
+                        _currentTextShape.OnPropertyChanged(null);
+                        //OnPropertyChanged(nameof(textShape.Color));
+                        // Create a TextboxModel over the existing TextShape
+                        var textboxModel = new TextboxModel
+                        {
+                            X = textShape.X,
+                            Y = textShape.Y,
+                            Width = textShape.Width,
+                            Height = textShape.Height,
+                            Text = textShape.Text,
+                        };
+                        _currentTextboxModel = textboxModel;
+                        Shapes.Add(textboxModel);
+                        OnPropertyChanged(nameof(TextBoxVisibility));
+                        textShapeClicked = true;
+                        break;
+                    }
+                }
+            }
+            
+        }
+        private void OnCanvasLeftMouseDown(MouseButtonEventArgs e)
         {
             // Pass the canvas as the element
+            if (IsTextBoxActive == true)
+            {
+                FinalizeTextBox();
+            }
             var canvas = e.Source as FrameworkElement;
             if (canvas != null)
             {
@@ -530,6 +577,8 @@ namespace WhiteboardGUI.ViewModel
                 if (CurrentTool == ShapeType.Select)
                 {
                     // Implement selection logic
+                   
+                  
                     _isSelecting = true;
                     foreach (var shape in Shapes.Reverse())
                     {
@@ -545,44 +594,40 @@ namespace WhiteboardGUI.ViewModel
                         {
                             _isSelecting = false;
                             SelectedShape = null;
-                            
+
                         }
                     }
-                }
-                else if (CurrentTool == ShapeType.Text)
-                {
-                    // If there's an active textbox, finalize it
-                    //if (_currentTextboxModel != null && !string.IsNullOrEmpty(TextInput) )
-                    if (IsTextBoxActive == true)
-                    {
-                        FinalizeTextBox();
-                    }
-                    // Get the position of the click
-                    var position = e.GetPosition((IInputElement)e.Source);
-                    var textboxModel = new TextboxModel
-                    {
-                        X = position.X,
-                        Y = position.Y,
-                        Width = 150,
-                        Height = 30,
-                    };
+            }   
+                
+            else if (CurrentTool == ShapeType.Text)
+            {
+                // Get the position of the click
 
-                    _currentTextboxModel = textboxModel;
-                    TextInput = string.Empty;
-                    IsTextBoxActive = true;
-                    Shapes.Add(textboxModel);
-                    OnPropertyChanged(nameof(TextBoxVisibility));
-                }
-                else
+                var position = e.GetPosition((IInputElement)e.Source);
+                var textboxModel = new TextboxModel
                 {
-                    // Start drawing a new shape
-                    IShape newShape = CreateShape(_startPoint);
-                    if (newShape != null)
-                    {
-                        Shapes.Add(newShape);
-                        SelectedShape = newShape;
-                    }
+                    X = position.X,
+                    Y = position.Y,
+                    Width = 150,
+                    Height = 30,
+                };
+
+                _currentTextboxModel = textboxModel;
+                TextInput = string.Empty;
+                IsTextBoxActive = true;
+                Shapes.Add(textboxModel);
+                OnPropertyChanged(nameof(TextBoxVisibility));
+            }
+            else
+            {
+                // Start drawing a new shape
+                IShape newShape = CreateShape(_startPoint);
+                if (newShape != null)
+                {
+                    Shapes.Add(newShape);
+                    SelectedShape = newShape;
                 }
+            }
             }
         }
 
@@ -716,6 +761,8 @@ namespace WhiteboardGUI.ViewModel
             return shape;
         }
 
+
+
         private void UpdateShape(IShape shape, Point currentPoint)
         {
             switch (shape)
@@ -792,33 +839,58 @@ namespace WhiteboardGUI.ViewModel
         {
             TextInput = string.Empty;
             IsTextBoxActive = false;
+            _currentTextShape = null;
             OnPropertyChanged(nameof(TextBoxVisibility));
         }
         public void FinalizeTextBox()
         {
-            if ((_currentTextboxModel != null ))
+
+            if ((_currentTextboxModel != null))
             {
                 if (!string.IsNullOrEmpty(_currentTextboxModel.Text))
                 {
-                    var textShape = new TextShape
+                    if (_currentTextShape != null)
                     {
-                        X = _currentTextboxModel.X,
-                        Y = _currentTextboxModel.Y,
-                        Text = _currentTextboxModel.Text,
-                        Color = SelectedColor.ToString(),
-                        FontSize = TextBoxFontSize
-                    };
-                    textShape.ShapeId = Guid.NewGuid();
-                    textShape.UserID = _networkingService._clientID;
-                    textShape.LastModifierID = _networkingService._clientID;
-                    Shapes.Add(textShape);
-                    _renderingService.RenderShape(textShape, "CREATE");
+                        // We are editing an existing TextShape
+                        _currentTextShape.Text = _currentTextboxModel.Text;
+                        _currentTextShape.Color = "black";
+                        _currentTextShape.LastModifierID = _networkingService._clientID;
+                        _currentTextShape.X = _currentTextboxModel.X;
+                        _currentTextShape.Y = _currentTextboxModel.Y;
+
+
+                        // Notify property changes
+                        //_currentTextShape.OnPropertyChanged(nameof(TextShape.Text));
+                        //_currentTextShape.OnPropertyChanged(nameof(TextShape.FontSize));
+                        //_currentTextShape.OnPropertyChanged(nameof(TextShape.Color));
+                        _currentTextShape.OnPropertyChanged(null);
+                        _renderingService.RenderShape(_currentTextShape, "MODIFY");
+                        //Shapes.Add(_currentTextShape );
+                    }
+                    else
+                    {
+                        // Create a new TextShape
+                        var textShape = new TextShape
+                        {
+                            X = _currentTextboxModel.X,
+                            Y = _currentTextboxModel.Y,
+                            Text = _currentTextboxModel.Text,
+                            Color = SelectedColor.ToString(),
+                            FontSize = TextBoxFontSize
+                        };
+                        textShape.ShapeId = Guid.NewGuid();
+                        textShape.UserID = _networkingService._clientID;
+                        textShape.LastModifierID = _networkingService._clientID;
+                        Shapes.Add(textShape);
+                        _renderingService.RenderShape(textShape, "CREATE");
+                    }
+                   
                 }
-                // Reset input and hide TextBox
                 TextInput = string.Empty;
                 IsTextBoxActive = false;
                 Shapes.Remove(_currentTextboxModel);
                 _currentTextboxModel = null;
+                _currentTextShape = null;
                 OnPropertyChanged(nameof(TextBoxVisibility));
             }
         }
