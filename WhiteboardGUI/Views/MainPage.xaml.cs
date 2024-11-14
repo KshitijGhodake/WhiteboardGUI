@@ -28,9 +28,14 @@ namespace WhiteboardGUI.Views
             InitializeComponent();
         }
 
-        private void Canvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void Canvas_LeftMouseButtonDown(object sender, MouseButtonEventArgs e)
         {
-            ViewModel?.CanvasMouseDownCommand.Execute(e);
+            ViewModel?.CanvasLeftMouseDownCommand.Execute(e);
+        }
+
+        private void Canvas_RightMouseButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            ViewModel?.CanvasRightMouseDownCommand.Execute(e);
         }
 
         private void Canvas_MouseMove(object sender, MouseEventArgs e)
@@ -94,7 +99,7 @@ namespace WhiteboardGUI.Views
             {
                 Point currentPoint = e.GetPosition(this);
                 Vector totalDelta = currentPoint - _startPoint;
-                ResizeShape(_resizingShape, _currentHandle, totalDelta);
+                ResizeShape(_resizingShape, _currentHandle, currentPoint);
 
                 // Conditionally update _startPoint only for CircleShape and LineShape
                 if (!(_resizingShape is ScribbleShape))
@@ -124,103 +129,41 @@ namespace WhiteboardGUI.Views
             }
         }
 
-        private void ResizeShape(IShape shape, string handle, Vector delta)
+        private void ResizeShape(IShape shape, string handle, Point currentPoint)
         {
-            if (shape is CircleShape circle)
+            if (shape is LineShape line)
             {
-                ResizeCircleShape(circle, handle, delta);
+                ResizeLineShape(line, handle, currentPoint);
             }
-            else if (shape is LineShape line)
+            else if (shape is CircleShape circle)
             {
-                ResizeLineShape(line, handle, delta);
+                ResizeCircleShape(circle, handle, currentPoint - _startPoint);
+                _startPoint = currentPoint; // Update for CircleShape
             }
             else if (shape is ScribbleShape scribble)
             {
-                ResizeScribbleShape(scribble, handle, delta);
+                ResizeScribbleShape(scribble, handle, currentPoint - _startPoint);
+                // Do not update _startPoint for ScribbleShape
             }
+            // Add more shapes if needed
         }
 
-        private void ResizeLineShape(LineShape line, string handle, Vector delta)
+        private void ResizeLineShape(LineShape line, string handle, Point currentPoint)
         {
-            // Transform delta to the line's coordinate system
-            double angleRadians = -line.RotationAngle * Math.PI / 180;
-            double cosTheta = Math.Cos(angleRadians);
-            double sinTheta = Math.Sin(angleRadians);
-
-            double deltaX = delta.X * cosTheta - delta.Y * sinTheta;
-            double deltaY = delta.X * sinTheta + delta.Y * cosTheta;
-
-            switch (handle)
+            if (handle == "Start")
             {
-                case "Start":
-                    line.StartX += deltaX;
-                    line.StartY += deltaY;
-                    break;
-                case "End":
-                    line.EndX += deltaX;
-                    line.EndY += deltaY;
-                    break;
+                line.StartX = currentPoint.X;
+                line.StartY = currentPoint.Y;
+            }
+            else if (handle == "End")
+            {
+                line.EndX = currentPoint.X;
+                line.EndY = currentPoint.Y;
             }
         }
 
-        private void RotateHandle_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            var ellipse = sender as Ellipse;
-            if (ellipse != null)
-            {
-                _resizingShape = ellipse.DataContext as IShape;
-                if (_resizingShape is LineShape line)
-                {
-                    _isRotating = true;
-                    _startPoint = e.GetPosition(this);
 
-                    // Rotation origin is the center of the line
-                    _rotationOrigin = new Point(line.MidX, line.MidY);
-
-                    // Calculate initial angle
-                    Vector v = _startPoint - _rotationOrigin;
-                    _initialAngle = Math.Atan2(v.Y, v.X) * (180 / Math.PI);
-
-                    Mouse.Capture(ellipse);
-                    e.Handled = true;
-                }
-            }
-        }
-
-        private void RotateHandle_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (_isRotating && _resizingShape is LineShape line)
-            {
-                Point currentPoint = e.GetPosition(this);
-                Vector v = currentPoint - _rotationOrigin;
-                double currentAngle = Math.Atan2(v.Y, v.X) * (180 / Math.PI);
-                double angleDelta = currentAngle - _initialAngle;
-
-                // Update RotationAngle
-                line.RotationAngle += angleDelta;
-
-                // Reset initial angle for next move
-                _initialAngle = currentAngle;
-
-                e.Handled = true;
-            }
-        }
-
-        private void RotateHandle_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            if (_isRotating)
-            {
-                _isRotating = false;
-                Mouse.Capture(null);
-                var viewModel = this.DataContext as MainPageViewModel;
-                if (viewModel != null && _resizingShape is LineShape line)
-                {
-                    viewModel._renderingService.RenderShape(line, "MODIFY");
-                }
-                _resizingShape = null;
-                e.Handled = true;
-            }
-        }
+           
 
         // Existing methods for other shapes remain unchanged
 

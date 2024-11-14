@@ -9,7 +9,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using WhiteboardGUI.Models;
-
 namespace WhiteboardGUI.Services
 {
     public class NetworkingService
@@ -159,7 +158,7 @@ namespace WhiteboardGUI.Services
                     {
                         string data = receivedData.Substring(7);
                         var shape = SerializationService.DeserializeShape(data);
-
+                        Debug.WriteLine($"Received shape: {shape}");
                         if (shape != null)
                         {
                             var shapeId = shape.ShapeId;
@@ -168,11 +167,10 @@ namespace WhiteboardGUI.Services
                             var currentShape = _synchronizedShapes.Where(s => s.ShapeId == shapeId && s.UserID == shapeUserId).FirstOrDefault();
                             if (currentShape != null)
                             {
-                                ShapeDeleted?.Invoke(currentShape);
+                                //ShapeDeleted?.Invoke(currentShape);
                                 ShapeModified?.Invoke(shape);
 
                             }
-
                         }
                     }
                     else if (receivedData.StartsWith("CREATE:"))
@@ -210,6 +208,7 @@ namespace WhiteboardGUI.Services
         public async Task StartClient(int port)
         {
             _client = new TcpClient();
+            //await _client.ConnectAsync(IPAddress.Parse("10.32.10.20"), port);
             await _client.ConnectAsync(IPAddress.Loopback, port);
             Console.WriteLine("Connected to host");
 
@@ -266,7 +265,7 @@ namespace WhiteboardGUI.Services
                     {
                         string data = receivedData.Substring(7);
                         var shape = SerializationService.DeserializeShape(data);
-
+                        Debug.WriteLine($"Received shape: {shape}");
                         if (shape != null)
                         {
                             var shapeId = shape.ShapeId;
@@ -275,7 +274,7 @@ namespace WhiteboardGUI.Services
                             var currentShape = _synchronizedShapes.Where(s => s.ShapeId == shapeId && s.UserID == shapeUserId).FirstOrDefault();
                             if (currentShape != null)
                             {
-                                ShapeDeleted?.Invoke(currentShape);
+                                //ShapeDeleted?.Invoke(currentShape);
                                 ShapeModified?.Invoke(shape);
 
                             }
