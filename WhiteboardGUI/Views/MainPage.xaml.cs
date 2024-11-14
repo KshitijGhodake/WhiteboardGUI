@@ -28,9 +28,14 @@ namespace WhiteboardGUI.Views
             InitializeComponent();
         }
 
-        private void Canvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void Canvas_LeftMouseButtonDown(object sender, MouseButtonEventArgs e)
         {
-            ViewModel?.CanvasMouseDownCommand.Execute(e);
+            ViewModel?.CanvasLeftMouseDownCommand.Execute(e);
+        }
+
+        private void Canvas_RightMouseButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            ViewModel?.CanvasRightMouseDownCommand.Execute(e);
         }
 
         private void Canvas_MouseMove(object sender, MouseEventArgs e)
