@@ -12,6 +12,7 @@ namespace WhiteboardGUI.Models
         double StrokeThickness { get; set; }
         double UserID { get; set; }
         double LastModifierID { get; set; }
+        int ZIndex { get; set; }
 
         bool IsSelected { get; set; }
         Rect GetBounds();

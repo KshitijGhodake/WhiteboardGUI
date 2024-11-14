@@ -86,7 +86,8 @@ namespace WhiteboardGUI.Models
                 StrokeThickness = this.StrokeThickness,
                 LastModifierID = this.LastModifierID,
                 IsSelected = false, // New shape should not be selected by default
-                Points = new List<Point>(this.Points) // Create a deep copy of the points
+                Points = new List<Point>(this.Points), // Create a deep copy of the points
+                ZIndex = this.ZIndex 
             };
         }
     }

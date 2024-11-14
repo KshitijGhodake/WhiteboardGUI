@@ -13,6 +13,7 @@ using System.Windows.Shapes;
 using System.Windows.Controls;
 using System.Linq;
 using Microsoft.Windows.Input;
+using System.Collections.Specialized;
 using WhiteboardGUI.Adorners;
 
 namespace WhiteboardGUI.ViewModel
@@ -24,6 +25,7 @@ namespace WhiteboardGUI.ViewModel
         private readonly UndoRedoService _undoRedoService = new();
         public readonly RenderingService _renderingService;
         private readonly SnapShotService _snapShotService;
+        private readonly MoveShapeZIndexing _moveShapeZIndexing;
         private IShape _selectedShape;
         private ShapeType _currentTool = ShapeType.Pencil;
         private Point _startPoint;
@@ -128,8 +130,12 @@ namespace WhiteboardGUI.ViewModel
                 }
             }
         }
-       
-      
+
+        private void Shapes_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            _moveShapeZIndexing.UpdateZIndices();
+        }
+
         public string TextInput
         {
             get => _textInput;
@@ -166,7 +172,6 @@ namespace WhiteboardGUI.ViewModel
         }
 
         public Rect TextBoxBounds { get; set; }
-
         public double TextBoxFontSize { get; set; } = 16;
 
         // Visibility property that directly converts IsTextBoxActive to a Visibility value
@@ -279,6 +284,8 @@ namespace WhiteboardGUI.ViewModel
         public ICommand ClearShapesCommand { get; }
         public ICommand OpenDownloadPopupCommand { get; }
         public ICommand DownloadItemCommand { get; }
+        public ICommand SendBackwardCommand { get; }
+        public ICommand SendToBackCommand { get; }
 
 
         // Events
@@ -293,8 +300,10 @@ namespace WhiteboardGUI.ViewModel
             _networkingService = new NetworkingService();
             _renderingService = new RenderingService(_networkingService, _undoRedoService, Shapes);
             _snapShotService = new SnapShotService(_networkingService,_renderingService, Shapes, _undoRedoService);
+            _moveShapeZIndexing = new MoveShapeZIndexing(Shapes);
 
-            DownloadItems = new ObservableCollection<string>(_snapShotService.getSnaps("a"));
+            DownloadItems = new ObservableCollection<string>();
+            InitializeDownloadItems();
             _snapShotService.OnSnapShotUploaded += RefreshDownloadItems;
 
             // Subscribe to networking events
@@ -302,6 +311,10 @@ namespace WhiteboardGUI.ViewModel
             _networkingService.ShapeDeleted += OnShapeDeleted;
             _networkingService.ShapeModified += OnShapeModified;
             _networkingService.ShapesClear += OnShapeClear;
+            _networkingService.ShapeSendBackward += _moveShapeZIndexing.MoveShapeBackward;
+            _networkingService.ShapeSendToBack += _moveShapeZIndexing.MoveShapeBack;
+
+            Shapes.CollectionChanged += Shapes_CollectionChanged;
 
             // Initialize commands
             Debug.WriteLine("ViewModel init start");
@@ -329,6 +342,10 @@ namespace WhiteboardGUI.ViewModel
             UndoCommand = new RelayCommand(CallUndo);
             RedoCommand = new RelayCommand(CallRedo);
             SelectColorCommand = new RelayCommand<string>(SelectColor);
+
+            // Z-Index Commands
+            SendBackwardCommand = new RelayCommand<ShapeBase>(SendBackward);
+            SendToBackCommand = new RelayCommand<ShapeBase>(SendToBack);
 
             SubmitCommand = new RelayCommand(async () => await SubmitFileName());
             OpenDownloadPopupCommand = new RelayCommand(OpenDownloadPopup);
@@ -377,10 +394,21 @@ namespace WhiteboardGUI.ViewModel
             OnPropertyChanged(nameof(IsDownloadPopupOpen));
         }
 
-        private void RefreshDownloadItems()
+        private async void InitializeDownloadItems()
         {
             DownloadItems.Clear();
-            var newSnaps = _snapShotService.getSnaps("a");
+            ObservableCollection<string> newSnaps = await _snapShotService.getSnaps("a",true);
+            foreach (var snap in newSnaps)
+            {
+                DownloadItems.Add(snap);
+            }
+
+            OnPropertyChanged(nameof(DownloadItems));
+        }
+        private async void RefreshDownloadItems()
+        {
+            DownloadItems.Clear();
+            ObservableCollection<string> newSnaps = await _snapShotService.getSnaps("a",false);
             foreach (var snap in newSnaps)
             {
                 DownloadItems.Add(snap);
@@ -389,7 +417,18 @@ namespace WhiteboardGUI.ViewModel
             OnPropertyChanged(nameof(DownloadItems));
         }
 
+        //Z-Index
+        private void SendBackward(IShape shape)
+        {
+            _moveShapeZIndexing.MoveShapeBackward(shape);
+            _renderingService.RenderShape(shape, "INDEX-BACKWARD");
+        }
 
+        private void SendToBack(IShape shape)
+        {
+            _moveShapeZIndexing.MoveShapeBack(shape);
+            _renderingService.RenderShape(shape, "INDEX-BACK");
+        }
 
         private void UpdateSelectedColor()
         {

@@ -14,6 +14,20 @@ namespace WhiteboardGUI.Services
             return JsonConvert.SerializeObject(shape);
         }
 
+        public static string SerializeSnapShot(SnapShot snapShot)
+        {
+            return JsonConvert.SerializeObject(snapShot);
+        }
+
+        public static SnapShot DeserializeSnapShot(String data)
+        {
+
+            return JsonConvert.DeserializeObject<SnapShot>(data, new JsonSerializerSettings
+            {
+                TypeNameHandling = TypeNameHandling.Auto
+            });
+        }
+
         public static IShape DeserializeShape(string data)
         {
             var shapeDict = JsonConvert.DeserializeObject<Dictionary<string, object>>(data);

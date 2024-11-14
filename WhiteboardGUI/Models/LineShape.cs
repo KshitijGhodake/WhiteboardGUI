@@ -151,7 +151,7 @@ namespace WhiteboardGUI.Models
                 StartY = this.StartY,
                 EndX = this.EndX,
                 EndY = this.EndY,
-                // RotationAngle property removed
+                ZIndex = this.ZIndex
             };
         }
     }
