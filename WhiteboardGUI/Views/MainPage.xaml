@@ -473,7 +473,6 @@ IsSnapToTickEnabled="True" />
 					<ItemsPanelTemplate>
 						<Canvas Background="{Binding CanvasBackground}"
                             MouseLeftButtonDown="Canvas_LeftMouseButtonDown"
-                            MouseRightButtonDown="Canvas_RightMouseButtonDown"
                             MouseMove="Canvas_MouseMove"
                             MouseLeftButtonUp="Canvas_MouseLeftButtonUp" />
 					</ItemsPanelTemplate>
@@ -726,7 +725,7 @@ IsSnapToTickEnabled="True" />
                                         FontSize="{Binding FontSize}"
                                         Canvas.Left="{Binding X}"
                                         Canvas.Top="{Binding Y}"
-                                        MouseRightButtonDown="Shape_MouseRightButtonDown"
+                                        MouseRightButtonDown="Shape_MouseRightButtonDownText"
                                          service:HighlightingService.EnableHighlighting="True">
 											<TextBlock.Foreground>
 												<MultiBinding Converter="{StaticResource DarkModeColorConverter}">

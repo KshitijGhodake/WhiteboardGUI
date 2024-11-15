@@ -307,8 +307,6 @@ namespace WhiteboardGUI.ViewModel
         public ICommand SelectShapeCommand { get; }
         public ICommand DeleteShapeCommand { get; }
         public ICommand CanvasLeftMouseDownCommand { get; }
-
-        public ICommand CanvasRightMouseDownCommand { get; }
         public ICommand CanvasMouseMoveCommand { get; }
         public ICommand CanvasMouseUpCommand { get; }
         //public ICommand FinalizeTextBoxCommand { get; }
@@ -327,6 +325,7 @@ namespace WhiteboardGUI.ViewModel
         public ICommand DownloadItemCommand { get; }
         public ICommand SendBackwardCommand { get; }
         public ICommand SendToBackCommand { get; }
+        public ICommand EditTextCommand { get; }
 
 
         // Events
@@ -377,7 +376,6 @@ namespace WhiteboardGUI.ViewModel
             SelectShapeCommand = new RelayCommand<IShape>(SelectShape);
             DeleteShapeCommand = new RelayCommand(DeleteSelectedShape, () => SelectedShape != null);
             CanvasLeftMouseDownCommand = new RelayCommand<MouseButtonEventArgs>(OnCanvasLeftMouseDown);
-            CanvasRightMouseDownCommand = new RelayCommand<MouseButtonEventArgs>(OnCanvasRightMouseDown);
             CanvasMouseMoveCommand = new RelayCommand<MouseEventArgs>(OnCanvasMouseMove);
             CanvasMouseUpCommand = new RelayCommand<MouseButtonEventArgs>(OnCanvasMouseUp);
             // Initialize commands
@@ -387,9 +385,10 @@ namespace WhiteboardGUI.ViewModel
             RedoCommand = new RelayCommand(CallRedo);
             SelectColorCommand = new RelayCommand<string>(SelectColor);
 
-            // Z-Index Commands
+            // Right-Click Menu Commands
             SendBackwardCommand = new RelayCommand<ShapeBase>(SendBackward);
             SendToBackCommand = new RelayCommand<ShapeBase>(SendToBack);
+            EditTextCommand = new RelayCommand<ShapeBase>(EditText);
 
             SubmitCommand = new RelayCommand(async () => await SubmitFileName());
             OpenDownloadPopupCommand = new RelayCommand(OpenDownloadPopup);
@@ -641,44 +640,36 @@ namespace WhiteboardGUI.ViewModel
             return bounds.Contains(point);
         }
 
-        private void OnCanvasRightMouseDown(MouseButtonEventArgs e)
+        private void EditText(IShape shape)
         {
-            bool textShapeClicked = false;
-            var position = e.GetPosition((IInputElement)e.Source);
-           
-            foreach (var shape in Shapes.Reverse())
+            if (shape is TextShape textShape)
             {
-                if (shape is TextShape textShape && IsPointOverShape(textShape, position))
+                if (CurrentTool == ShapeType.Select)
                 {
-                    if (CurrentTool == ShapeType.Select)
-                    {
 
-                        // Found a TextShape under the click
-                        _currentTextShape = textShape;
-                        IsTextBoxActive = true;
-                        //Shapes.Remove(_currentTextShape);
-                        
-                        _currentTextShape.Color = "#FFFFFF";
-                        _currentTextShape.OnPropertyChanged(null);
-                        //OnPropertyChanged(nameof(textShape.Color));
-                        // Create a TextboxModel over the existing TextShape
-                        var textboxModel = new TextboxModel
-                        {
-                            X = textShape.X,
-                            Y = textShape.Y,
-                            Width = textShape.Width,
-                            Height = textShape.Height,
-                            Text = textShape.Text,
-                        };
-                        _currentTextboxModel = textboxModel;
-                        Shapes.Add(textboxModel);
-                        OnPropertyChanged(nameof(TextBoxVisibility));
-                        textShapeClicked = true;
-                        break;
-                    }
+                    // Found a TextShape under the click
+                    _currentTextShape = textShape;
+                    IsTextBoxActive = true;
+                    //Shapes.Remove(_currentTextShape);
+
+                    _currentTextShape.Color = "#FFFFFF";
+                    _currentTextShape.OnPropertyChanged(null);
+                    //OnPropertyChanged(nameof(textShape.Color));
+                    // Create a TextboxModel over the existing TextShape
+                    var textboxModel = new TextboxModel
+                    {
+                        X = textShape.X,
+                        Y = textShape.Y,
+                        Width = textShape.Width,
+                        Height = textShape.Height,
+                        Text = textShape.Text,
+                    };
+                    _currentTextboxModel = textboxModel;
+                    Shapes.Add(textboxModel);
+                    OnPropertyChanged(nameof(TextBoxVisibility));
                 }
             }
-            
+
         }
         private void OnCanvasLeftMouseDown(MouseButtonEventArgs e)
         {
