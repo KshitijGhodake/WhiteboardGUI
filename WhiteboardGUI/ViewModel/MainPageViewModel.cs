@@ -26,6 +26,19 @@ namespace WhiteboardGUI.ViewModel
         public readonly RenderingService _renderingService;
         private readonly SnapShotService _snapShotService;
         private readonly MoveShapeZIndexing _moveShapeZIndexing;
+        private string _defaultColor;
+        public string DefaultColor
+        {
+            get => _defaultColor;
+            set
+            {
+                if (_defaultColor != value)
+                {
+                    _defaultColor = value;
+                    OnPropertyChanged(nameof(DefaultColor));
+                }
+            }
+        }
         private IShape _selectedShape;
         private ShapeType _currentTool = ShapeType.Pencil;
         private Point _startPoint;
@@ -109,7 +122,21 @@ namespace WhiteboardGUI.ViewModel
                 }
             }
         }
-   
+
+        //private bool _isDarkMode;
+        //public bool IsDarkMode
+        //{
+        //    get => _isDarkMode;
+        //    set
+        //    {
+        //        if (_isDarkMode != value)
+        //        {
+        //            _isDarkMode = value;
+        //            OnPropertyChanged(nameof(IsDarkMode));
+        //        }
+        //    }
+        //}
+
 
         private Color _selectedColor = Colors.Black;
         public Color SelectedColor
@@ -127,6 +154,20 @@ namespace WhiteboardGUI.ViewModel
                         shapeBase.OnPropertyChanged(nameof(SelectedShape.Color));
                         _renderingService.RenderShape(SelectedShape, "MODIFY");
                     }
+                }
+            }
+        }
+
+        private Color _currentColor = Colors.Black;
+        public Color CurrentColor
+        {
+            get => _currentColor;
+            set
+            {
+                if (_currentColor != value)
+                {
+                    _currentColor = value;
+                    OnPropertyChanged(nameof(CurrentColor));
                 }
             }
         }
@@ -266,8 +307,6 @@ namespace WhiteboardGUI.ViewModel
         public ICommand SelectShapeCommand { get; }
         public ICommand DeleteShapeCommand { get; }
         public ICommand CanvasLeftMouseDownCommand { get; }
-
-        public ICommand CanvasRightMouseDownCommand { get; }
         public ICommand CanvasMouseMoveCommand { get; }
         public ICommand CanvasMouseUpCommand { get; }
         //public ICommand FinalizeTextBoxCommand { get; }
@@ -286,6 +325,7 @@ namespace WhiteboardGUI.ViewModel
         public ICommand DownloadItemCommand { get; }
         public ICommand SendBackwardCommand { get; }
         public ICommand SendToBackCommand { get; }
+        public ICommand EditTextCommand { get; }
 
 
         // Events
@@ -316,6 +356,9 @@ namespace WhiteboardGUI.ViewModel
 
             Shapes.CollectionChanged += Shapes_CollectionChanged;
 
+            // Initialize DarkModeService
+            //_darkModeService = new DarkModeService();
+
             // Initialize commands
             Debug.WriteLine("ViewModel init start");
             StartHostCommand = new RelayCommand(async () => await TriggerHostCheckbox(), () => { return true; });
@@ -333,7 +376,6 @@ namespace WhiteboardGUI.ViewModel
             SelectShapeCommand = new RelayCommand<IShape>(SelectShape);
             DeleteShapeCommand = new RelayCommand(DeleteSelectedShape, () => SelectedShape != null);
             CanvasLeftMouseDownCommand = new RelayCommand<MouseButtonEventArgs>(OnCanvasLeftMouseDown);
-            CanvasRightMouseDownCommand = new RelayCommand<MouseButtonEventArgs>(OnCanvasRightMouseDown);
             CanvasMouseMoveCommand = new RelayCommand<MouseEventArgs>(OnCanvasMouseMove);
             CanvasMouseUpCommand = new RelayCommand<MouseButtonEventArgs>(OnCanvasMouseUp);
             // Initialize commands
@@ -343,9 +385,10 @@ namespace WhiteboardGUI.ViewModel
             RedoCommand = new RelayCommand(CallRedo);
             SelectColorCommand = new RelayCommand<string>(SelectColor);
 
-            // Z-Index Commands
+            // Right-Click Menu Commands
             SendBackwardCommand = new RelayCommand<ShapeBase>(SendBackward);
             SendToBackCommand = new RelayCommand<ShapeBase>(SendToBack);
+            EditTextCommand = new RelayCommand<ShapeBase>(EditText);
 
             SubmitCommand = new RelayCommand(async () => await SubmitFileName());
             OpenDownloadPopupCommand = new RelayCommand(OpenDownloadPopup);
@@ -353,11 +396,37 @@ namespace WhiteboardGUI.ViewModel
 
             OpenPopupCommand = new RelayCommand(OpenPopup);
             ClearShapesCommand = new RelayCommand(ClearShapes);
+
+            //Initialize Dark Mode to Light
+             IsDarkMode = false;
+            DefaultColor = "Black";
             Red = 0;
             Green = 0;
             Blue = 0;
             UpdateSelectedColor();
 
+        }
+
+        //// Toggle Dark Mode
+        //private void ToggleDarkMode(bool isDarkMode)
+        //{
+        //    _darkModeService.ToggleDarkMode(isDarkMode, Shapes);
+        //    UpdateBackground(isDarkMode);
+        //}
+
+        // Update Background Colors
+        private void UpdateBackground(bool isDarkMode)
+        {
+            if (isDarkMode)
+            {
+                PageBackground = new SolidColorBrush(Color.FromRgb(30, 30, 30)); // Dark gray
+                CanvasBackground = new SolidColorBrush(Color.FromRgb(50, 50, 50)); // Slightly lighter
+            }
+            else
+            {
+                PageBackground = new SolidColorBrush(Color.FromRgb(245, 245, 245)); // Light gray
+                CanvasBackground = new SolidColorBrush(Color.FromRgb(255, 255, 255)); // White
+            }
         }
 
         // Function to open the download popup
@@ -437,8 +506,16 @@ namespace WhiteboardGUI.ViewModel
 
         private void SelectColor(string colorName)
         {
-                var color = (Color)ColorConverter.ConvertFromString(colorName);
-                SelectedColor = color;
+            var color = (Color)ColorConverter.ConvertFromString(colorName);
+            SelectedColor = color;
+            if (IsDarkMode && colorName == "Black")
+            {
+                CurrentColor = Colors.White;
+            }
+            else
+            {
+                CurrentColor = color;
+            }
         }
 
         private void CallUndo()
@@ -563,44 +640,36 @@ namespace WhiteboardGUI.ViewModel
             return bounds.Contains(point);
         }
 
-        private void OnCanvasRightMouseDown(MouseButtonEventArgs e)
+        private void EditText(IShape shape)
         {
-            bool textShapeClicked = false;
-            var position = e.GetPosition((IInputElement)e.Source);
-           
-            foreach (var shape in Shapes.Reverse())
+            if (shape is TextShape textShape)
             {
-                if (shape is TextShape textShape && IsPointOverShape(textShape, position))
+                if (CurrentTool == ShapeType.Select)
                 {
-                    if (CurrentTool == ShapeType.Select)
-                    {
 
-                        // Found a TextShape under the click
-                        _currentTextShape = textShape;
-                        IsTextBoxActive = true;
-                        //Shapes.Remove(_currentTextShape);
-                        
-                        _currentTextShape.Color = "#FFFFFF";
-                        _currentTextShape.OnPropertyChanged(null);
-                        //OnPropertyChanged(nameof(textShape.Color));
-                        // Create a TextboxModel over the existing TextShape
-                        var textboxModel = new TextboxModel
-                        {
-                            X = textShape.X,
-                            Y = textShape.Y,
-                            Width = textShape.Width,
-                            Height = textShape.Height,
-                            Text = textShape.Text,
-                        };
-                        _currentTextboxModel = textboxModel;
-                        Shapes.Add(textboxModel);
-                        OnPropertyChanged(nameof(TextBoxVisibility));
-                        textShapeClicked = true;
-                        break;
-                    }
+                    // Found a TextShape under the click
+                    _currentTextShape = textShape;
+                    IsTextBoxActive = true;
+                    //Shapes.Remove(_currentTextShape);
+
+                    _currentTextShape.Color = "#FFFFFF";
+                    _currentTextShape.OnPropertyChanged(null);
+                    //OnPropertyChanged(nameof(textShape.Color));
+                    // Create a TextboxModel over the existing TextShape
+                    var textboxModel = new TextboxModel
+                    {
+                        X = textShape.X,
+                        Y = textShape.Y,
+                        Width = textShape.Width,
+                        Height = textShape.Height,
+                        Text = textShape.Text,
+                    };
+                    _currentTextboxModel = textboxModel;
+                    Shapes.Add(textboxModel);
+                    OnPropertyChanged(nameof(TextBoxVisibility));
                 }
             }
-            
+
         }
         private void OnCanvasLeftMouseDown(MouseButtonEventArgs e)
         {
@@ -857,6 +926,7 @@ namespace WhiteboardGUI.ViewModel
                                     existingCircle.CenterY = modifiedCircle.CenterY;
                                     existingCircle.RadiusX = modifiedCircle.RadiusX;
                                     existingCircle.RadiusY = modifiedCircle.RadiusY;
+                                    existingCircle.ZIndex = modifiedCircle.ZIndex;
                                 }
                                 break;
                     case "Line":
@@ -872,6 +942,7 @@ namespace WhiteboardGUI.ViewModel
                             existingLine.StartY = modifiedLine.StartY;
                             existingLine.EndX = modifiedLine.EndX;
                             existingLine.EndY = modifiedLine.EndY;
+                            existingLine.ZIndex = modifiedLine.ZIndex;
                         }
                         break;
                     case "Scribble":
@@ -884,6 +955,7 @@ namespace WhiteboardGUI.ViewModel
 
                             // Update Scribble-specific properties
                             existingScribble.Points = new List<Point>(modifiedScribble.Points);
+                            existingScribble.ZIndex = modifiedScribble.ZIndex;
                         }
                         break;
                     case "TextShape":
@@ -899,12 +971,12 @@ namespace WhiteboardGUI.ViewModel
                             existingText.X = modifiedText.X;
                             existingText.Y = modifiedText.Y;
                             existingText.FontSize = modifiedText.FontSize;
+                            existingText.ZIndex = modifiedText.ZIndex;
                         }
                         break;
                 }
                         
                 var newShape = shape.Clone();
-                _networkingService._synchronizedShapes.Add(newShape);
                 _undoRedoService.RemoveLastModified(_networkingService, shape);
             });
         }
@@ -1039,5 +1111,72 @@ namespace WhiteboardGUI.ViewModel
                 }
             }
         }
+
+        // Dark Mode Property
+        private bool _isDarkMode;
+        public bool IsDarkMode
+        {
+            get => _isDarkMode;
+            set
+            {
+                if (_isDarkMode != value)
+                {
+                    _isDarkMode = value;
+                    OnPropertyChanged(nameof(IsDarkMode));
+                    //ToggleDarkMode(_isDarkMode);
+                    UpdateBackground(IsDarkMode);
+                    if (value == true)
+                    {
+                        DefaultColor = "White";
+                        if (_selectedColor == Colors.Black)
+                        {
+                            CurrentColor = Colors.White;
+                        }
+                    }
+                    else
+                    {
+                        DefaultColor = "Black";
+                        if (_selectedColor == Colors.Black)
+                        {
+                            CurrentColor = Colors.Black;
+                        }
+                    }
+
+                   
+                }
+            }
+        }
+
+        // Background Properties
+        private Brush _pageBackground = new SolidColorBrush(Color.FromRgb(245, 245, 245)); // Light
+        public Brush PageBackground
+        {
+            get => _pageBackground;
+            set
+            {
+                if (_pageBackground != value)
+                {
+                    _pageBackground = value;
+                    OnPropertyChanged(nameof(PageBackground));
+                }
+            }
+        }
+
+        private Brush _canvasBackground = new SolidColorBrush(Color.FromRgb(245, 245, 245)); // Light
+        public Brush CanvasBackground
+        {
+            get => _canvasBackground;
+            set
+            {
+                if (_canvasBackground != value)
+                {
+                    _canvasBackground = value;
+                    OnPropertyChanged(nameof(CanvasBackground));
+                }
+            }
+        }
+
+        //private readonly IDarkModeService _darkModeService;
+
     }
 }

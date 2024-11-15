@@ -33,11 +33,6 @@ namespace WhiteboardGUI.Views
             ViewModel?.CanvasLeftMouseDownCommand.Execute(e);
         }
 
-        private void Canvas_RightMouseButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            ViewModel?.CanvasRightMouseDownCommand.Execute(e);
-        }
-
         private void Canvas_MouseMove(object sender, MouseEventArgs e)
         {
             ViewModel?.CanvasMouseMoveCommand.Execute(e);
@@ -335,7 +330,17 @@ namespace WhiteboardGUI.Views
             }
         }
 
+        private void Shape_MouseRightButtonDownText(object sender, MouseButtonEventArgs e)
+        {
+            GenerateContextMenuForRightClick(sender, e, true);
+        }
+
         private void Shape_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            GenerateContextMenuForRightClick(sender, e,false);
+        }
+
+        private void GenerateContextMenuForRightClick(object sender, MouseButtonEventArgs e,bool isText)
         {
             // Get the ViewModel
             var vm = this.DataContext as MainPageViewModel;
@@ -362,6 +367,14 @@ namespace WhiteboardGUI.Views
             var sendToBackMenuItem = new MenuItem() { Header = "Send to Back" };
             sendToBackMenuItem.Command = vm.SendToBackCommand;
             sendToBackMenuItem.CommandParameter = shape;
+
+            if (isText)
+            {
+                var editMenuItem = new MenuItem() { Header = "Edit Text" };
+                editMenuItem.Command = vm.EditTextCommand;
+                editMenuItem.CommandParameter = shape;
+                contextMenu.Items.Add(editMenuItem);
+            }
 
             contextMenu.Items.Add(sendBackwardMenuItem);
             contextMenu.Items.Add(sendToBackMenuItem);
