@@ -58,7 +58,7 @@ namespace WhiteboardGUI.Services
             // Configuration values - replace with your actual values
             var baseUrl = "https://secloudapp-2024.azurewebsites.net/api";
             var team = "whiteboard";
-            var sasToken = "sp=racwdl&st=2024-11-12T11:45:26Z&se=2024-11-13T19:45:26Z&spr=https&sv=2022-11-02&sr=c&sig=up8FemIfa7tRX%2BlU7lBuW6pyYJagJ4ZRKAqKmtkbV3I%3D";
+            var sasToken = "sp=racwdli&st=2024-11-14T21:02:09Z&se=2024-11-30T05:02:09Z&spr=https&sv=2022-11-02&sr=c&sig=tSw6pO8%2FgqiG2MgU%2FoepmRkFuuJrTerVy%2BDn91Y0WH8%3D";
 
             // Create CloudService instance
             cloudService = new CloudService(

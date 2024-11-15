@@ -935,6 +935,7 @@ namespace WhiteboardGUI.ViewModel
                                     existingCircle.CenterY = modifiedCircle.CenterY;
                                     existingCircle.RadiusX = modifiedCircle.RadiusX;
                                     existingCircle.RadiusY = modifiedCircle.RadiusY;
+                                    existingCircle.ZIndex = modifiedCircle.ZIndex;
                                 }
                                 break;
                     case "Line":
@@ -950,6 +951,7 @@ namespace WhiteboardGUI.ViewModel
                             existingLine.StartY = modifiedLine.StartY;
                             existingLine.EndX = modifiedLine.EndX;
                             existingLine.EndY = modifiedLine.EndY;
+                            existingLine.ZIndex = modifiedLine.ZIndex;
                         }
                         break;
                     case "Scribble":
@@ -962,6 +964,7 @@ namespace WhiteboardGUI.ViewModel
 
                             // Update Scribble-specific properties
                             existingScribble.Points = new List<Point>(modifiedScribble.Points);
+                            existingScribble.ZIndex = modifiedScribble.ZIndex;
                         }
                         break;
                     case "TextShape":
@@ -977,6 +980,7 @@ namespace WhiteboardGUI.ViewModel
                             existingText.X = modifiedText.X;
                             existingText.Y = modifiedText.Y;
                             existingText.FontSize = modifiedText.FontSize;
+                            existingText.ZIndex = modifiedText.ZIndex;
                         }
                         break;
                 }
