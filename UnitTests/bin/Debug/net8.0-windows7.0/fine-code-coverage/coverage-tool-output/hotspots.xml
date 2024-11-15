@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Hotspots>
+  <Hotspot>
+    <Assembly>WhiteboardGUI</Assembly>
+    <Class>WhiteboardGUI.Services.NetworkingService</Class>
+    <MethodName>RunningClient()</MethodName>
+    <ShortName />
+    <Line>220</Line>
+    <FileIndex>0</FileIndex>
+    <Metrics>
+      <Metric>
+        <Name>Cyclomatic complexity</Name>
+        <Exceeded>true</Exceeded>
+        <Value>60</Value>
+      </Metric>
+    </Metrics>
+  </Hotspot>
+  <Hotspot>
+    <Assembly>WhiteboardGUI</Assembly>
+    <Class>WhiteboardGUI.Services.NetworkingService</Class>
+    <MethodName>ListenClients()</MethodName>
+    <ShortName />
+    <Line>77</Line>
+    <FileIndex>0</FileIndex>
+    <Metrics>
+      <Metric>
+        <Name>Cyclomatic complexity</Name>
+        <Exceeded>true</Exceeded>
+        <Value>52</Value>
+      </Metric>
+    </Metrics>
+  </Hotspot>
+  <Hotspot>
+    <Assembly>WhiteboardGUI</Assembly>
+    <Class>WhiteboardGUI.Services.RenderingService</Class>
+    <MethodName>RenderShape(...)</MethodName>
+    <ShortName />
+    <Line>31</Line>
+    <FileIndex>0</FileIndex>
+    <Metrics>
+      <Metric>
+        <Name>Cyclomatic complexity</Name>
+        <Exceeded>true</Exceeded>
+        <Value>40</Value>
+      </Metric>
+    </Metrics>
+  </Hotspot>
+  <Hotspot>
+    <Assembly>WhiteboardGUI</Assembly>
+    <Class>WhiteboardGUI.Views.MainPage</Class>
+    <MethodName>ResizeScribbleShape(...)</MethodName>
+    <ShortName />
+    <Line>172</Line>
+    <FileIndex>0</FileIndex>
+    <Metrics>
+      <Metric>
+        <Name>Cyclomatic complexity</Name>
+        <Exceeded>true</Exceeded>
+        <Value>38</Value>
+      </Metric>
+    </Metrics>
+  </Hotspot>
+</Hotspots>
