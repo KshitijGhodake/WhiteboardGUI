@@ -26,6 +26,19 @@ namespace WhiteboardGUI.ViewModel
         public readonly RenderingService _renderingService;
         private readonly SnapShotService _snapShotService;
         private readonly MoveShapeZIndexing _moveShapeZIndexing;
+        private string _defaultColor;
+        public string DefaultColor
+        {
+            get => _defaultColor;
+            set
+            {
+                if (_defaultColor != value)
+                {
+                    _defaultColor = value;
+                    OnPropertyChanged(nameof(DefaultColor));
+                }
+            }
+        }
         private IShape _selectedShape;
         private ShapeType _currentTool = ShapeType.Pencil;
         private Point _startPoint;
@@ -109,7 +122,21 @@ namespace WhiteboardGUI.ViewModel
                 }
             }
         }
-   
+
+        //private bool _isDarkMode;
+        //public bool IsDarkMode
+        //{
+        //    get => _isDarkMode;
+        //    set
+        //    {
+        //        if (_isDarkMode != value)
+        //        {
+        //            _isDarkMode = value;
+        //            OnPropertyChanged(nameof(IsDarkMode));
+        //        }
+        //    }
+        //}
+
 
         private Color _selectedColor = Colors.Black;
         public Color SelectedColor
@@ -127,6 +154,20 @@ namespace WhiteboardGUI.ViewModel
                         shapeBase.OnPropertyChanged(nameof(SelectedShape.Color));
                         _renderingService.RenderShape(SelectedShape, "MODIFY");
                     }
+                }
+            }
+        }
+
+        private Color _currentColor = Colors.Black;
+        public Color CurrentColor
+        {
+            get => _currentColor;
+            set
+            {
+                if (_currentColor != value)
+                {
+                    _currentColor = value;
+                    OnPropertyChanged(nameof(CurrentColor));
                 }
             }
         }
@@ -316,6 +357,9 @@ namespace WhiteboardGUI.ViewModel
 
             Shapes.CollectionChanged += Shapes_CollectionChanged;
 
+            // Initialize DarkModeService
+            //_darkModeService = new DarkModeService();
+
             // Initialize commands
             Debug.WriteLine("ViewModel init start");
             StartHostCommand = new RelayCommand(async () => await TriggerHostCheckbox(), () => { return true; });
@@ -353,11 +397,37 @@ namespace WhiteboardGUI.ViewModel
 
             OpenPopupCommand = new RelayCommand(OpenPopup);
             ClearShapesCommand = new RelayCommand(ClearShapes);
+
+            //Initialize Dark Mode to Light
+             IsDarkMode = false;
+            DefaultColor = "Black";
             Red = 0;
             Green = 0;
             Blue = 0;
             UpdateSelectedColor();
 
+        }
+
+        //// Toggle Dark Mode
+        //private void ToggleDarkMode(bool isDarkMode)
+        //{
+        //    _darkModeService.ToggleDarkMode(isDarkMode, Shapes);
+        //    UpdateBackground(isDarkMode);
+        //}
+
+        // Update Background Colors
+        private void UpdateBackground(bool isDarkMode)
+        {
+            if (isDarkMode)
+            {
+                PageBackground = new SolidColorBrush(Color.FromRgb(30, 30, 30)); // Dark gray
+                CanvasBackground = new SolidColorBrush(Color.FromRgb(50, 50, 50)); // Slightly lighter
+            }
+            else
+            {
+                PageBackground = new SolidColorBrush(Color.FromRgb(245, 245, 245)); // Light gray
+                CanvasBackground = new SolidColorBrush(Color.FromRgb(255, 255, 255)); // White
+            }
         }
 
         // Function to open the download popup
@@ -437,8 +507,16 @@ namespace WhiteboardGUI.ViewModel
 
         private void SelectColor(string colorName)
         {
-                var color = (Color)ColorConverter.ConvertFromString(colorName);
-                SelectedColor = color;
+            var color = (Color)ColorConverter.ConvertFromString(colorName);
+            SelectedColor = color;
+            if (IsDarkMode && colorName == "Black")
+            {
+                CurrentColor = Colors.White;
+            }
+            else
+            {
+                CurrentColor = color;
+            }
         }
 
         private void CallUndo()
@@ -1039,5 +1117,72 @@ namespace WhiteboardGUI.ViewModel
                 }
             }
         }
+
+        // Dark Mode Property
+        private bool _isDarkMode;
+        public bool IsDarkMode
+        {
+            get => _isDarkMode;
+            set
+            {
+                if (_isDarkMode != value)
+                {
+                    _isDarkMode = value;
+                    OnPropertyChanged(nameof(IsDarkMode));
+                    //ToggleDarkMode(_isDarkMode);
+                    UpdateBackground(IsDarkMode);
+                    if (value == true)
+                    {
+                        DefaultColor = "White";
+                        if (_selectedColor == Colors.Black)
+                        {
+                            CurrentColor = Colors.White;
+                        }
+                    }
+                    else
+                    {
+                        DefaultColor = "Black";
+                        if (_selectedColor == Colors.Black)
+                        {
+                            CurrentColor = Colors.Black;
+                        }
+                    }
+
+                   
+                }
+            }
+        }
+
+        // Background Properties
+        private Brush _pageBackground = new SolidColorBrush(Color.FromRgb(245, 245, 245)); // Light
+        public Brush PageBackground
+        {
+            get => _pageBackground;
+            set
+            {
+                if (_pageBackground != value)
+                {
+                    _pageBackground = value;
+                    OnPropertyChanged(nameof(PageBackground));
+                }
+            }
+        }
+
+        private Brush _canvasBackground = new SolidColorBrush(Color.FromRgb(245, 245, 245)); // Light
+        public Brush CanvasBackground
+        {
+            get => _canvasBackground;
+            set
+            {
+                if (_canvasBackground != value)
+                {
+                    _canvasBackground = value;
+                    OnPropertyChanged(nameof(CanvasBackground));
+                }
+            }
+        }
+
+        //private readonly IDarkModeService _darkModeService;
+
     }
 }
