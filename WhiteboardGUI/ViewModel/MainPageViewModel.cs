@@ -986,7 +986,6 @@ namespace WhiteboardGUI.ViewModel
                 }
                         
                 var newShape = shape.Clone();
-                _networkingService._synchronizedShapes.Add(newShape);
                 _undoRedoService.RemoveLastModified(_networkingService, shape);
             });
         }
