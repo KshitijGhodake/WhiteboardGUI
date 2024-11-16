@@ -15,6 +15,7 @@ using System.Linq;
 using Microsoft.Windows.Input;
 using System.Collections.Specialized;
 using WhiteboardGUI.Adorners;
+using System.Windows.Navigation;
 
 namespace WhiteboardGUI.ViewModel
 {
@@ -42,6 +43,30 @@ namespace WhiteboardGUI.ViewModel
         private IShape _selectedShape;
         private ShapeType _currentTool = ShapeType.Pencil;
         private Point _startPoint;
+
+        public Point StartPoint
+        {
+            get { return _startPoint; }
+            set { _startPoint = StartPoint; }
+        }
+
+        public bool IsSelecting
+        {
+            get { return _isSelecting; }
+            set { _isSelecting = value; }
+        }
+
+        public Point LastMousePosition
+        {
+            get { return _lastMousePosition; }
+            set { _lastMousePosition = value; }
+        }
+
+        public TextboxModel CurrentTextboxModel
+        {
+            get { return _currentTextboxModel; }
+            set { _currentTextboxModel = value; }
+        }
         private Point _lastMousePosition;
         private bool _isSelecting;
         private bool _isDragging;
@@ -52,6 +77,8 @@ namespace WhiteboardGUI.ViewModel
         private bool _isTextBoxActive;
         private TextShape _currentTextShape;
         private TextboxModel _currentTextboxModel;
+
+
 
         // bouding box
         private bool isBoundingBoxActive;
@@ -633,7 +660,7 @@ namespace WhiteboardGUI.ViewModel
                 SelectedShape = null;
             }
         }
-        private bool IsPointOverShape(IShape shape, Point point)
+        public bool IsPointOverShape(IShape shape, Point point)
         {
             // Simple bounding box hit testing
             Rect bounds = shape.GetBounds();
@@ -822,7 +849,7 @@ namespace WhiteboardGUI.ViewModel
 
         }
 
-        private IShape CreateShape(Point startPoint)
+        public IShape CreateShape(Point startPoint)
         {
             IShape shape = null;
             switch (CurrentTool)

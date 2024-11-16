@@ -209,7 +209,7 @@ namespace WhiteboardGUI.Services
         {
             _client = new TcpClient();
             //await _client.ConnectAsync(IPAddress.Parse("10.32.10.20"), port);
-            await _client.ConnectAsync(IPAddress.Parse("192.168.0.183"), port);
+            await _client.ConnectAsync(IPAddress.Loopback, port);
             Console.WriteLine("Connected to host");
 
             _clients.TryAdd(0, _client);
