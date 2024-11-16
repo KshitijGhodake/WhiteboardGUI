@@ -57,14 +57,6 @@ namespace WhiteboardGUI.Services
 
                     currentUserID++;
                     _ = Task.Run(() => ListenClients(newClient, currentUserID - 1));
-                    //Send all existing shapes to new clients
-                    foreach (var shape in _synchronizedShapes)
-                    {
-
-                        string serializedShape = SerializationService.SerializeShape(shape);
-                        await BroadcastShapeData(serializedShape, -1);
-
-                    }
                 }
             }
             catch (Exception ex)
@@ -87,7 +79,7 @@ namespace WhiteboardGUI.Services
 
                     string serializedShape = SerializationService.SerializeShape(shape);
                     string serializedMessage = $"CREATE:{serializedShape}";
-                    await writer.WriteLineAsync(serializedMessage);
+                    await writer.WriteAsync(serializedMessage);
                 }
 
                 while (true)
@@ -208,8 +200,8 @@ namespace WhiteboardGUI.Services
         public async Task StartClient(int port)
         {
             _client = new TcpClient();
-            //await _client.ConnectAsync(IPAddress.Parse("10.32.10.20"), port);
-            await _client.ConnectAsync(IPAddress.Loopback, port);
+            await _client.ConnectAsync(IPAddress.Parse("10.32.5.68"), port);
+            //await _client.ConnectAsync(IPAddress.Loopback, port);
             Console.WriteLine("Connected to host");
 
             _clients.TryAdd(0, _client);
@@ -274,7 +266,7 @@ namespace WhiteboardGUI.Services
                             var currentShape = _synchronizedShapes.Where(s => s.ShapeId == shapeId && s.UserID == shapeUserId).FirstOrDefault();
                             if (currentShape != null)
                             {
-                                //ShapeDeleted?.Invoke(currentShape);
+                    
                                 ShapeModified?.Invoke(shape);
 
                             }
