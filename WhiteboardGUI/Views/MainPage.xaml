@@ -408,11 +408,11 @@ IsSnapToTickEnabled="True" />
         Style="{StaticResource ToolBarStyle}"
         ToolTip="Download"
         Command="{Binding OpenDownloadPopupCommand}">
-							<StackPanel Orientation="Vertical" HorizontalAlignment="Center">
-								<Image Source="Assets/cloud-download.png" Width="20" Height="20"/>
-								<TextBlock Text="Download" HorizontalAlignment="Center" FontSize="12"/>
-							</StackPanel>
-						</Button>
+                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                                <Image Source="Assets/cloud-download.png" Width="20" Height="20"/>
+                                <TextBlock Text="Load" HorizontalAlignment="Center" FontSize="12"/>
+                            </StackPanel>
+                        </Button>
 
 						<!-- Popup containing the ListBox for selecting an item -->
 						<Popup x:Name="DownloadPopup"
@@ -459,7 +459,7 @@ IsSnapToTickEnabled="True" />
 						ToolTip="Dark Mode">
 							<StackPanel Orientation="Vertical" HorizontalAlignment="Center">
 								<Image Source="Assets/clienticon.png" Width="20" Height="20"/>
-								<TextBlock Text="Dark Mode" HorizontalAlignment="Center" FontSize="12"/>
+								<TextBlock Text="Theme" HorizontalAlignment="Center" FontSize="12"/>
 							</StackPanel>
 						</ToggleButton>
 
