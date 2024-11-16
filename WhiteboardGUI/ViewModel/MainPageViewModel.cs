@@ -21,6 +21,7 @@ namespace WhiteboardGUI.ViewModel
         private readonly SnapShotService _snapShotService;
         private readonly MoveShapeZIndexing _moveShapeZIndexing;
 
+        private readonly DispatcherTimer _timer;
         private string _defaultColor;
         private IShape _selectedShape;
         private ShapeType _currentTool = ShapeType.Pencil;
@@ -44,7 +45,23 @@ namespace WhiteboardGUI.ViewModel
         public HoverAdorner CurrentHoverAdorner { get; set; }
 
         private byte _red = 0;
+        private byte _green = 0;
+        private byte _blue = 0;
         private FrameworkElement _capturedElement;
+        private bool _isUploading;
+        private bool _isDarkModeManuallySet = false;
+        private bool _isUpdatingDarkModeFromTimer = false;
+        private bool _isDownloading;
+        private double _selectedThickness = 2.0;
+        private Color _selectedColor = Colors.Black;
+        private Color _currentColor = Colors.Black;
+        private bool _isPopupOpen;
+        private string _snapShotFileName;
+        private string _selectedDownloadItem;
+        private bool _isDarkMode;
+        private Brush _pageBackground = new SolidColorBrush(Color.FromRgb(245, 245, 245)); // Light
+        private Brush _canvasBackground = new SolidColorBrush(Color.FromRgb(245, 245, 245)); // Light
+
 
         public string DefaultColor
         {
@@ -93,8 +110,6 @@ namespace WhiteboardGUI.ViewModel
                 UpdateSelectedColor();
             }
         }
-
-        private byte _green = 0;
         public byte Green
         {
             get => _green;
@@ -105,8 +120,6 @@ namespace WhiteboardGUI.ViewModel
                 UpdateSelectedColor();
             }
         }
-
-        private byte _blue = 0;
         public byte Blue
         {
             get => _blue;
@@ -117,8 +130,7 @@ namespace WhiteboardGUI.ViewModel
                 UpdateSelectedColor();
             }
         }
-
-        private bool _isUploading;
+  
         public bool IsUploading
         {
             get => _isUploading;
@@ -128,8 +140,7 @@ namespace WhiteboardGUI.ViewModel
                 OnPropertyChanged(nameof(IsUploading));
             }
         }
-
-        private bool _isDownloading;
+  
         public bool IsDownloading
         {
             get => _isDownloading;
@@ -139,7 +150,7 @@ namespace WhiteboardGUI.ViewModel
                 OnPropertyChanged(nameof(IsDownloading));
             }
         }
-        private double _selectedThickness = 2.0;
+       
         public double SelectedThickness
         {
             get => _selectedThickness;
@@ -157,10 +168,7 @@ namespace WhiteboardGUI.ViewModel
                     }
                 }
             }
-        }
-
-
-        private Color _selectedColor = Colors.Black;
+        } 
         public Color SelectedColor
         {
             get => _selectedColor;
@@ -180,7 +188,6 @@ namespace WhiteboardGUI.ViewModel
             }
         }
 
-        private Color _currentColor = Colors.Black;
         public Color CurrentColor
         {
             get => _currentColor;
@@ -221,7 +228,7 @@ namespace WhiteboardGUI.ViewModel
             }
         }
 
-        private bool _isPopupOpen;
+       
         public bool IsPopupOpen
         {
             get => _isPopupOpen;
@@ -252,7 +259,7 @@ namespace WhiteboardGUI.ViewModel
                 OnPropertyChanged(nameof(Shapes));
             }
         }
-        private string _snapShotFileName;
+        
         public string SnapShotFileName
         {
             get => _snapShotFileName;
@@ -310,7 +317,8 @@ namespace WhiteboardGUI.ViewModel
 
         public ObservableCollection<string> DownloadItems { get; set; }
 
-        private string _selectedDownloadItem;
+        private bool _isClearConfirmationOpen;
+
         public string SelectedDownloadItem
         {
             get => _selectedDownloadItem;
@@ -325,7 +333,6 @@ namespace WhiteboardGUI.ViewModel
         public bool IsDownloadPopupOpen { get; set; }
 
         // Property to control the visibility of the Clear Confirmation Popup
-        private bool _isClearConfirmationOpen;
         public bool IsClearConfirmationOpen
         {
             get => _isClearConfirmationOpen;
@@ -380,9 +387,7 @@ namespace WhiteboardGUI.ViewModel
         public event Action<IShape> ShapeReceived;
         public event Action<IShape> ShapeDeleted;
 
-        private bool _isDarkModeManuallySet = false;
-        private bool _isUpdatingDarkModeFromTimer = false;
-
+       
         // Constructor
         public MainPageViewModel()
         {
@@ -486,10 +491,7 @@ namespace WhiteboardGUI.ViewModel
             _timer.Interval = TimeSpan.FromSeconds(10);
             _timer.Tick += Timer_Tick;
             _timer.Start();
-        }
-
-        // end constructor
-        private readonly DispatcherTimer _timer;
+        }        
 
         private bool CheckIfDarkMode()
         {
@@ -1241,7 +1243,7 @@ namespace WhiteboardGUI.ViewModel
         }
 
         // Dark Mode Property
-        private bool _isDarkMode;
+
         public bool IsDarkMode
         {
             get => _isDarkMode;
@@ -1279,7 +1281,8 @@ namespace WhiteboardGUI.ViewModel
         }
 
         // Background Properties
-        private Brush _pageBackground = new SolidColorBrush(Color.FromRgb(245, 245, 245)); // Light
+       
+
         public Brush PageBackground
         {
             get => _pageBackground;
@@ -1293,7 +1296,6 @@ namespace WhiteboardGUI.ViewModel
             }
         }
 
-        private Brush _canvasBackground = new SolidColorBrush(Color.FromRgb(245, 245, 245)); // Light
         public Brush CanvasBackground
         {
             get => _canvasBackground;
