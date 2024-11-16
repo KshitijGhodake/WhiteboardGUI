@@ -6,7 +6,7 @@
       xmlns:models="clr-namespace:WhiteboardGUI.Models"
       xmlns:conv="clr-namespace:WhiteboardGUI.Converters"
       xmlns:service="clr-namespace:WhiteboardGUI.Services"
-      Title="MainPage" Background="Gray">
+      Title="MainPage" Background="#DFB6B2">
 
 	<Page.Resources>
 
@@ -19,7 +19,7 @@
 
 		<!-- Style for standard toolbar buttons -->
 		<Style TargetType="Button" x:Key="ToolBarStyle">
-			<Setter Property="Background" Value="WhiteSmoke"/>
+            <Setter Property="Background" Value="#FBE4DB"/>
 			<Setter Property="Cursor" Value="Hand"/>
 			<Setter Property="Template">
 				<Setter.Value>
@@ -45,7 +45,7 @@
 
 		<!-- Style for standard toggle toolbar buttons -->
 		<Style TargetType="ToggleButton" x:Key="ToolBarToggleStyle">
-			<Setter Property="Background" Value="WhiteSmoke"/>
+            <Setter Property="Background" Value="#FBE4DB"/>
 			<Setter Property="Cursor" Value="Hand"/>
 			<Setter Property="Template">
 				<Setter.Value>
@@ -74,7 +74,7 @@
 
 		<!-- Style for top bar toggle buttons -->
 		<Style TargetType="ToggleButton" x:Key="TopBarStyle">
-			<Setter Property="Background" Value="WhiteSmoke"/>
+            <Setter Property="Background" Value="#FBE4DB"/>
 			<Setter Property="Cursor" Value="Hand"/>
 			<Setter Property="Template">
 				<Setter.Value>
@@ -106,7 +106,7 @@
 			<Setter Property="Height" Value="30"/>
 			<Setter Property="Background" Value="Gray"/>
 			<!-- Default Background -->
-			<Setter Property="BorderBrush" Value="Black"/>
+            <Setter Property="BorderBrush" Value="#190019"/>
 			<Setter Property="BorderThickness" Value="1"/>
 			<Setter Property="Template">
 				<Setter.Value>
@@ -133,9 +133,9 @@
 
 		<!-- Corrected Style for TextBox with Placeholder -->
 		<Style x:Key="WatermarkTextBox" TargetType="TextBox">
-			<Setter Property="Foreground" Value="Black"/>
-			<Setter Property="Background" Value="White"/>
-			<Setter Property="BorderBrush" Value="Gray"/>
+			<Setter Property="Foreground" Value="#190019"/>
+            <Setter Property="Background" Value="#FBE4DB"/>
+			<Setter Property="BorderBrush" Value="#DFB6B2"/>
 			<Setter Property="BorderThickness" Value="1"/>
 			<Setter Property="Padding" Value="5"/>
 			<Setter Property="Template">
@@ -147,7 +147,7 @@
 
 							<!-- Placeholder TextBlock -->
 							<TextBlock Text="Enter filename"
-                                   Foreground="Gray"
+                                   Foreground="#DFB6B2"
                                    Margin="5,5,0,0"
                                    IsHitTestVisible="False"
                                    Visibility="Collapsed"
@@ -204,16 +204,17 @@
 			<Border Grid.Row="0" Padding="10" Margin="10">
 				<Border.Background>
 					<LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-						<GradientStop Color="#E0E0E0" Offset="0.0" />
-						<GradientStop Color="#C0C0C0" Offset="1.0" />
+						<GradientStop Color="#2B124C" Offset="0.0" />
+						<GradientStop Color="#522B5B" Offset="1.0" />
 					</LinearGradientBrush>
 				</Border.Background>
 				<ScrollViewer HorizontalScrollBarVisibility="Auto">
 
-					<StackPanel Grid.Row="0" Orientation="Horizontal" Background="#EAEAEA" Margin="10,10,0,10">
+					<StackPanel Grid.Row="0" Orientation="Horizontal" Background="#854f6c" Margin="10,10,0,10">
 						<Button Style="{StaticResource ToolBarStyle}" 
                         Command="{Binding SelectToolCommand}" 
                         CommandParameter="{x:Static models:ShapeType.Pencil}" 
+						Background="#DFB6B2"
                         ToolTip="Pencil">
 							<StackPanel Orientation="Vertical" HorizontalAlignment="Center">
 								<Image Source="Assets/PencilIcon.png" Width="20" Height="20"/>
@@ -224,6 +225,7 @@
 						<Button Style="{StaticResource ToolBarStyle}" 
                             Command="{Binding SelectToolCommand}" 
                             CommandParameter="{x:Static models:ShapeType.Line}" 
+                            Background="#DFB6B2"
                             ToolTip="Line">
 							<StackPanel Orientation="Vertical" HorizontalAlignment="Center">
 								<Image Source="Assets/LineIcon.png" Width="20" Height="20"/>
@@ -233,6 +235,7 @@
 						<Button Style="{StaticResource ToolBarStyle}" 
                         Command="{Binding SelectToolCommand}" 
                         CommandParameter="{x:Static models:ShapeType.Circle}" 
+                        Background="#DFB6B2"
                         ToolTip="Circle">
 							<StackPanel Orientation="Vertical" HorizontalAlignment="Center">
 								<Image Source="Assets/circleicon.png" Width="20" Height="20"/>
@@ -242,6 +245,7 @@
 						<Button Style="{StaticResource ToolBarStyle}" 
                         Command="{Binding SelectToolCommand}" 
                         CommandParameter="{x:Static models:ShapeType.Text}" 
+                        Background="#DFB6B2"
                         ToolTip="Text">
 							<StackPanel Orientation="Vertical" HorizontalAlignment="Center">
 								<Image Source="Assets/texticon.png" Width="20" Height="20"/>
@@ -251,23 +255,26 @@
 
 						<Button Style="{StaticResource ToolBarStyle}" 
                         Command="{Binding SelectToolCommand}" 
-                        CommandParameter="{x:Static models:ShapeType.Select}" 
+                        CommandParameter="{x:Static models:ShapeType.Select}"
+                        Background="#DFB6B2"
                         ToolTip="Select">
 							<StackPanel Orientation="Vertical" HorizontalAlignment="Center">
 								<Image Source="Assets/selecticon.png" Width="20" Height="20"/>
 								<TextBlock Text="Select" HorizontalAlignment="Center" FontSize="12"/>
 							</StackPanel>
 						</Button>
-						<Button Style="{StaticResource ToolBarStyle}" 
+						<Button Style="{StaticResource ToolBarStyle}"
+                         Background="#DFB6B2"
                     Command="{Binding DeleteShapeCommand}" IsEnabled="{Binding IsShapeSelected}" 
                     ToolTip="Delete">
-							<StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center" Background="#DFB6B2">
 								<Image Source="Assets/deleteicon.png" Width="20" Height="20"/>
 								<TextBlock Text="Delete" HorizontalAlignment="Center" FontSize="12"/>
 							</StackPanel>
 						</Button>
 						<Button Style="{StaticResource ToolBarStyle}"
                             Command="{Binding ClearShapesCommand}"
+                            Background="#DFB6B2"
                             ToolTip="Clear All Shapes">
 							<StackPanel Orientation="Vertical" HorizontalAlignment="Center">
 								<Image Source="Assets/clearicon.png" Width="20" Height="20"/>
@@ -275,6 +282,7 @@
 							</StackPanel>
 						</Button>
 						<Button Style="{StaticResource ToolBarStyle}" 
+                        Background="#DFB6B2"
                     Command="{Binding UndoCommand}"
                     ToolTip="Undo">
 							<StackPanel Orientation="Vertical" HorizontalAlignment="Center">
@@ -284,6 +292,7 @@
 						</Button>
 
 						<Button Style="{StaticResource ToolBarStyle}" 
+                        Background="#DFB6B2"
                     Command="{Binding RedoCommand}"
                     ToolTip="Redo">
 							<StackPanel Orientation="Vertical" HorizontalAlignment="Center">
@@ -293,6 +302,7 @@
 						</Button>
 						<!-- Toggle Buttons for Server and Client Modes -->
 						<ToggleButton Style="{StaticResource ToolBarToggleStyle}" 
+                                  Background="#DFB6B2"
                                   Command="{Binding StartHostCommand}" 
                                   IsChecked="{Binding IsHost, Mode=TwoWay}" 
                                   ToolTip="Server Mode">
@@ -304,6 +314,7 @@
 						<ToggleButton Style="{StaticResource ToolBarToggleStyle}" 
                           Command="{Binding StartClientCommand}" 
                           IsChecked="{Binding IsClient, Mode=TwoWay}" 
+                          Background="#DFB6B2"
                           ToolTip="Client Mode">
 							<StackPanel Orientation="Vertical" HorizontalAlignment="Center">
 								<Image Source="Assets/clienticon.png" Width="20" Height="20"/>
@@ -314,6 +325,7 @@
 						<ToggleButton x:Name="PaletteToggleButton"
                       Style="{StaticResource ToolBarToggleStyle}"
                       ToolTip="Color Palette"
+                      Background="#DFB6B2"
                       Checked="PaletteToggleButton_Checked"
                       Unchecked="PaletteToggleButton_Unchecked">
 							<StackPanel Orientation="Vertical" HorizontalAlignment="Center">
@@ -328,7 +340,7 @@
                StaysOpen="False"
                AllowsTransparency="True"
                PopupAnimation="Fade">
-							<Border Background="White" 
+                            <Border Background="#FBE4DB" 
                     BorderBrush="Gray" 
                     BorderThickness="1" 
                     CornerRadius="5"
@@ -346,7 +358,7 @@
 								</WrapPanel>
 							</Border>
 						</Popup>
-						<Ellipse Width="20" Height="20" Stroke="Black" Margin="0,0,10,0">
+                        <Ellipse Width="20" Height="20" Stroke="#190019" Margin="0,0,10,0">
 							<Ellipse.Fill>
 								<SolidColorBrush Color="{Binding CurrentColor}" />
 							</Ellipse.Fill>
@@ -363,7 +375,8 @@ IsSnapToTickEnabled="True" />
 
 
 						<Button x:Name="UploadButton"
-                        Style="{StaticResource ToolBarStyle}" 
+                        Style="{StaticResource ToolBarStyle}"
+                         Background="#DFB6B2"
                 ToolTip="Upload"
                 Command="{Binding OpenPopupCommand}">
 							<StackPanel Orientation="Vertical" HorizontalAlignment="Center">
@@ -381,7 +394,7 @@ IsSnapToTickEnabled="True" />
        AllowsTransparency="True"
        PopupAnimation="Fade"
        IsOpen="{Binding IsPopupOpen, Mode=TwoWay}">
-							<Border Background="White" 
+							<Border Background="#FBE4D8" 
             BorderBrush="Gray" 
             BorderThickness="1" 
             CornerRadius="5"
@@ -405,6 +418,7 @@ IsSnapToTickEnabled="True" />
 
 						<!-- Download Button -->
 						<Button x:Name="DownloadButton"
+                        Background="#DFB6B2"
         Style="{StaticResource ToolBarStyle}"
         ToolTip="Download"
         Command="{Binding OpenDownloadPopupCommand}">
@@ -422,7 +436,7 @@ IsSnapToTickEnabled="True" />
        AllowsTransparency="True"
        PopupAnimation="Fade"
        IsOpen="{Binding IsDownloadPopupOpen, Mode=TwoWay}">
-							<Border Background="White"
+                            <Border Background="#FBE4DB"
             BorderBrush="Gray"
             BorderThickness="1"
             CornerRadius="5"
@@ -455,6 +469,7 @@ IsSnapToTickEnabled="True" />
 						<!-- Add this within your existing StackPanel in the toolbar -->
 						<ToggleButton
 						Style="{StaticResource ToolBarToggleStyle}"
+                        Background="#DFB6B2"
 						IsChecked="{Binding IsDarkMode, Mode=TwoWay}"
 						ToolTip="Dark Mode">
 							<StackPanel Orientation="Vertical" HorizontalAlignment="Center">
@@ -518,7 +533,7 @@ IsSnapToTickEnabled="True" />
                                           Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}" />
 
 										<!-- Top-Left Handle -->
-										<Rectangle Width="{Binding HandleSize}" Height="{Binding HandleSize}" Fill="White" Stroke="Black"
+                                        <Rectangle Width="{Binding HandleSize}" Height="{Binding HandleSize}" Fill="#FBE4DB" Stroke="#190019"
                                           Canvas.Left="{Binding Left}" Canvas.Top="{Binding Top}"
                                           Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}"
                                           Cursor="SizeNWSE"
@@ -528,7 +543,7 @@ IsSnapToTickEnabled="True" />
                                           Tag="TopLeft" />
 
 										<!-- Top-Right Handle -->
-										<Rectangle Width="{Binding HandleSize}" Height="{Binding HandleSize}" Fill="White" Stroke="Black"
+                                        <Rectangle Width="{Binding HandleSize}" Height="{Binding HandleSize}" Fill="#FBE4DB" Stroke="#190019"
                                           Canvas.Left="{Binding TopRightHandleX}" Canvas.Top="{Binding Top}"
                                           Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}"
                                           Cursor="SizeNESW"
@@ -538,7 +553,7 @@ IsSnapToTickEnabled="True" />
                                           Tag="TopRight" />
 
 										<!-- Bottom-Left Handle -->
-										<Rectangle Width="{Binding HandleSize}" Height="{Binding HandleSize}" Fill="White" Stroke="Black"
+                                        <Rectangle Width="{Binding HandleSize}" Height="{Binding HandleSize}" Fill="#FBE4DB" Stroke="#190019"
                                           Canvas.Left="{Binding Left}" Canvas.Top="{Binding DownLeftHandleY}"
                                           Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}"
                                           Cursor="SizeNESW"
@@ -548,7 +563,7 @@ IsSnapToTickEnabled="True" />
                                           Tag="BottomLeft" />
 
 										<!-- Bottom-Right Handle -->
-										<Rectangle Width="{Binding HandleSize}" Height="{Binding HandleSize}" Fill="White" Stroke="Black"
+                                        <Rectangle Width="{Binding HandleSize}" Height="{Binding HandleSize}" Fill="#FBE4DB" Stroke="#190019"
                                           Canvas.Left="{Binding TopRightHandleX}" Canvas.Top="{Binding DownLeftHandleY}"
                                           Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}"
                                           Cursor="SizeNWSE"
@@ -593,7 +608,7 @@ IsSnapToTickEnabled="True" />
                                                    MouseRightButtonDown="Shape_MouseRightButtonDown"/>
 
 										<!-- Start Handle -->
-										<Ellipse Width="{Binding HandleSize}" Height="{Binding HandleSize}" Fill="White" Stroke="Black"
+                                        <Ellipse Width="{Binding HandleSize}" Height="{Binding HandleSize}" Fill="#FBE4DB" Stroke="#190019"
                  Canvas.Left="{Binding StartHandleX}"
                  Canvas.Top="{Binding StartHandleY}"
                  Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}"
@@ -604,7 +619,7 @@ IsSnapToTickEnabled="True" />
                  Tag="Start" />
 
 										<!-- End Handle -->
-										<Ellipse Width="{Binding HandleSize}" Height="{Binding HandleSize}" Fill="White" Stroke="Black"
+                                        <Ellipse Width="{Binding HandleSize}" Height="{Binding HandleSize}" Fill="#FBE4DB" Stroke="#190019"
                  Canvas.Left="{Binding EndHandleX}"
                  Canvas.Top="{Binding EndHandleY}"
                  Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}"
@@ -648,7 +663,7 @@ IsSnapToTickEnabled="True" />
 
 										<!-- Top-Left Handle -->
 										<Rectangle Width="{Binding HandleSize}" Height="{Binding HandleSize}" 
-                          Fill="White" Stroke="Black"
+                          Fill="#FBE4DB" Stroke="#190019"
                           Canvas.Left="{Binding Left}" Canvas.Top="{Binding Top}"
                           Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}"
                           Cursor="SizeNWSE"
@@ -658,7 +673,7 @@ IsSnapToTickEnabled="True" />
                           Tag="TopLeft" />
 										<!-- Top-Right Handle -->
 										<Rectangle Width="{Binding HandleSize}" Height="{Binding HandleSize}" 
-                          Fill="White" Stroke="Black"
+                          Fill="#FBE4DB" Stroke="#190019"
                           Canvas.Left="{Binding TopRightHandleX}" Canvas.Top="{Binding Top}"
                           Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}"
                           Cursor="SizeNESW"
@@ -668,7 +683,7 @@ IsSnapToTickEnabled="True" />
                           Tag="TopRight" />
 										<!-- Bottom-Left Handle -->
 										<Rectangle Width="{Binding HandleSize}" Height="{Binding HandleSize}" 
-                          Fill="White" Stroke="Black"
+                          Fill="#FBE4DB" Stroke="#190019"
                           Canvas.Left="{Binding Left}" Canvas.Top="{Binding DownLeftHandleY}"
                           Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}"
                           Cursor="SizeNESW"
@@ -679,7 +694,7 @@ IsSnapToTickEnabled="True" />
 
 										<!-- Bottom-Right Handle -->
 										<Rectangle Width="{Binding HandleSize}" Height="{Binding HandleSize}" 
-                          Fill="White" Stroke="Black"
+                          Fill="#FBE4DB" Stroke="#190019"
                           Canvas.Left="{Binding TopRightHandleX}" Canvas.Top="{Binding DownLeftHandleY}"
                           Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}"
                           Cursor="SizeNWSE"
