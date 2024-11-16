@@ -16,10 +16,62 @@
         <conv:NullToBooleanConverter x:Key="NullToBooleanConverter"/>
         <conv:DarkModeColorConverter x:Key="DarkModeColorConverter" />
 
+        
+        
+        <!-- Style for consistent Popups and Dialogs -->
+        <Style x:Key="PopupBorderStyle" TargetType="Border">
+            <Setter Property="Background" Value="#FBE4DB"/>
+            <!-- Consistent background color -->
+            <Setter Property="BorderBrush" Value="Gray"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="5"/>
+            <Setter Property="Padding" Value="10"/>
+        </Style>
+
+        <!-- Style for confirmation buttons with rounded edges -->
+        <Style x:Key="ConfirmationButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#2B124C"/>
+            <!-- Default background color -->
+            <Setter Property="Foreground" Value="White"/>
+            <!-- Text color -->
+            <Setter Property="FontWeight" Value="Bold"/>
+            <!-- Bold text -->
+            <Setter Property="Padding" Value="5,2"/>
+            <!-- Padding for better spacing -->
+            <Setter Property="Margin" Value="0,0,5,0"/>
+            <!-- Margin between buttons -->
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                        CornerRadius="5.5"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="1">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#2B124C"/>
+                                <!-- Hover background color -->
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#854f6c"/>
+                                <!-- Pressed background color -->
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5"/>
+                                <!-- Disabled state opacity -->
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
 
         <!-- Style for standard toolbar buttons -->
         <Style TargetType="Button" x:Key="ToolBarStyle">
-            <Setter Property="Background" Value="#FBE4DB"/>
+            <Setter Property="Background" Value="#DFB6B2"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -35,7 +87,7 @@
                                 <Setter Property="Background" Value="LightBlue"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Opacity" Value="0.5" />
+                                <Setter Property="Opacity" Value="0.25" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -44,8 +96,10 @@
         </Style>
 
         <!-- Style for standard toggle toolbar buttons -->
+        <!-- Updated Style for standard toggle toolbar buttons to differentiate checked and unchecked states -->
         <Style TargetType="ToggleButton" x:Key="ToolBarToggleStyle">
-            <Setter Property="Background" Value="#FBE4DB"/>
+            <Setter Property="Background" Value="#DFB6B2"/>
+            <!-- Light background when unchecked -->
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -55,13 +109,20 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="SkyBlue"/>
+                                <Setter Property="Background" Value="#C0A99F"/>
+                                <!-- Hover color -->
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter Property="Background" Value="LightBlue"/>
+                                <Setter Property="Background" Value="#A67875"/>
+                                <!-- Pressed color -->
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter Property="Background" Value="LightGray"/>
+                                <Setter Property="Opacity" Value="0.5"/>
+                                <!-- Darker color when checked -->
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="False">
+                                <Setter Property="Background" Value="#DFB6B2"/>
+                                <!-- Lighter color when unchecked -->
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Opacity" Value="0.5" />
@@ -71,6 +132,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
 
         <!-- Style for top bar toggle buttons -->
         <Style TargetType="ToggleButton" x:Key="TopBarStyle">
@@ -214,7 +276,6 @@
                         <Button Style="{StaticResource ToolBarStyle}" 
                         Command="{Binding SelectToolCommand}" 
                         CommandParameter="{x:Static models:ShapeType.Pencil}" 
-						Background="#DFB6B2"
                         ToolTip="Pencil">
                             <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
                                 <Image Source="Assets/PencilIcon.png" Width="20" Height="20"/>
@@ -225,7 +286,6 @@
                         <Button Style="{StaticResource ToolBarStyle}" 
                             Command="{Binding SelectToolCommand}" 
                             CommandParameter="{x:Static models:ShapeType.Line}" 
-                            Background="#DFB6B2"
                             ToolTip="Line">
                             <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
                                 <Image Source="Assets/LineIcon.png" Width="20" Height="20"/>
@@ -235,7 +295,6 @@
                         <Button Style="{StaticResource ToolBarStyle}" 
                         Command="{Binding SelectToolCommand}" 
                         CommandParameter="{x:Static models:ShapeType.Circle}" 
-                        Background="#DFB6B2"
                         ToolTip="Circle">
                             <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
                                 <Image Source="Assets/circleicon.png" Width="20" Height="20"/>
@@ -245,7 +304,6 @@
                         <Button Style="{StaticResource ToolBarStyle}" 
                         Command="{Binding SelectToolCommand}" 
                         CommandParameter="{x:Static models:ShapeType.Text}" 
-                        Background="#DFB6B2"
                         ToolTip="Text">
                             <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
                                 <Image Source="Assets/texticon.png" Width="20" Height="20"/>
@@ -256,7 +314,6 @@
                         <Button Style="{StaticResource ToolBarStyle}" 
                         Command="{Binding SelectToolCommand}" 
                         CommandParameter="{x:Static models:ShapeType.Select}"
-                        Background="#DFB6B2"
                         ToolTip="Select">
                             <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
                                 <Image Source="Assets/selecticon.png" Width="20" Height="20"/>
@@ -272,15 +329,46 @@
                                 <TextBlock Text="Delete" HorizontalAlignment="Center" FontSize="12"/>
                             </StackPanel>
                         </Button>
-                        <Button Style="{StaticResource ToolBarStyle}"
-                            Command="{Binding ClearShapesCommand}"
-                            Background="#DFB6B2"
-                            ToolTip="Clear All Shapes">
+                        <!-- Clear Button with Confirmation Dialog -->
+                        <Button x:Name="ClearButton"
+                                Style="{StaticResource ToolBarStyle}"
+        ToolTip="Clear All Shapes"
+        Command="{Binding OpenClearConfirmationCommand}">
+                            <!-- Updated Command Binding -->
                             <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
                                 <Image Source="Assets/housekeeping-icon.png" Width="20" Height="20" RenderTransformOrigin="0.524,0.5"/>
                                 <TextBlock Text="Clear" HorizontalAlignment="Center" FontSize="12"/>
                             </StackPanel>
                         </Button>
+                        <!-- Confirmation Popup for Clear Button -->
+                        <Popup x:Name="ClearConfirmationPopup"
+                               PlacementTarget="{Binding ElementName=ClearButton}"
+       Placement="Bottom"
+       AllowsTransparency="True"
+       PopupAnimation="Fade"
+       IsOpen="{Binding IsClearConfirmationOpen, Mode=TwoWay}">
+                            <Border Style="{StaticResource PopupBorderStyle}">
+                                <!-- Applied consistent Popup style -->
+                                <StackPanel>
+                                    <TextBlock Text="Are you sure you want to clear the screen?&#x0a;You can't revert this action" 
+                       FontSize="14" 
+                       Margin="0,0,0,10" 
+                       TextWrapping="Wrap" />
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                        <Button Content="Yes" 
+                        Width="60" 
+                        Margin="0,0,10,0" 
+                        Command="{Binding ConfirmClearCommand}"
+                        Style="{StaticResource ConfirmationButtonStyle}"/>
+                                        <Button Content="No" 
+                        Width="60" 
+                        Command="{Binding CancelClearCommand}"
+                        Style="{StaticResource ConfirmationButtonStyle}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </Popup>
+
                         <Button Style="{StaticResource ToolBarStyle}" 
                         Background="#DFB6B2"
                     Command="{Binding UndoCommand}"
@@ -302,7 +390,6 @@
                         </Button>
                         <!-- Toggle Buttons for Server and Client Modes -->
                         <ToggleButton Style="{StaticResource ToolBarToggleStyle}" 
-                                  Background="#DFB6B2"
                                   Command="{Binding StartHostCommand}" 
                                   IsChecked="{Binding IsHost, Mode=TwoWay}" 
                                   ToolTip="Server Mode">
@@ -314,7 +401,6 @@
                         <ToggleButton Style="{StaticResource ToolBarToggleStyle}" 
                           Command="{Binding StartClientCommand}" 
                           IsChecked="{Binding IsClient, Mode=TwoWay}" 
-                          Background="#DFB6B2"
                           ToolTip="Client Mode">
                             <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
                                 <Image Source="Assets/clienticon.png" Width="20" Height="20"/>
@@ -325,7 +411,6 @@
                         <ToggleButton x:Name="PaletteToggleButton"
                       Style="{StaticResource ToolBarToggleStyle}"
                       ToolTip="Color Palette"
-                      Background="#DFB6B2"
                       Checked="PaletteToggleButton_Checked"
                       Unchecked="PaletteToggleButton_Unchecked">
                             <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
@@ -340,11 +425,12 @@
                StaysOpen="False"
                AllowsTransparency="True"
                PopupAnimation="Fade">
-                            <Border Background="#FBE4DB" 
+                           <!-- <Border Background="#FBE4DB" 
                     BorderBrush="Gray" 
                     BorderThickness="1" 
                     CornerRadius="5"
-                    Padding="10">
+                    Padding="10">-->
+                            <Border Style="{StaticResource PopupBorderStyle}">
                                 <WrapPanel>
                                     <!-- Define color buttons -->
                                     <Button Style="{StaticResource CircularColorButton}" Background="{Binding DefaultColor}" Command="{Binding SelectColorCommand}" CommandParameter="Black" Margin="5"/>
@@ -394,13 +480,15 @@ IsSnapToTickEnabled="True" />
                            AllowsTransparency="True"
                            PopupAnimation="Fade"
                            IsOpen="{Binding IsPopupOpen, Mode=TwoWay}">
-                                                <Border Background="#FBE4D8" 
+                                                <!--<Border Background="#FBE4D8" 
                                 BorderBrush="Gray" 
                                 BorderThickness="1" 
                                 CornerRadius="5"
-                                Padding="10">
+                                Padding="10">-->
+                            <Border Style="{StaticResource PopupBorderStyle}">
                                 <StackPanel>
-                                    <!-- TextBox with Placeholder -->
+                            
+                                <!-- TextBox with Placeholder -->
                                     <TextBox Style="{StaticResource WatermarkTextBox}" 
                      Text="{Binding SnapShotFileName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
@@ -436,11 +524,12 @@ IsSnapToTickEnabled="True" />
        AllowsTransparency="True"
        PopupAnimation="Fade"
        IsOpen="{Binding IsDownloadPopupOpen, Mode=TwoWay}">
-                            <Border Background="#FBE4DB"
+                           <!-- <Border Background="#FBE4DB"
             BorderBrush="Gray"
             BorderThickness="1"
             CornerRadius="5"
-            Padding="10">
+            Padding="10">-->
+                            <Border Style="{StaticResource PopupBorderStyle}">
                                 <StackPanel>
                                     <TextBlock Text="Select an item to download:" FontWeight="Bold" Margin="0,0,0,10"/>
 
@@ -469,7 +558,6 @@ IsSnapToTickEnabled="True" />
                         <!-- Add this within your existing StackPanel in the toolbar -->
                         <ToggleButton
 						Style="{StaticResource ToolBarToggleStyle}"
-                        Background="#DFB6B2"
 						IsChecked="{Binding IsDarkMode, Mode=TwoWay}"
 						ToolTip="Dark Mode">
                             <StackPanel Orientation="Vertical" HorizontalAlignment="Center">

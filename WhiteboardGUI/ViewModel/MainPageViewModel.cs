@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Input;
 using WhiteboardGUI.Models;
@@ -7,15 +6,9 @@ using WhiteboardGUI.Services;
 using System.Windows.Media;
 using System.Windows;
 using System.Diagnostics;
-using System.Windows.Xps;
-using WhiteboardGUI.ViewModel;
-using System.Windows.Shapes;
-using System.Windows.Controls;
-using System.Linq;
-using Microsoft.Windows.Input;
 using System.Collections.Specialized;
 using WhiteboardGUI.Adorners;
-using System.Windows.Navigation;
+using System.Windows.Threading;
 
 namespace WhiteboardGUI.ViewModel
 {
@@ -27,7 +20,33 @@ namespace WhiteboardGUI.ViewModel
         public readonly RenderingService _renderingService;
         private readonly SnapShotService _snapShotService;
         private readonly MoveShapeZIndexing _moveShapeZIndexing;
+
+
         private string _defaultColor;
+        private IShape _selectedShape;
+        private ShapeType _currentTool = ShapeType.Pencil;
+        private Point _startPoint;
+        private Point _lastMousePosition;
+        private bool _isSelecting;
+        private bool _isDragging;
+        private ObservableCollection<IShape> _shapes;
+
+        //for textbox
+        private string _textInput;
+        private bool _isTextBoxActive;
+        private TextShape _currentTextShape;
+        private TextboxModel _currentTextboxModel;
+
+        // bouding box, might be unused
+        private bool isBoundingBoxActive;
+
+        private IShape _hoveredShape;
+        private bool _isShapeHovered;
+        public HoverAdorner CurrentHoverAdorner { get; set; }
+
+        private byte _red = 0;
+
+
         public string DefaultColor
         {
             get => _defaultColor;
@@ -40,9 +59,6 @@ namespace WhiteboardGUI.ViewModel
                 }
             }
         }
-        private IShape _selectedShape;
-        private ShapeType _currentTool = ShapeType.Pencil;
-        private Point _startPoint;
 
         public Point StartPoint
         {
@@ -67,27 +83,7 @@ namespace WhiteboardGUI.ViewModel
             get { return _currentTextboxModel; }
             set { _currentTextboxModel = value; }
         }
-        private Point _lastMousePosition;
-        private bool _isSelecting;
-        private bool _isDragging;
-        private ObservableCollection<IShape> _shapes;
-
-        //for textbox
-        private string _textInput;
-        private bool _isTextBoxActive;
-        private TextShape _currentTextShape;
-        private TextboxModel _currentTextboxModel;
-
-
-
-        // bouding box
-        private bool isBoundingBoxActive;
-
-        private IShape _hoveredShape;
-        private bool _isShapeHovered;
-        public HoverAdorner CurrentHoverAdorner { get; set; }
-
-        private byte _red = 0;
+        
         public byte Red
         {
             get => _red;
@@ -323,6 +319,27 @@ namespace WhiteboardGUI.ViewModel
         public bool CanDownload => !string.IsNullOrEmpty(SelectedDownloadItem);
         public bool IsDownloadPopupOpen { get; set; }
 
+        // Property to control the visibility of the Clear Confirmation Popup
+        private bool _isClearConfirmationOpen;
+        public bool IsClearConfirmationOpen
+        {
+            get => _isClearConfirmationOpen;
+            set
+            {
+                if (_isClearConfirmationOpen != value)
+                {
+                    _isClearConfirmationOpen = value;
+                    OnPropertyChanged(nameof(IsClearConfirmationOpen));
+                }
+            }
+        }
+
+        // Commands for Clear Confirmation
+        public ICommand OpenClearConfirmationCommand { get; }
+        public ICommand ConfirmClearCommand { get; }
+        public ICommand CancelClearCommand { get; }
+
+
 
         // Commands
         public ICommand StartHostCommand { get; }
@@ -359,6 +376,10 @@ namespace WhiteboardGUI.ViewModel
         public event PropertyChangedEventHandler PropertyChanged;
         public event Action<IShape> ShapeReceived;
         public event Action<IShape> ShapeDeleted;
+
+        private bool _isDarkModeManuallySet = false;
+        private bool _isUpdatingDarkModeFromTimer = false;
+
 
         // Constructor
         public MainPageViewModel()
@@ -424,24 +445,81 @@ namespace WhiteboardGUI.ViewModel
             OpenPopupCommand = new RelayCommand(OpenPopup);
             ClearShapesCommand = new RelayCommand(ClearShapes);
 
+            OpenClearConfirmationCommand = new RelayCommand(OpenClearConfirmation);
+            ConfirmClearCommand = new RelayCommand(ConfirmClear);
+            CancelClearCommand = new RelayCommand(CancelClear);
+
             //Initialize Dark Mode to Light
-             IsDarkMode = false;
+            IsDarkMode = false;
             DefaultColor = "Black";
             Red = 0;
             Green = 0;
             Blue = 0;
             UpdateSelectedColor();
 
+
+            // Initialize Dark Mode
+            IsDarkMode = CheckIfDarkMode();
+
+            // Set up timer to check time every minute
+            _timer = new DispatcherTimer();
+            _timer.Interval = TimeSpan.FromSeconds(10);
+            _timer.Tick += Timer_Tick;
+            _timer.Start();
+        }
+        // end constructor
+        private readonly DispatcherTimer _timer;
+
+        private bool CheckIfDarkMode()
+        {
+            var now = DateTime.Now.TimeOfDay;
+            var start = new TimeSpan(19, 0, 0); // 7 PM
+            var end = new TimeSpan(6, 0, 0);    // 6 AM
+
+            // Dark Mode is active from 7 PM to 6 AM
+            if (now >= start || now < end)
+            {
+                return true;
+            }
+            return false;
         }
 
-        //// Toggle Dark Mode
-        //private void ToggleDarkMode(bool isDarkMode)
-        //{
-        //    _darkModeService.ToggleDarkMode(isDarkMode, Shapes);
-        //    UpdateBackground(isDarkMode);
-        //}
+        // Timer Tick Event Handler
+        private void Timer_Tick(object sender, EventArgs e)
+        {
+            if (!_isDarkModeManuallySet)
+            {
+                bool currentDarkMode = CheckIfDarkMode();
+                if (currentDarkMode != IsDarkMode)
+                {
+                    _isUpdatingDarkModeFromTimer = true; // Indicate that the change is from the timer
+                    IsDarkMode = currentDarkMode;
+                    _isUpdatingDarkModeFromTimer = false; // Reset the flag
+                }
+            }
+        }
+
 
         // Update Background Colors
+        // Method to open the Clear Confirmation Popup
+        private void OpenClearConfirmation()
+        {
+            IsClearConfirmationOpen = true;
+        }
+
+        // Method to confirm clearing the screen
+        private void ConfirmClear()
+        {
+            ClearShapes(); // Existing method to clear shapes
+            IsClearConfirmationOpen = false;
+        }
+
+        // Method to cancel the clear action
+        private void CancelClear()
+        {
+            IsClearConfirmationOpen = false;
+        }
+
         private void UpdateBackground(bool isDarkMode)
         {
             if (isDarkMode)
@@ -1150,7 +1228,6 @@ namespace WhiteboardGUI.ViewModel
                 {
                     _isDarkMode = value;
                     OnPropertyChanged(nameof(IsDarkMode));
-                    //ToggleDarkMode(_isDarkMode);
                     UpdateBackground(IsDarkMode);
                     if (value == true)
                     {
@@ -1169,7 +1246,14 @@ namespace WhiteboardGUI.ViewModel
                         }
                     }
 
-                   
+                    // Set manual override flag only if the change is user-initiated
+                    if (!_isUpdatingDarkModeFromTimer)
+                    {
+                        _isDarkModeManuallySet = true;
+                    }
+
+
+
                 }
             }
         }
