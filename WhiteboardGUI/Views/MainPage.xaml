@@ -720,8 +720,7 @@ IsSnapToTickEnabled="True" />
                                             <TextBox.InputBindings>
                                                 <KeyBinding Key="Enter"
                                                         Command="{Binding DataContext.FinalizeTextBoxCommand, RelativeSource={RelativeSource AncestorType=Page}}" />
-                                                <KeyBinding Key="Escape"
-                                                        Command="{Binding DataContext.CancelTextBoxCommand, RelativeSource={RelativeSource AncestorType=Page}}" />
+                                                
                                             </TextBox.InputBindings>
                                         </TextBox>
                                         <!-- Bounding box if selected -->

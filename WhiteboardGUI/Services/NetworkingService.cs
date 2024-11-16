@@ -87,7 +87,7 @@ namespace WhiteboardGUI.Services
 
                     string serializedShape = SerializationService.SerializeShape(shape);
                     string serializedMessage = $"CREATE:{serializedShape}";
-                    await writer.WriteAsync(serializedMessage);
+                    await writer.WriteLineAsync(serializedMessage);
                 }
 
                 while (true)
