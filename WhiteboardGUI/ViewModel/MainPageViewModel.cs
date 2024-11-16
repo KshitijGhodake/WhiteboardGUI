@@ -786,6 +786,8 @@ namespace WhiteboardGUI.ViewModel
             var canvas = e.Source as FrameworkElement;
             if (canvas != null)
             {
+                canvas.CaptureMouse(); // Capture the mouse
+                _capturedElement = canvas; // Store the captured element
                 _startPoint = e.GetPosition(canvas);
                 if (CurrentTool == ShapeType.Select)
                 {
@@ -908,6 +910,12 @@ namespace WhiteboardGUI.ViewModel
 
         private void OnCanvasMouseUp(MouseButtonEventArgs e)
         {
+            if (_capturedElement != null)
+            {
+                _capturedElement.ReleaseMouseCapture(); // Release the mouse capture
+                _capturedElement = null;
+            }
+
             //without textbox
             if (SelectedShape != null && !_isSelecting)
             {
