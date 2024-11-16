@@ -20,7 +20,8 @@ namespace UnitTests
                 StrokeThickness = this.StrokeThickness,
                 UserID = this.UserID,
                 LastModifierID = this.LastModifierID,
-                ZIndex = this.ZIndex
+                ZIndex = this.ZIndex,
+                IsSelected = this.IsSelected
             };
         }
 
