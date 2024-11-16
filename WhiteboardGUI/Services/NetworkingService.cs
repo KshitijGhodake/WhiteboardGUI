@@ -208,8 +208,8 @@ namespace WhiteboardGUI.Services
         public async Task StartClient(int port)
         {
             _client = new TcpClient();
-            //await _client.ConnectAsync(IPAddress.Parse("10.32.5.68"), port);
-            await _client.ConnectAsync(IPAddress.Loopback, port);
+            //await _client.ConnectAsync(IPAddress.Parse("10.128.6.8"), port);
+           await _client.ConnectAsync(IPAddress.Loopback, port);
             Console.WriteLine("Connected to host");
 
             _clients.TryAdd(0, _client);

@@ -78,6 +78,10 @@ namespace WhiteboardGUI.ViewModel
         private TextShape _currentTextShape;
         private TextboxModel _currentTextboxModel;
 
+        //for mouse going out of canvas
+        private FrameworkElement _capturedElement;
+
+
 
 
         // bouding box
@@ -708,6 +712,8 @@ namespace WhiteboardGUI.ViewModel
             var canvas = e.Source as FrameworkElement;
             if (canvas != null)
             {
+                canvas.CaptureMouse(); // Capture the mouse
+                _capturedElement = canvas; // Store the captured element
                 _startPoint = e.GetPosition(canvas);
                 if (CurrentTool == ShapeType.Select)
                 {
@@ -830,6 +836,12 @@ namespace WhiteboardGUI.ViewModel
 
         private void OnCanvasMouseUp(MouseButtonEventArgs e)
         {
+            if (_capturedElement != null)
+            {
+                _capturedElement.ReleaseMouseCapture(); // Release the mouse capture
+                _capturedElement = null;
+            }
+
             //without textbox
             if (SelectedShape != null && !_isSelecting)
             {
