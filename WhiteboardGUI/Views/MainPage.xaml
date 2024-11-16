@@ -257,6 +257,7 @@
                         Command="{Binding SelectToolCommand}" 
                         CommandParameter="{x:Static models:ShapeType.Select}"
                         Background="#DFB6B2"
+                        
                         ToolTip="Select">
                             <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
                                 <Image Source="Assets/selecticon.png" Width="20" Height="20"/>

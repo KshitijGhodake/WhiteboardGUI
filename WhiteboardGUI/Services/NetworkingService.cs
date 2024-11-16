@@ -58,13 +58,13 @@ namespace WhiteboardGUI.Services
                     currentUserID++;
                     _ = Task.Run(() => ListenClients(newClient, currentUserID - 1));
                     //Send all existing shapes to new clients
-                    foreach (var shape in _synchronizedShapes)
-                    {
+                    //foreach (var shape in _synchronizedShapes)
+                    //{
 
-                        string serializedShape = SerializationService.SerializeShape(shape);
-                        await BroadcastShapeData(serializedShape, -1);
+                    //    string serializedShape = SerializationService.SerializeShape(shape);
+                    //    await BroadcastShapeData(serializedShape, -1);
 
-                    }
+                    //}
                 }
             }
             catch (Exception ex)
@@ -87,7 +87,7 @@ namespace WhiteboardGUI.Services
 
                     string serializedShape = SerializationService.SerializeShape(shape);
                     string serializedMessage = $"CREATE:{serializedShape}";
-                    await writer.WriteLineAsync(serializedMessage);
+                    await writer.WriteAsync(serializedMessage);
                 }
 
                 while (true)
