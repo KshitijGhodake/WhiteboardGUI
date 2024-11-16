@@ -45,6 +45,8 @@ namespace WhiteboardGUI.ViewModel
         public HoverAdorner CurrentHoverAdorner { get; set; }
 
         private byte _red = 0;
+        private FrameworkElement _capturedElement;
+
 
 
         public string DefaultColor
