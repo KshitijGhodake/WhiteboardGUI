@@ -58,13 +58,13 @@ namespace WhiteboardGUI.Services
                     currentUserID++;
                     _ = Task.Run(() => ListenClients(newClient, currentUserID - 1));
                     //Send all existing shapes to new clients
-                    foreach (var shape in _synchronizedShapes)
-                    {
+                    //foreach (var shape in _synchronizedShapes)
+                    //{
 
-                        string serializedShape = SerializationService.SerializeShape(shape);
-                        await BroadcastShapeData(serializedShape, -1);
+                    //    string serializedShape = SerializationService.SerializeShape(shape);
+                    //    await BroadcastShapeData(serializedShape, -1);
 
-                    }
+                    //}
                 }
             }
             catch (Exception ex)
@@ -208,8 +208,8 @@ namespace WhiteboardGUI.Services
         public async Task StartClient(int port)
         {
             _client = new TcpClient();
-            //await _client.ConnectAsync(IPAddress.Parse("10.32.10.20"), port);
-            await _client.ConnectAsync(IPAddress.Parse("192.168.0.183"), port);
+            //await _client.ConnectAsync(IPAddress.Parse("10.128.6.8"), port);
+           await _client.ConnectAsync(IPAddress.Loopback, port);
             Console.WriteLine("Connected to host");
 
             _clients.TryAdd(0, _client);
