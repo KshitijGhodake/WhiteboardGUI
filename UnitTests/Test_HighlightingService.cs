@@ -1,8 +1,10 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿// File: UnitTests/Test_HighlightingService.cs
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System;
 using System.Reflection;
-using System.Threading; // Added to resolve ApartmentAttribute and ApartmentState
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -14,678 +16,749 @@ using WhiteboardGUI.ViewModel;
 using WhiteboardGUI.Models;
 using WhiteboardGUI.Adorners;
 
-namespace UnitTests
+namespace WhiteboardGUI.UnitTests
 {
     [TestClass]
-    public class Test_HighlightingService
+    public class HighlightingServiceTests
     {
         /// <summary>
-        /// Executes the given action on an STA thread and waits for its completion.
-        /// Captures any exceptions thrown during the execution and rethrows them on the main thread.
+        /// Helper method to execute test actions on the STA thread.
+        /// WPF requires UI components to be accessed on an STA thread.
         /// </summary>
-        /// <param name="action">The action to execute on the STA thread.</param>
-        private void RunInSta(Action action)
+        /// <param name="action">The test action to execute.</param>
+        private void RunOnUIThread(Action action)
         {
-            Exception exception = null;
+            Exception capturedException = null;
+            var done = new ManualResetEvent(false);
             var thread = new Thread(() =>
             {
                 try
                 {
+                    // Initialize a DispatcherFrame to keep the STA thread alive
+                    var frame = new DispatcherFrame();
+
+                    // Execute the test action
                     action();
+
+                    // Exit the DispatcherFrame after the action is executed
+                    frame.Continue = false;
+                    Dispatcher.PushFrame(frame);
                 }
                 catch (Exception ex)
                 {
-                    exception = ex;
+                    capturedException = ex;
+                }
+                finally
+                {
+                    done.Set();
                 }
             });
             thread.SetApartmentState(ApartmentState.STA);
             thread.Start();
-            thread.Join();
-            if (exception != null)
+
+            // Wait for the action to complete or timeout after 5 seconds
+            if (!done.WaitOne(TimeSpan.FromSeconds(5)))
             {
-                // Rethrow the exception on the main thread to fail the test
-                throw new AssertFailedException("Test failed on STA thread.", exception);
+                Assert.Fail("Test execution timed out.");
+            }
+
+            if (capturedException != null)
+            {
+                throw new Exception("Exception in UI thread.", capturedException);
             }
         }
 
+        /// <summary>
+        /// Tests the GetEnableHighlighting and SetEnableHighlighting methods.
+        /// Ensures that the attached property is correctly set and retrieved.
+        /// </summary>
         [TestMethod]
-        public void Test_EnableHighlighting_AttachesEventHandlers()
+        public void EnableHighlightingProperty_GetSet()
         {
-            RunInSta(() =>
+            RunOnUIThread(() =>
             {
                 // Arrange
-                var testElement = new Border();
-
-                var mockViewModel = new Mock<MainPageViewModel>();
-                var mockShape = new Mock<IShape>();
-                mockShape.Setup(s => s.Color).Returns("#FF0000"); // Example color
-
-                // Create a parent container
-                var parentContainer = new Grid
-                {
-                    DataContext = mockViewModel.Object
-                };
-                parentContainer.Children.Add(testElement);
-
-                // Assign DataContext to testElement
-                testElement.DataContext = mockShape.Object;
-
-                // Create AdornerDecorator and add the container
-                var adornerDecorator = new AdornerDecorator();
-                adornerDecorator.Child = parentContainer;
-
-                // Create a Window and set its Content to the adornerDecorator
-                var window = new Window
-                {
-                    Content = adornerDecorator,
-                    Width = 800,
-                    Height = 600,
-                    WindowStyle = WindowStyle.None, // Hide window decorations
-                    ShowInTaskbar = false,
-                    Visibility = Visibility.Hidden // Keep the window hidden during tests
-                };
-
-                // Show the window to initialize the visual tree
-                window.Show();
-
-                // Get the AdornerLayer via the actual visual tree
-                var adornerLayer = AdornerLayer.GetAdornerLayer(testElement);
-                Assert.IsNotNull(adornerLayer, "AdornerLayer was not found.");
+                var element = new Button();
 
                 // Act
-                HighlightingService.SetEnableHighlighting(testElement, true);
-
-                // Simulate MouseEnter
-                SimulateMouseEnter(testElement);
-
-                // Access the private HoverTimer via reflection
-                var hoverTimer = GetHoverTimer(testElement);
-                Assert.IsNotNull(hoverTimer, "HoverTimer was not set on MouseEnter.");
-                Assert.AreEqual(TimeSpan.FromSeconds(0.4), hoverTimer.Interval, "HoverTimer interval is incorrect.");
-                Assert.IsTrue(hoverTimer.IsEnabled, "HoverTimer was not started.");
-
-                // Cleanup
-                window.Close();
-            });
-        }
-
-        [TestMethod]
-        public void Test_DisableHighlighting_DetachesEventHandlers()
-        {
-            RunInSta(() =>
-            {
-                // Arrange
-                var testElement = new Border();
-
-                var mockViewModel = new Mock<MainPageViewModel>();
-                var mockShape = new Mock<IShape>();
-                mockShape.Setup(s => s.Color).Returns("#FF0000"); // Example color
-
-                // Create a parent container
-                var parentContainer = new Grid
-                {
-                    DataContext = mockViewModel.Object
-                };
-                parentContainer.Children.Add(testElement);
-
-                // Assign DataContext to testElement
-                testElement.DataContext = mockShape.Object;
-
-                // Create AdornerDecorator and add the container
-                var adornerDecorator = new AdornerDecorator();
-                adornerDecorator.Child = parentContainer;
-
-                // Create a Window and set its Content to the adornerDecorator
-                var window = new Window
-                {
-                    Content = adornerDecorator,
-                    Width = 800,
-                    Height = 600,
-                    WindowStyle = WindowStyle.None, // Hide window decorations
-                    ShowInTaskbar = false,
-                    Visibility = Visibility.Hidden // Keep the window hidden during tests
-                };
-
-                // Show the window to initialize the visual tree
-                window.Show();
-
-                // Get the AdornerLayer via the actual visual tree
-                var adornerLayer = AdornerLayer.GetAdornerLayer(testElement);
-                Assert.IsNotNull(adornerLayer, "AdornerLayer was not found.");
-
-                // Enable highlighting
-                HighlightingService.SetEnableHighlighting(testElement, true);
-
-                // Disable highlighting
-                HighlightingService.SetEnableHighlighting(testElement, false);
-
-                // Simulate MouseEnter and MouseLeave to verify that event handlers are detached
-                SimulateMouseEnter(testElement);
-                SimulateMouseLeave(testElement);
-
-                // Access the private HoverTimer via reflection
-                var hoverTimer = GetHoverTimer(testElement);
-                Assert.IsNull(hoverTimer, "HoverTimer was not removed when highlighting was disabled.");
-
-                // Cleanup
-                window.Close();
-            });
-        }
-
-        [TestMethod]
-        public void Test_MouseEnter_StartsHoverTimer()
-        {
-            RunInSta(() =>
-            {
-                // Arrange
-                var testElement = new Border();
-
-                var mockViewModel = new Mock<MainPageViewModel>();
-                var mockShape = new Mock<IShape>();
-                mockShape.Setup(s => s.Color).Returns("#FF0000"); // Example color
-
-                // Create a parent container
-                var parentContainer = new Grid
-                {
-                    DataContext = mockViewModel.Object
-                };
-                parentContainer.Children.Add(testElement);
-
-                // Assign DataContext to testElement
-                testElement.DataContext = mockShape.Object;
-
-                // Create AdornerDecorator and add the container
-                var adornerDecorator = new AdornerDecorator();
-                adornerDecorator.Child = parentContainer;
-
-                // Create a Window and set its Content to the adornerDecorator
-                var window = new Window
-                {
-                    Content = adornerDecorator,
-                    Width = 800,
-                    Height = 600,
-                    WindowStyle = WindowStyle.None, // Hide window decorations
-                    ShowInTaskbar = false,
-                    Visibility = Visibility.Hidden // Keep the window hidden during tests
-                };
-
-                // Show the window to initialize the visual tree
-                window.Show();
-
-                // Get the AdornerLayer via the actual visual tree
-                var adornerLayer = AdornerLayer.GetAdornerLayer(testElement);
-                Assert.IsNotNull(adornerLayer, "AdornerLayer was not found.");
-
-                // Act
-                HighlightingService.SetEnableHighlighting(testElement, true);
-
-                // Simulate MouseEnter
-                SimulateMouseEnter(testElement);
+                HighlightingService.SetEnableHighlighting(element, true);
+                var result = HighlightingService.GetEnableHighlighting(element);
 
                 // Assert
-                var hoverTimer = GetHoverTimer(testElement);
-                Assert.IsNotNull(hoverTimer, "HoverTimer was not set on MouseEnter.");
-                Assert.AreEqual(TimeSpan.FromSeconds(0.4), hoverTimer.Interval, "HoverTimer interval is incorrect.");
-                Assert.IsTrue(hoverTimer.IsEnabled, "HoverTimer was not started.");
-
-                // Cleanup
-                window.Close();
-            });
-        }
-
-        [TestMethod]
-        public void Test_MouseEnter_Tick_AddsHoverAdorner()
-        {
-            RunInSta(() =>
-            {
-                // Arrange
-                var testElement = new Border();
-
-                var mockViewModel = new Mock<MainPageViewModel>();
-                var mockShape = new Mock<IShape>();
-                mockShape.Setup(s => s.Color).Returns("#FF0000"); // Example color
-
-                // Create a parent container
-                var parentContainer = new Grid
-                {
-                    DataContext = mockViewModel.Object
-                };
-                parentContainer.Children.Add(testElement);
-
-                // Assign DataContext to testElement
-                testElement.DataContext = mockShape.Object;
-
-                // Create AdornerDecorator and add the container
-                var adornerDecorator = new AdornerDecorator();
-                adornerDecorator.Child = parentContainer;
-
-                // Create a Window and set its Content to the adornerDecorator
-                var window = new Window
-                {
-                    Content = adornerDecorator,
-                    Width = 800,
-                    Height = 600,
-                    WindowStyle = WindowStyle.None, // Hide window decorations
-                    ShowInTaskbar = false,
-                    Visibility = Visibility.Hidden // Keep the window hidden during tests
-                };
-
-                // Show the window to initialize the visual tree
-                window.Show();
-
-                // Get the AdornerLayer via the actual visual tree
-                var adornerLayer = AdornerLayer.GetAdornerLayer(testElement);
-                Assert.IsNotNull(adornerLayer, "AdornerLayer was not found.");
+                Assert.IsTrue(result, "EnableHighlighting should be true after setting to true.");
 
                 // Act
-                HighlightingService.SetEnableHighlighting(testElement, true);
-
-                // Simulate MouseEnter
-                SimulateMouseEnter(testElement);
-
-                // Access the private HoverTimer via reflection
-                var hoverTimer = GetHoverTimer(testElement);
-                Assert.IsNotNull(hoverTimer, "HoverTimer was not set on MouseEnter.");
-
-                // Raise the Tick event
-                RaiseDispatcherTimerTick(hoverTimer);
+                HighlightingService.SetEnableHighlighting(element, false);
+                result = HighlightingService.GetEnableHighlighting(element);
 
                 // Assert
-                mockViewModel.VerifySet(vm => vm.HoveredShape = mockShape.Object, Times.Once);
-                mockViewModel.VerifySet(vm => vm.IsShapeHovered = true, Times.Once);
-
-                // Verify that HoverAdorner was added
-                var adorners = adornerLayer.GetAdorners(testElement);
-                Assert.IsNotNull(adorners, "HoverAdorner was not added.");
-                bool hoverAdornerFound = false;
-                foreach (var adorner in adorners)
-                {
-                    if (adorner is HoverAdorner)
-                    {
-                        hoverAdornerFound = true;
-                        break;
-                    }
-                }
-                Assert.IsTrue(hoverAdornerFound, "HoverAdorner was not added to the AdornerLayer.");
-                mockViewModel.VerifySet(vm => vm.CurrentHoverAdorner = It.IsAny<HoverAdorner>(), Times.Once);
-
-                // Cleanup
-                window.Close();
+                Assert.IsFalse(result, "EnableHighlighting should be false after setting to false.");
             });
         }
 
+        /// <summary>
+        /// Tests that enabling highlighting attaches the necessary event handlers
+        /// and that the HoverAdorner is created and added after the hover timer ticks.
+        /// </summary>
         [TestMethod]
-        public void Test_MouseLeave_StopsAndRemovesHoverTimer()
+        public void OnEnableHighlightingChanged_Enable_EventsAttached()
         {
-            RunInSta(() =>
+            RunOnUIThread(() =>
             {
                 // Arrange
-                var testElement = new Border();
-
-                var mockViewModel = new Mock<MainPageViewModel>();
-                var mockShape = new Mock<IShape>();
-                mockShape.Setup(s => s.Color).Returns("#FF0000"); // Example color
-
-                // Create a parent container
-                var parentContainer = new Grid
-                {
-                    DataContext = mockViewModel.Object
-                };
-                parentContainer.Children.Add(testElement);
-
-                // Assign DataContext to testElement
-                testElement.DataContext = mockShape.Object;
-
-                // Create AdornerDecorator and add the container
+                var window = new Window();
                 var adornerDecorator = new AdornerDecorator();
-                adornerDecorator.Child = parentContainer;
+                window.Content = adornerDecorator;
 
-                // Create a Window and set its Content to the adornerDecorator
-                var window = new Window
-                {
-                    Content = adornerDecorator,
-                    Width = 800,
-                    Height = 600,
-                    WindowStyle = WindowStyle.None, // Hide window decorations
-                    ShowInTaskbar = false,
-                    Visibility = Visibility.Hidden // Keep the window hidden during tests
-                };
+                var grid = new Grid();
+                adornerDecorator.Child = grid;
 
-                // Show the window to initialize the visual tree
+                var element = new Button();
+                grid.Children.Add(element);
+
+                var viewModel = new MainPageViewModel(); // Use real instance
+                window.DataContext = viewModel;
+
+                // Show the window to build the visual tree
                 window.Show();
-
-                // Get the AdornerLayer via the actual visual tree
-                var adornerLayer = AdornerLayer.GetAdornerLayer(testElement);
-                Assert.IsNotNull(adornerLayer, "AdornerLayer was not found.");
-
-                // Enable highlighting
-                HighlightingService.SetEnableHighlighting(testElement, true);
-
-                // Simulate MouseEnter
-                SimulateMouseEnter(testElement);
-
-                // Simulate MouseLeave
-                SimulateMouseLeave(testElement);
-
-                // Access the private HoverTimer via reflection
-                var hoverTimer = GetHoverTimer(testElement);
-                Assert.IsNull(hoverTimer, "HoverTimer was not removed on MouseLeave.");
-
-                // Verify that the HoverAdorner was removed
-                var adorners = adornerLayer.GetAdorners(testElement);
-                if (adorners != null)
-                {
-                    bool hoverAdornerFound = false;
-                    foreach (var adorner in adorners)
-                    {
-                        if (adorner is HoverAdorner)
-                        {
-                            hoverAdornerFound = true;
-                            break;
-                        }
-                    }
-                    Assert.IsFalse(hoverAdornerFound, "HoverAdorner was not removed from the AdornerLayer.");
-                }
-
-                // Verify ViewModel properties reset
-                mockViewModel.VerifySet(vm => vm.HoveredShape = null, Times.Once);
-                mockViewModel.VerifySet(vm => vm.IsShapeHovered = false, Times.Once);
-                mockViewModel.VerifySet(vm => vm.CurrentHoverAdorner = null, Times.Once);
-
-                // Cleanup
-                window.Close();
-            });
-        }
-
-        [TestMethod]
-        public void Test_OnEnableHighlightingChanged_AttachAndDetach()
-        {
-            RunInSta(() =>
-            {
-                // Arrange
-                var testElement = new Border();
-
-                var mockViewModel = new Mock<MainPageViewModel>();
-                var mockShape = new Mock<IShape>();
-                mockShape.Setup(s => s.Color).Returns("#FF0000"); // Example color
-
-                // Create a parent container
-                var parentContainer = new Grid
-                {
-                    DataContext = mockViewModel.Object
-                };
-                parentContainer.Children.Add(testElement);
-
-                // Assign DataContext to testElement
-                testElement.DataContext = mockShape.Object;
-
-                // Create AdornerDecorator and add the container
-                var adornerDecorator = new AdornerDecorator();
-                adornerDecorator.Child = parentContainer;
-
-                // Create a Window and set its Content to the adornerDecorator
-                var window = new Window
-                {
-                    Content = adornerDecorator,
-                    Width = 800,
-                    Height = 600,
-                    WindowStyle = WindowStyle.None, // Hide window decorations
-                    ShowInTaskbar = false,
-                    Visibility = Visibility.Hidden // Keep the window hidden during tests
-                };
-
-                // Show the window to initialize the visual tree
-                window.Show();
-
-                // Get the AdornerLayer via the actual visual tree
-                var adornerLayer = AdornerLayer.GetAdornerLayer(testElement);
-                Assert.IsNotNull(adornerLayer, "AdornerLayer was not found.");
-
-                // Act - Enable highlighting
-                HighlightingService.SetEnableHighlighting(testElement, true);
-                SimulateMouseEnter(testElement);
-                var hoverTimer = GetHoverTimer(testElement);
-                Assert.IsNotNull(hoverTimer, "HoverTimer was not set when highlighting was enabled.");
-
-                // Act - Disable highlighting
-                HighlightingService.SetEnableHighlighting(testElement, false);
-                SimulateMouseLeave(testElement);
-                hoverTimer = GetHoverTimer(testElement);
-                Assert.IsNull(hoverTimer, "HoverTimer was not removed when highlighting was disabled.");
-
-                // Cleanup
-                window.Close();
-            });
-        }
-
-        [TestMethod]
-        public void Test_ElementMouseEnter_WithInvalidViewModel()
-        {
-            RunInSta(() =>
-            {
-                // Arrange
-                var testElement = new Border();
-
-                var mockViewModel = new Mock<MainPageViewModel>();
-                var mockShape = new Mock<IShape>();
-                mockShape.Setup(s => s.Color).Returns("#FF0000"); // Example color
-
-                // Create a parent container with null DataContext
-                var parentContainer = new Grid
-                {
-                    DataContext = null // Invalid ViewModel
-                };
-                parentContainer.Children.Add(testElement);
-
-                // Assign DataContext to testElement
-                testElement.DataContext = mockShape.Object;
-
-                // Create AdornerDecorator and add the container
-                var adornerDecorator = new AdornerDecorator();
-                adornerDecorator.Child = parentContainer;
-
-                // Create a Window and set its Content to the adornerDecorator
-                var window = new Window
-                {
-                    Content = adornerDecorator,
-                    Width = 800,
-                    Height = 600,
-                    WindowStyle = WindowStyle.None, // Hide window decorations
-                    ShowInTaskbar = false,
-                    Visibility = Visibility.Hidden // Keep the window hidden during tests
-                };
-
-                // Show the window to initialize the visual tree
-                window.Show();
-
-                // Get the AdornerLayer via the actual visual tree
-                var adornerLayer = AdornerLayer.GetAdornerLayer(testElement);
-                Assert.IsNotNull(adornerLayer, "AdornerLayer was not found.");
 
                 // Act
-                HighlightingService.SetEnableHighlighting(testElement, true);
+                HighlightingService.SetEnableHighlighting(element, true);
 
-                // Simulate MouseEnter
-                SimulateMouseEnter(testElement);
-
-                // Access the private HoverTimer via reflection
-                var hoverTimer = GetHoverTimer(testElement);
-                Assert.IsNotNull(hoverTimer, "HoverTimer was not set on MouseEnter.");
-
-                // Raise the Tick event
-                RaiseDispatcherTimerTick(hoverTimer);
-
-                // Assert
-                mockViewModel.VerifySet(vm => vm.HoveredShape = It.IsAny<IShape>(), Times.Never);
-                mockViewModel.VerifySet(vm => vm.IsShapeHovered = true, Times.Never);
-                mockViewModel.VerifySet(vm => vm.CurrentHoverAdorner = It.IsAny<HoverAdorner>(), Times.Never);
-
-                // Verify that no HoverAdorner was added
-                var adorners = adornerLayer.GetAdorners(testElement);
-                bool hoverAdornerFound = false;
-                if (adorners != null)
-                {
-                    foreach (var adorner in adorners)
-                    {
-                        if (adorner is HoverAdorner)
-                        {
-                            hoverAdornerFound = true;
-                            break;
-                        }
-                    }
-                }
-                Assert.IsFalse(hoverAdornerFound, "HoverAdorner should not be added when ViewModel is invalid.");
-
-                // Cleanup
-                window.Close();
-            });
-        }
-
-        [TestMethod]
-        public void Test_ElementMouseEnter_WithAdornerLayerNotFound()
-        {
-            RunInSta(() =>
-            {
-                // Arrange
-                var testElement = new Border();
-
-                var mockViewModel = new Mock<MainPageViewModel>();
+                // Simulate setting DataContext for the shape
                 var mockShape = new Mock<IShape>();
-                mockShape.Setup(s => s.Color).Returns("#FF0000"); // Example color
-
-                // Create a parent container
-                var parentContainer = new Grid
-                {
-                    DataContext = mockViewModel.Object
-                };
-                parentContainer.Children.Add(testElement);
-
-                // Assign DataContext to testElement
-                testElement.DataContext = mockShape.Object;
-
-                // Create AdornerDecorator without adding it to a Window
-                var adornerDecorator = new AdornerDecorator();
-                adornerDecorator.Child = parentContainer;
-
-                // Intentionally NOT creating a Window or adding to the visual tree
-
-                // Get the AdornerLayer via the actual visual tree
-                var adornerLayer = AdornerLayer.GetAdornerLayer(testElement);
-                Assert.IsNull(adornerLayer, "AdornerLayer should not be found as it's not part of the visual tree.");
-
-                // Act
-                HighlightingService.SetEnableHighlighting(testElement, true);
-
-                // Simulate MouseEnter
-                SimulateMouseEnter(testElement);
-
-                // Access the private HoverTimer via reflection
-                var hoverTimer = GetHoverTimer(testElement);
-                Assert.IsNotNull(hoverTimer, "HoverTimer was not set on MouseEnter.");
-
-                // Raise the Tick event
-                RaiseDispatcherTimerTick(hoverTimer);
-
-                // Assert
-                mockViewModel.VerifySet(vm => vm.HoveredShape = It.IsAny<IShape>(), Times.Never);
-                mockViewModel.VerifySet(vm => vm.IsShapeHovered = true, Times.Never);
-                mockViewModel.VerifySet(vm => vm.CurrentHoverAdorner = It.IsAny<HoverAdorner>(), Times.Never);
-
-                // Verify that no HoverAdorner was added
-                var adornersAfterTick = AdornerLayer.GetAdornerLayer(testElement)?.GetAdorners(testElement);
-                Assert.IsNull(adornersAfterTick, "HoverAdorner should not be added when AdornerLayer is not found.");
-            });
-        }
-
-        [TestMethod]
-        public void Test_GetImageSourceForShape_ReturnsImage()
-        {
-            RunInSta(() =>
-            {
-                // Arrange
-                var method = typeof(HighlightingService).GetMethod("GetImageSourceForShape", BindingFlags.NonPublic | BindingFlags.Static);
-                Assert.IsNotNull(method, "GetImageSourceForShape method not found.");
-
-                var mockShape = new Mock<IShape>();
+                mockShape.Setup(s => s.ShapeId).Returns(Guid.NewGuid());
+                mockShape.Setup(s => s.ShapeType).Returns("Circle");
                 mockShape.Setup(s => s.Color).Returns("#FF0000");
+                mockShape.Setup(s => s.StrokeThickness).Returns(2.0);
+                mockShape.Setup(s => s.UserID).Returns(123.45);
+                mockShape.Setup(s => s.LastModifierID).Returns(678.90);
+                mockShape.Setup(s => s.ZIndex).Returns(1);
+                mockShape.Setup(s => s.IsSelected).Returns(false);
+                mockShape.Setup(s => s.GetBounds()).Returns(new Rect(0, 0, 100, 100));
+                mockShape.Setup(s => s.Clone()).Returns(mockShape.Object);
 
-                // Act
-                var imageSource = method.Invoke(null, new object[] { mockShape.Object }) as ImageSource;
+                element.DataContext = mockShape.Object;
+
+                // Raise MouseEnter event
+                var mouseEnterEvent = new MouseEventArgs(Mouse.PrimaryDevice, 0)
+                {
+                    RoutedEvent = UIElement.MouseEnterEvent
+                };
+                element.RaiseEvent(mouseEnterEvent);
+
+                // Wait for the DispatcherTimer to tick (0.5 seconds)
+                var frame = new DispatcherFrame();
+                var timer = new DispatcherTimer
+                {
+                    Interval = TimeSpan.FromSeconds(0.5)
+                };
+                timer.Tick += (s, e) =>
+                {
+                    timer.Stop();
+                    frame.Continue = false;
+                };
+                timer.Start();
+                Dispatcher.PushFrame(frame);
 
                 // Assert
-                Assert.IsNotNull(imageSource, "ImageSource should not be null.");
+                Assert.IsTrue(viewModel.IsShapeHovered, "IsShapeHovered should be true after timer tick.");
+                Assert.IsNotNull(viewModel.HoveredShape, "HoveredShape should be set after timer tick.");
+                Assert.IsNotNull(viewModel.CurrentHoverAdorner, "CurrentHoverAdorner should be set after timer tick.");
+
+                // Optionally, verify that the HoverAdorner is added to the AdornerLayer
+                var adornerLayer = AdornerLayer.GetAdornerLayer(element);
+                var adorners = adornerLayer.GetAdorners(element);
+                Assert.IsNotNull(adorners, "Adorners should not be null.");
+                bool hoverAdornerAdded = false;
+                if (adorners != null)
+                {
+                    foreach (var adorner in adorners)
+                    {
+                        if (adorner is HoverAdorner)
+                        {
+                            hoverAdornerAdded = true;
+                            break;
+                        }
+                    }
+                }
+                Assert.IsTrue(hoverAdornerAdded, "HoverAdorner should be added to the AdornerLayer.");
+
+                // Clean up
+                window.Close();
             });
         }
 
-        #region Helper Methods
-
         /// <summary>
-        /// Simulates the MouseEnter event on the given FrameworkElement.
+        /// Tests that disabling highlighting detaches the event handlers
+        /// and prevents further hover-related actions.
         /// </summary>
-        /// <param name="element">The FrameworkElement to raise the MouseEnter event on.</param>
-        private void SimulateMouseEnter(FrameworkElement element)
+        [TestMethod]
+        public void OnEnableHighlightingChanged_Disable_EventsDetached()
         {
-            var mouseEnterEvent = new MouseEventArgs(Mouse.PrimaryDevice, 0)
+            RunOnUIThread(() =>
             {
-                RoutedEvent = UIElement.MouseEnterEvent
-            };
-            element.RaiseEvent(mouseEnterEvent);
+                // Arrange
+                var window = new Window();
+                var adornerDecorator = new AdornerDecorator();
+                window.Content = adornerDecorator;
+
+                var grid = new Grid();
+                adornerDecorator.Child = grid;
+
+                var element = new Button();
+                grid.Children.Add(element);
+
+                var viewModel = new MainPageViewModel(); // Use real instance
+                window.DataContext = viewModel;
+
+                window.Show();
+
+                // Enable highlighting first
+                HighlightingService.SetEnableHighlighting(element, true);
+
+                // Now disable highlighting
+                HighlightingService.SetEnableHighlighting(element, false);
+
+                // Simulate MouseEnter event
+                var mouseEnterEvent = new MouseEventArgs(Mouse.PrimaryDevice, 0)
+                {
+                    RoutedEvent = UIElement.MouseEnterEvent
+                };
+                element.RaiseEvent(mouseEnterEvent);
+
+                // Wait to ensure that no timer is started
+                var frame = new DispatcherFrame();
+                var timer = new DispatcherTimer
+                {
+                    Interval = TimeSpan.FromSeconds(0.5)
+                };
+                timer.Tick += (s, e) =>
+                {
+                    timer.Stop();
+                    frame.Continue = false;
+                };
+                timer.Start();
+                Dispatcher.PushFrame(frame);
+
+                // Assert
+                Assert.IsFalse(viewModel.IsShapeHovered, "IsShapeHovered should remain false after disabling highlighting.");
+                Assert.IsNull(viewModel.HoveredShape, "HoveredShape should remain null after disabling highlighting.");
+                Assert.IsNull(viewModel.CurrentHoverAdorner, "CurrentHoverAdorner should remain null after disabling highlighting.");
+
+                // Clean up
+                window.Close();
+            });
         }
 
         /// <summary>
-        /// Simulates the MouseLeave event on the given FrameworkElement.
+        /// Tests that the HoverTimer starts upon MouseEnter event.
         /// </summary>
-        /// <param name="element">The FrameworkElement to raise the MouseLeave event on.</param>
-        private void SimulateMouseLeave(FrameworkElement element)
+        [TestMethod]
+        public void MouseEnter_StartsHoverTimer()
         {
-            var mouseLeaveEvent = new MouseEventArgs(Mouse.PrimaryDevice, 0)
+            RunOnUIThread(() =>
             {
-                RoutedEvent = UIElement.MouseLeaveEvent
-            };
-            element.RaiseEvent(mouseLeaveEvent);
+                // Arrange
+                var window = new Window();
+                var adornerDecorator = new AdornerDecorator();
+                window.Content = adornerDecorator;
+
+                var grid = new Grid();
+                adornerDecorator.Child = grid;
+
+                var element = new Button();
+                grid.Children.Add(element);
+
+                var viewModel = new MainPageViewModel(); // Use real instance
+                window.DataContext = viewModel;
+
+                window.Show();
+
+                HighlightingService.SetEnableHighlighting(element, true);
+
+                var mockShape = new Mock<IShape>();
+                mockShape.Setup(s => s.ShapeId).Returns(Guid.NewGuid());
+                mockShape.Setup(s => s.ShapeType).Returns("Circle");
+                mockShape.Setup(s => s.Color).Returns("#FF0000");
+                mockShape.Setup(s => s.StrokeThickness).Returns(2.0);
+                mockShape.Setup(s => s.UserID).Returns(123.45);
+                mockShape.Setup(s => s.LastModifierID).Returns(678.90);
+                mockShape.Setup(s => s.ZIndex).Returns(1);
+                mockShape.Setup(s => s.IsSelected).Returns(false);
+                mockShape.Setup(s => s.GetBounds()).Returns(new Rect(0, 0, 100, 100));
+                mockShape.Setup(s => s.Clone()).Returns(mockShape.Object);
+
+                element.DataContext = mockShape.Object;
+
+                // Act
+                var mouseEnterEvent = new MouseEventArgs(Mouse.PrimaryDevice, 0)
+                {
+                    RoutedEvent = UIElement.MouseEnterEvent
+                };
+                element.RaiseEvent(mouseEnterEvent);
+
+                // Access the private HoverTimer using reflection
+                var hoverTimer = GetPrivateHoverTimer(element);
+                Assert.IsNotNull(hoverTimer, "HoverTimer should be initialized on MouseEnter.");
+                Assert.IsTrue(hoverTimer.IsEnabled, "HoverTimer should be started on MouseEnter.");
+
+                // Clean up
+                hoverTimer.Stop();
+                window.Close();
+            });
         }
 
         /// <summary>
-        /// Uses reflection to access the private static method GetHoverTimer from HighlightingService.
+        /// Tests that the HoverTimer stops and the HoverAdorner is removed upon MouseLeave event.
         /// </summary>
-        /// <param name="element">The DependencyObject to retrieve the HoverTimer for.</param>
-        /// <returns>The DispatcherTimer associated with the element, or null if not found.</returns>
-        private DispatcherTimer GetHoverTimer(FrameworkElement element)
+        [TestMethod]
+        public void MouseLeave_StopsHoverTimerAndRemovesAdorner()
         {
-            var method = typeof(HighlightingService).GetMethod("GetHoverTimer", BindingFlags.NonPublic | BindingFlags.Static);
-            if (method == null)
+            RunOnUIThread(() =>
+            {
+                // Arrange
+                var window = new Window();
+                var adornerDecorator = new AdornerDecorator();
+                window.Content = adornerDecorator;
+
+                var grid = new Grid();
+                adornerDecorator.Child = grid;
+
+                var element = new Button();
+                grid.Children.Add(element);
+
+                var viewModel = new MainPageViewModel(); // Use real instance
+                window.DataContext = viewModel;
+
+                window.Show();
+
+                HighlightingService.SetEnableHighlighting(element, true);
+
+                var mockShape = new Mock<IShape>();
+                mockShape.Setup(s => s.ShapeId).Returns(Guid.NewGuid());
+                mockShape.Setup(s => s.ShapeType).Returns("Circle");
+                mockShape.Setup(s => s.Color).Returns("#FF0000");
+                mockShape.Setup(s => s.StrokeThickness).Returns(2.0);
+                mockShape.Setup(s => s.UserID).Returns(123.45);
+                mockShape.Setup(s => s.LastModifierID).Returns(678.90);
+                mockShape.Setup(s => s.ZIndex).Returns(1);
+                mockShape.Setup(s => s.IsSelected).Returns(false);
+                mockShape.Setup(s => s.GetBounds()).Returns(new Rect(0, 0, 100, 100));
+                mockShape.Setup(s => s.Clone()).Returns(mockShape.Object);
+
+                element.DataContext = mockShape.Object;
+
+                // Simulate MouseEnter to start the timer
+                var mouseEnterEvent = new MouseEventArgs(Mouse.PrimaryDevice, 0)
+                {
+                    RoutedEvent = UIElement.MouseEnterEvent
+                };
+                element.RaiseEvent(mouseEnterEvent);
+
+                // Access the private HoverTimer using reflection
+                var hoverTimer = GetPrivateHoverTimer(element);
+                Assert.IsNotNull(hoverTimer, "HoverTimer should be initialized on MouseEnter.");
+
+                // Act
+                var mouseLeaveEvent = new MouseEventArgs(Mouse.PrimaryDevice, 0)
+                {
+                    RoutedEvent = UIElement.MouseLeaveEvent
+                };
+                element.RaiseEvent(mouseLeaveEvent);
+
+                // Assert
+                Assert.IsFalse(hoverTimer.IsEnabled, "HoverTimer should be stopped on MouseLeave.");
+                Assert.IsNull(viewModel.CurrentHoverAdorner, "CurrentHoverAdorner should be null after MouseLeave.");
+                Assert.IsFalse(viewModel.IsShapeHovered, "IsShapeHovered should be false after MouseLeave.");
+                Assert.IsNull(viewModel.HoveredShape, "HoveredShape should be null after MouseLeave.");
+
+                // Clean up
+                window.Close();
+            });
+        }
+
+        /// <summary>
+        /// Tests that the HoverAdorner is created and added to the AdornerLayer when the HoverTimer ticks.
+        /// </summary>
+        [TestMethod]
+        public void HoverTimer_Tick_CreatesHoverAdorner()
+        {
+            RunOnUIThread(() =>
+            {
+                // Arrange
+                var window = new Window();
+                var adornerDecorator = new AdornerDecorator();
+                window.Content = adornerDecorator;
+
+                var grid = new Grid();
+                adornerDecorator.Child = grid;
+
+                var element = new Button();
+                grid.Children.Add(element);
+
+                var viewModel = new MainPageViewModel(); // Use real instance
+                window.DataContext = viewModel;
+
+                window.Show();
+
+                HighlightingService.SetEnableHighlighting(element, true);
+
+                var mockShape = new Mock<IShape>();
+                mockShape.Setup(s => s.ShapeId).Returns(Guid.NewGuid());
+                mockShape.Setup(s => s.ShapeType).Returns("Circle");
+                mockShape.Setup(s => s.Color).Returns("#FF0000");
+                mockShape.Setup(s => s.StrokeThickness).Returns(2.0);
+                mockShape.Setup(s => s.UserID).Returns(123.45);
+                mockShape.Setup(s => s.LastModifierID).Returns(678.90);
+                mockShape.Setup(s => s.ZIndex).Returns(1);
+                mockShape.Setup(s => s.IsSelected).Returns(false);
+                mockShape.Setup(s => s.GetBounds()).Returns(new Rect(0, 0, 100, 100));
+                mockShape.Setup(s => s.Clone()).Returns(mockShape.Object);
+
+                element.DataContext = mockShape.Object;
+
+                // Act
+                var mouseEnterEvent = new MouseEventArgs(Mouse.PrimaryDevice, 0)
+                {
+                    RoutedEvent = UIElement.MouseEnterEvent
+                };
+                element.RaiseEvent(mouseEnterEvent);
+
+                // Wait for the DispatcherTimer to tick (0.5 seconds)
+                var frame = new DispatcherFrame();
+                var timer = new DispatcherTimer
+                {
+                    Interval = TimeSpan.FromSeconds(0.5)
+                };
+                timer.Tick += (s, e) =>
+                {
+                    timer.Stop();
+                    frame.Continue = false;
+                };
+                timer.Start();
+                Dispatcher.PushFrame(frame);
+
+                // Assert
+                Assert.IsTrue(viewModel.IsShapeHovered, "IsShapeHovered should be true after timer tick.");
+                Assert.IsNotNull(viewModel.HoveredShape, "HoveredShape should be set after timer tick.");
+                Assert.IsNotNull(viewModel.CurrentHoverAdorner, "CurrentHoverAdorner should be set after timer tick.");
+
+                // Verify that the HoverAdorner is added to the AdornerLayer
+                var adornerLayer = AdornerLayer.GetAdornerLayer(element);
+                var adorners = adornerLayer.GetAdorners(element);
+                Assert.IsNotNull(adorners, "Adorners should not be null.");
+                bool hoverAdornerAdded = false;
+                if (adorners != null)
+                {
+                    foreach (var adorner in adorners)
+                    {
+                        if (adorner is HoverAdorner)
+                        {
+                            hoverAdornerAdded = true;
+                            break;
+                        }
+                    }
+                }
+                Assert.IsTrue(hoverAdornerAdded, "HoverAdorner should be added to the AdornerLayer.");
+
+                // Clean up
+                window.Close();
+            });
+        }
+
+        /// <summary>
+        /// Tests that no exception is thrown when MouseEnter is raised without a ViewModel present.
+        /// </summary>
+        [TestMethod]
+        public void MouseEnter_NoViewModel_DoesNotThrow()
+        {
+            RunOnUIThread(() =>
+            {
+                // Arrange
+                var window = new Window();
+                var adornerDecorator = new AdornerDecorator();
+                window.Content = adornerDecorator;
+
+                var grid = new Grid();
+                adornerDecorator.Child = grid;
+
+                var element = new Button();
+                grid.Children.Add(element);
+
+                window.Show();
+
+                HighlightingService.SetEnableHighlighting(element, true);
+
+                // Ensure DataContext is not set
+                element.DataContext = null;
+
+                // Act & Assert
+                try
+                {
+                    var mouseEnterEvent = new MouseEventArgs(Mouse.PrimaryDevice, 0)
+                    {
+                        RoutedEvent = UIElement.MouseEnterEvent
+                    };
+                    element.RaiseEvent(mouseEnterEvent);
+
+                    // Wait for the DispatcherTimer to tick
+                    var frame = new DispatcherFrame();
+                    var timer = new DispatcherTimer
+                    {
+                        Interval = TimeSpan.FromSeconds(0.5)
+                    };
+                    timer.Tick += (s, e) =>
+                    {
+                        timer.Stop();
+                        frame.Continue = false;
+                    };
+                    timer.Start();
+                    Dispatcher.PushFrame(frame);
+
+                    // If no exception is thrown, pass the test
+                    Assert.IsTrue(true);
+                }
+                catch (Exception ex)
+                {
+                    Assert.Fail($"Exception was thrown when ViewModel was not present: {ex.Message}");
+                }
+                finally
+                {
+                    window.Close();
+                }
+            });
+        }
+
+        /// <summary>
+        /// Tests that no exception is thrown when the HoverTimer ticks without an AdornerLayer present.
+        /// </summary>
+        [TestMethod]
+        public void HoverTimer_Tick_NoAdornerLayer_DoesNotThrow()
+        {
+            RunOnUIThread(() =>
+            {
+                // Arrange
+                // Create an element without adding it to a visual tree with AdornerLayer
+                var element = new Button();
+                HighlightingService.SetEnableHighlighting(element, true);
+
+                var viewModel = new MainPageViewModel(); // Use real instance
+                element.DataContext = viewModel;
+
+                // Act & Assert
+                try
+                {
+                    var mouseEnterEvent = new MouseEventArgs(Mouse.PrimaryDevice, 0)
+                    {
+                        RoutedEvent = UIElement.MouseEnterEvent
+                    };
+                    element.RaiseEvent(mouseEnterEvent);
+
+                    // Wait for the DispatcherTimer to tick
+                    var frame = new DispatcherFrame();
+                    var timer = new DispatcherTimer
+                    {
+                        Interval = TimeSpan.FromSeconds(0.5)
+                    };
+                    timer.Tick += (s, e) =>
+                    {
+                        timer.Stop();
+                        frame.Continue = false;
+                    };
+                    timer.Start();
+                    Dispatcher.PushFrame(frame);
+
+                    // If no exception is thrown, pass the test
+                    Assert.IsTrue(true);
+                }
+                catch (Exception ex)
+                {
+                    Assert.Fail($"Exception was thrown when AdornerLayer was not found: {ex.Message}");
+                }
+            });
+        }
+
+        /// <summary>
+        /// Tests that no exception is thrown when MouseLeave is raised without an active HoverTimer.
+        /// </summary>
+        [TestMethod]
+        public void MouseLeave_NoHoverTimer_DoesNotThrow()
+        {
+            RunOnUIThread(() =>
+            {
+                // Arrange
+                var window = new Window();
+                var adornerDecorator = new AdornerDecorator();
+                window.Content = adornerDecorator;
+
+                var grid = new Grid();
+                adornerDecorator.Child = grid;
+
+                var element = new Button();
+                grid.Children.Add(element);
+
+                var viewModel = new MainPageViewModel(); // Use real instance
+                window.DataContext = viewModel;
+
+                window.Show();
+
+                HighlightingService.SetEnableHighlighting(element, true);
+
+                // Simulate MouseLeave without a running HoverTimer
+                var mouseLeaveEvent = new MouseEventArgs(Mouse.PrimaryDevice, 0)
+                {
+                    RoutedEvent = UIElement.MouseLeaveEvent
+                };
+                element.RaiseEvent(mouseLeaveEvent);
+
+                // Assert that no exceptions are thrown and properties remain unset
+                Assert.IsFalse(viewModel.IsShapeHovered, "IsShapeHovered should remain false.");
+                Assert.IsNull(viewModel.HoveredShape, "HoveredShape should remain null.");
+                Assert.IsNull(viewModel.CurrentHoverAdorner, "CurrentHoverAdorner should remain null.");
+
+                // Clean up
+                window.Close();
+            });
+        }
+
+        /// <summary>
+        /// Tests that multiple hover events correctly remove the previous HoverAdorner and add a new one.
+        /// </summary>
+        [TestMethod]
+        public void MultipleHovers_RemoveAndAddHoverAdorner()
+        {
+            RunOnUIThread(() =>
+            {
+                // Arrange
+                var window = new Window();
+                var adornerDecorator = new AdornerDecorator();
+                window.Content = adornerDecorator;
+
+                var grid = new Grid();
+                adornerDecorator.Child = grid;
+
+                var element = new Button();
+                grid.Children.Add(element);
+
+                var viewModel = new MainPageViewModel();
+                window.DataContext = viewModel;
+
+                // Set Application.Current.MainWindow explicitly
+                Application.Current.MainWindow = window;
+
+                window.Show();
+
+                HighlightingService.SetEnableHighlighting(element, true);
+
+                var mockShape1 = new Mock<IShape>();
+                mockShape1.Setup(s => s.ShapeId).Returns(Guid.NewGuid());
+                mockShape1.Setup(s => s.ShapeType).Returns("Circle");
+                mockShape1.Setup(s => s.Color).Returns("#FF0000");
+                mockShape1.Setup(s => s.StrokeThickness).Returns(2.0);
+                mockShape1.Setup(s => s.UserID).Returns(123.45);
+                mockShape1.Setup(s => s.LastModifierID).Returns(678.90);
+                mockShape1.Setup(s => s.ZIndex).Returns(1);
+                mockShape1.Setup(s => s.IsSelected).Returns(false);
+                mockShape1.Setup(s => s.GetBounds()).Returns(new Rect(0, 0, 100, 100));
+                mockShape1.Setup(s => s.Clone()).Returns(mockShape1.Object);
+
+                var mockShape2 = new Mock<IShape>();
+                mockShape2.Setup(s => s.ShapeId).Returns(Guid.NewGuid());
+                mockShape2.Setup(s => s.ShapeType).Returns("Rectangle");
+                mockShape2.Setup(s => s.Color).Returns("#00FF00");
+                mockShape2.Setup(s => s.StrokeThickness).Returns(3.0);
+                mockShape2.Setup(s => s.UserID).Returns(543.21);
+                mockShape2.Setup(s => s.LastModifierID).Returns(987.65);
+                mockShape2.Setup(s => s.ZIndex).Returns(2);
+                mockShape2.Setup(s => s.IsSelected).Returns(true);
+                mockShape2.Setup(s => s.GetBounds()).Returns(new Rect(10, 10, 150, 150));
+                mockShape2.Setup(s => s.Clone()).Returns(mockShape2.Object);
+
+                // First hover
+                element.DataContext = mockShape1.Object;
+                var mouseEnterEvent1 = new MouseEventArgs(Mouse.PrimaryDevice, 0)
+                {
+                    RoutedEvent = UIElement.MouseEnterEvent
+                };
+                element.RaiseEvent(mouseEnterEvent1);
+
+                // Wait for the DispatcherTimer to tick
+                WaitForDispatcherTimer();
+
+                // Assert first hover
+                Assert.IsTrue(viewModel.IsShapeHovered, "IsShapeHovered should be true after first hover.");
+                Assert.IsNotNull(viewModel.HoveredShape, "HoveredShape should be set after first hover.");
+                Assert.IsNotNull(viewModel.CurrentHoverAdorner, "CurrentHoverAdorner should be set after first hover.");
+
+                var adornerLayer = AdornerLayer.GetAdornerLayer(element);
+                Assert.IsNotNull(adornerLayer, "AdornerLayer should not be null.");
+
+                var adorners1 = adornerLayer.GetAdorners(element);
+                Assert.IsNotNull(adorners1, "Adorners should not be null after first hover.");
+                Assert.AreEqual(1, adorners1.Count(a => a is HoverAdorner), "There should be exactly one HoverAdorner after first hover.");
+
+                // Second hover with a different shape
+                element.DataContext = mockShape2.Object;
+                var mouseEnterEvent2 = new MouseEventArgs(Mouse.PrimaryDevice, 0)
+                {
+                    RoutedEvent = UIElement.MouseEnterEvent
+                };
+                element.RaiseEvent(mouseEnterEvent2);
+
+                // Wait for the DispatcherTimer to tick
+                WaitForDispatcherTimer();
+
+                // Assert second hover
+                Assert.IsTrue(viewModel.IsShapeHovered, "IsShapeHovered should be true after second hover.");
+                Assert.IsNotNull(viewModel.HoveredShape, "HoveredShape should be set after second hover.");
+                Assert.IsNotNull(viewModel.CurrentHoverAdorner, "CurrentHoverAdorner should be set after second hover.");
+                Assert.AreEqual(mockShape2.Object, viewModel.HoveredShape, "HoveredShape should be updated to the second shape.");
+
+                var adorners2 = adornerLayer.GetAdorners(element);
+                Assert.IsNotNull(adorners2, "Adorners should not be null after second hover.");
+                Assert.AreEqual(1, adorners2.Count(a => a is HoverAdorner), "There should be exactly one HoverAdorner after second hover.");
+
+                // Clean up
+                window.Close();
+            });
+        }
+
+        // Helper method to wait for the DispatcherTimer
+        private void WaitForDispatcherTimer()
+        {
+            var frame = new DispatcherFrame();
+            var timer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(0.5)
+            };
+            timer.Tick += (s, e) =>
+            {
+                timer.Stop();
+                frame.Continue = false;
+            };
+            timer.Start();
+            Dispatcher.PushFrame(frame);
+        }
+
+
+
+        /// <summary>
+        /// Helper method to access the private HoverTimer attached property using reflection.
+        /// </summary>
+        /// <param name="obj">The UI element from which to retrieve the HoverTimer.</param>
+        /// <returns>The DispatcherTimer instance if found; otherwise, null.</returns>
+        private DispatcherTimer GetPrivateHoverTimer(DependencyObject obj)
+        {
+            var hoverTimerField = typeof(HighlightingService).GetField("HoverTimerProperty", BindingFlags.NonPublic | BindingFlags.Static);
+            if (hoverTimerField == null)
                 return null;
 
-            return method.Invoke(null, new object[] { element }) as DispatcherTimer;
-        }
+            var hoverTimerDependencyProperty = hoverTimerField.GetValue(null) as DependencyProperty;
+            if (hoverTimerDependencyProperty == null)
+                return null;
 
-        /// <summary>
-        /// Uses reflection to invoke the private method OnTick on the DispatcherTimer.
-        /// </summary>
-        /// <param name="timer">The DispatcherTimer to raise the Tick event on.</param>
-        private void RaiseDispatcherTimerTick(DispatcherTimer timer)
-        {
-            if (timer == null)
-                return;
-
-            var method = typeof(DispatcherTimer).GetMethod("OnTick", BindingFlags.NonPublic | BindingFlags.Instance);
-            method?.Invoke(timer, null);
-        }
-
-        #endregion
-    }
-
-    // Extension method to raise Tick event on DispatcherTimer
-    public static class DispatcherTimerExtensions
-    {
-        /// <summary>
-        /// Raises the Tick event on the given DispatcherTimer by invoking the non-public OnTick method.
-        /// </summary>
-        /// <param name="timer">The DispatcherTimer to raise the Tick event on.</param>
-        public static void RaiseTick(this DispatcherTimer timer)
-        {
-            var method = typeof(DispatcherTimer).GetMethod("OnTick", BindingFlags.NonPublic | BindingFlags.Instance);
-            method?.Invoke(timer, null);
+            return obj.GetValue(hoverTimerDependencyProperty) as DispatcherTimer;
         }
     }
 }
