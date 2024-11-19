@@ -1,7 +1,7 @@
 ﻿/******************************************************************************
  * Filename    = TextShape.cs
  *
- * Author      = Yash Mittal
+ * Author      = Rachit Jain
  *
  * Project     = WhiteBoard
  *
@@ -25,7 +25,6 @@ namespace WhiteboardGUI.Models
         private double _x;
         private double _y;
         private double _fontSize;
-
         public string Text
         {
             get => _text;
@@ -53,14 +52,9 @@ namespace WhiteboardGUI.Models
         /// <summary>
         /// Properties for binding in XAML
         /// </summary>
-
-
         public double Left => X;
-
         public double Top => Y;
-
         public Brush Foreground => new SolidColorBrush((Color)ColorConverter.ConvertFromString(Color));
-
         private double EstimateTextWidth()
         {
             return Text.Length * FontSize * 0.5; // Adjust the multiplier based on average character width
@@ -72,11 +66,8 @@ namespace WhiteboardGUI.Models
         }
 
         public double Width => EstimateTextWidth();
-
         public double Height => EstimateTextHeight();
-
         private bool _isSelected;
-
         public bool IsSelected
         {
             get => _isSelected;
@@ -111,7 +102,6 @@ namespace WhiteboardGUI.Models
                 Y = this.Y,
                 FontSize = this.FontSize,
                 ZIndex = this.ZIndex
-                // If ShapeBase has additional properties, copy them here
             };
         }
     }
