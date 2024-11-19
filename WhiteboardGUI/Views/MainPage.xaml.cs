@@ -1,4 +1,14 @@
-﻿using System.Windows;
+﻿/******************************************************************************
+ * Filename    = MainPage.xaml.cs
+ *
+ * Author      = Yash Mittal
+ *
+ * Project     = WhiteBoard
+ *
+ * Description = Code-behind for MainPage handling user interactions and shape manipulations
+ *****************************************************************************/
+
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Shapes;
@@ -9,63 +19,90 @@ using System.Collections.Generic;
 
 namespace WhiteboardGUI.Views
 {
+    /// <summary>
+    /// Interaction logic for MainPage.xaml
+    /// </summary>
     public partial class MainPage : Page
     {
-        private MainPageViewModel ViewModel => DataContext as MainPageViewModel;
-        private IShape _resizingShape;
-        private string _currentHandle;
+        private MainPageViewModel? ViewModel => DataContext as MainPageViewModel;
+        private IShape? _resizingShape;
+        private string? _currentHandle;
         private Point _startPoint;
         private Rect _initialBounds;
-        private List<Point> _initialPoints;
-
-        // Variables for Rotation
-        private bool _isRotating = false;
-        private double _initialAngle;
-        private Point _rotationOrigin;
-
+        private List<Point>? _initialPoints;
+     
         public MainPage()
         {
             InitializeComponent();
         }
 
+        /// <summary>
+        /// Handles the left mouse button down event on the canvas.
+        /// Initiates dragging operation.
+        /// </summary>
         private void Canvas_LeftMouseButtonDown(object sender, MouseButtonEventArgs e)
         {
             ViewModel?.CanvasLeftMouseDownCommand.Execute(e);
             ViewModel.IsDragging = true;
         }
 
+        /// <summary>
+        /// Handles the mouse move event on the canvas.
+        /// Executes the corresponding command in the ViewModel.
+        /// </summary>
         private void Canvas_MouseMove(object sender, MouseEventArgs e)
         {
             ViewModel?.CanvasMouseMoveCommand.Execute(e);
         }
 
+        /// <summary>
+        /// Handles the left mouse button up event on the canvas.
+        /// Ends dragging operation.
+        /// </summary>
         private void Canvas_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             ViewModel?.CanvasMouseUpCommand.Execute(e);
             ViewModel.IsDragging = false;
         }
 
+        /// <summary>
+        /// Opens the color palette popup when the toggle button is checked.
+        /// </summary>
         private void PaletteToggleButton_Checked(object sender, RoutedEventArgs e)
         {
             ColorPopup.IsOpen = true;
         }
 
+        /// <summary>
+        /// Closes the color palette popup when the toggle button is unchecked.
+        /// </summary>
         private void PaletteToggleButton_Unchecked(object sender, RoutedEventArgs e)
         {
             ColorPopup.IsOpen = false;
         }
 
+        /// <summary>
+        /// Opens the upload popup when the upload button is clicked.
+        /// </summary>
         private void UploadButton_Click(object sender, RoutedEventArgs e)
         {
             UploadPopup.IsOpen = true;
         }
 
+        /// <summary>
+        /// Handles the submission of the filename in the upload popup.
+        /// Closes the popup and notifies the user.
+        /// </summary>
         private void SubmitFileName_Click(object sender, RoutedEventArgs e)
         {
             UploadPopup.IsOpen = false;
             MessageBox.Show($"Filename '{ViewModel.SnapShotFileName}' has been set.", "Filename Set", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
+        /// <summary>
+        /// Initiates the resizing of a shape when a resize handle is pressed.
+        /// Captures the mouse and stores initial state for resizing.
+        /// </summary>
         private void ResizeHandle_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             var rect = sender as FrameworkElement;
@@ -90,6 +127,10 @@ namespace WhiteboardGUI.Views
             }
         }
 
+        /// <summary>
+        /// Handles the mouse move event during a resize operation.
+        /// Updates the shape's size based on mouse movement.
+        /// </summary>
         private void ResizeHandle_MouseMove(object sender, MouseEventArgs e)
         {
             if (_resizingShape != null && e.LeftButton == MouseButtonState.Pressed)
@@ -108,6 +149,10 @@ namespace WhiteboardGUI.Views
             }
         }
 
+        /// <summary>
+        /// Finalizes the resize operation when the left mouse button is released.
+        /// Releases the mouse capture and updates the rendering service.
+        /// </summary>
         private void ResizeHandle_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             if (_resizingShape != null)
@@ -126,6 +171,10 @@ namespace WhiteboardGUI.Views
             }
         }
 
+        /// <summary>
+        /// Resizes the specified shape based on the handle being dragged and the current mouse position.
+        /// Delegates to specific resize methods based on shape type.
+        /// </summary>
         private void ResizeShape(IShape shape, string handle, Point currentPoint)
         {
             if (shape is LineShape line)
@@ -145,6 +194,9 @@ namespace WhiteboardGUI.Views
             // Add more shapes if needed
         }
 
+        /// <summary>
+        /// Resizes a line shape by updating its start or end coordinates.
+        /// </summary>
         private void ResizeLineShape(LineShape line, string handle, Point currentPoint)
         {
             if (handle == "Start")
@@ -159,108 +211,113 @@ namespace WhiteboardGUI.Views
             }
         }
 
-
-           
-
         // Existing methods for other shapes remain unchanged
 
-
+        /// <summary>
+        /// Resizes a scribble shape by scaling its points based on the handle and mouse movement.
+        /// Ensures the shape does not collapse below minimum size.
+        /// </summary>
         private void ResizeScribbleShape(ScribbleShape scribble, string handle, Vector totalDelta)
+        {
+            if (_initialBounds == Rect.Empty || _initialPoints == null)
+                return;
+
+            double minWidth = 8;
+            double minHeight = 8;
+
+            double newLeft = _initialBounds.Left;
+            double newTop = _initialBounds.Top;
+            double newWidth = _initialBounds.Width;
+            double newHeight = _initialBounds.Height;
+
+            // Adjust new bounds based on handle and totalDelta
+            switch (handle)
+            {
+                case "TopLeft":
+                    newLeft += totalDelta.X;
+                    newTop += totalDelta.Y;
+                    newWidth -= totalDelta.X;
+                    newHeight -= totalDelta.Y;
+                    break;
+                case "TopRight":
+                    newTop += totalDelta.Y;
+                    newWidth += totalDelta.X;
+                    newHeight -= totalDelta.Y;
+                    break;
+                case "BottomLeft":
+                    newLeft += totalDelta.X;
+                    newWidth -= totalDelta.X;
+                    newHeight += totalDelta.Y;
+                    break;
+                case "BottomRight":
+                    newWidth += totalDelta.X;
+                    newHeight += totalDelta.Y;
+                    break;
+                default:
+                    break;
+            }
+
+            // Enforce minimum size
+            if (newWidth < minWidth)
+            {
+                if (handle == "TopLeft" || handle == "BottomLeft")
                 {
-                    if (_initialBounds == Rect.Empty || _initialPoints == null)
-                        return;
-
-                    double minWidth = 8;
-                    double minHeight = 8;
-
-                    double newLeft = _initialBounds.Left;
-                    double newTop = _initialBounds.Top;
-                    double newWidth = _initialBounds.Width;
-                    double newHeight = _initialBounds.Height;
-
-                    // Adjust new bounds based on handle and totalDelta
-                    switch (handle)
-                    {
-                        case "TopLeft":
-                            newLeft += totalDelta.X;
-                            newTop += totalDelta.Y;
-                            newWidth -= totalDelta.X;
-                            newHeight -= totalDelta.Y;
-                            break;
-                        case "TopRight":
-                            newTop += totalDelta.Y;
-                            newWidth += totalDelta.X;
-                            newHeight -= totalDelta.Y;
-                            break;
-                        case "BottomLeft":
-                            newLeft += totalDelta.X;
-                            newWidth -= totalDelta.X;
-                            newHeight += totalDelta.Y;
-                            break;
-                        case "BottomRight":
-                            newWidth += totalDelta.X;
-                            newHeight += totalDelta.Y;
-                            break;
-                        default:
-                            break;
-                    }
-
-                    // Enforce minimum size
-                    if (newWidth < minWidth)
-                    {
-                        if (handle == "TopLeft" || handle == "BottomLeft")
-                        {
-                            newLeft = _initialBounds.Right - minWidth;
-                        }
-                        newWidth = minWidth;
-                    }
-
-                    if (newHeight < minHeight)
-                    {
-                        if (handle == "TopLeft" || handle == "TopRight")
-                        {
-                            newTop = _initialBounds.Bottom - minHeight;
-                        }
-                        newHeight = minHeight;
-                    }
-
-                    // Determine the anchor point based on handle
-                    Point anchor;
-                    switch (handle)
-                    {
-                        case "TopLeft":
-                            anchor = new Point(_initialBounds.Right, _initialBounds.Bottom);
-                            break;
-                        case "TopRight":
-                            anchor = new Point(_initialBounds.Left, _initialBounds.Bottom);
-                            break;
-                        case "BottomLeft":
-                            anchor = new Point(_initialBounds.Right, _initialBounds.Top);
-                            break;
-                        case "BottomRight":
-                            anchor = new Point(_initialBounds.Left, _initialBounds.Top);
-                            break;
-                        default:
-                            anchor = new Point(_initialBounds.Left, _initialBounds.Top);
-                            break;
-                    }
-
-                    // Calculate scaling factors
-                    double scaleX = _initialBounds.Width != 0 ? newWidth / _initialBounds.Width : 1;
-                    double scaleY = _initialBounds.Height != 0 ? newHeight / _initialBounds.Height : 1;
-
-                    // Apply scaling to each point relative to the anchor
-                    List<Point> newPoints = new List<Point>();
-                    foreach (var point in _initialPoints)
-                    {
-                        double newX = anchor.X + (point.X - anchor.X) * scaleX;
-                        double newY = anchor.Y + (point.Y - anchor.Y) * scaleY;
-                        newPoints.Add(new Point(newX, newY));
-                    }
-
-                    // Update the ScribbleShape's points
-                    scribble.Points = newPoints;
+                    newLeft = _initialBounds.Right - minWidth;
                 }
+                newWidth = minWidth;
+            }
+
+            if (newHeight < minHeight)
+            {
+                if (handle == "TopLeft" || handle == "TopRight")
+                {
+                    newTop = _initialBounds.Bottom - minHeight;
+                }
+                newHeight = minHeight;
+            }
+
+            // Determine the anchor point based on handle
+            Point anchor;
+            switch (handle)
+            {
+                case "TopLeft":
+                    anchor = new Point(_initialBounds.Right, _initialBounds.Bottom);
+                    break;
+                case "TopRight":
+                    anchor = new Point(_initialBounds.Left, _initialBounds.Bottom);
+                    break;
+                case "BottomLeft":
+                    anchor = new Point(_initialBounds.Right, _initialBounds.Top);
+                    break;
+                case "BottomRight":
+                    anchor = new Point(_initialBounds.Left, _initialBounds.Top);
+                    break;
+                default:
+                    anchor = new Point(_initialBounds.Left, _initialBounds.Top);
+                    break;
+            }
+
+            // Calculate scaling factors
+            double scaleX = _initialBounds.Width != 0 ? newWidth / _initialBounds.Width : 1;
+            double scaleY = _initialBounds.Height != 0 ? newHeight / _initialBounds.Height : 1;
+
+            // Apply scaling to each point relative to the anchor
+            List<Point> newPoints = new List<Point>();
+            foreach (var point in _initialPoints)
+            {
+                double newX = anchor.X + (point.X - anchor.X) * scaleX;
+                double newY = anchor.Y + (point.Y - anchor.Y) * scaleY;
+                newPoints.Add(new Point(newX, newY));
+            }
+
+            // Update the ScribbleShape's points
+            scribble.Points = newPoints;
+        }
+
+        /// <summary>
+        /// Resizes a circle shape by updating its center and radii based on the handle and mouse movement.
+        /// Ensures the circle does not collapse below minimum size.
+        /// </summary>
         private void ResizeCircleShape(CircleShape circle, string handle, Vector delta)
         {
             double minSize = 8; // Minimum size to prevent collapsing
@@ -332,17 +389,29 @@ namespace WhiteboardGUI.Views
             }
         }
 
+        /// <summary>
+        /// Handles the right mouse button down event on text shapes.
+        /// Generates a context menu with text-specific options.
+        /// </summary>
         private void Shape_MouseRightButtonDownText(object sender, MouseButtonEventArgs e)
         {
             GenerateContextMenuForRightClick(sender, e, true);
         }
 
+        /// <summary>
+        /// Handles the right mouse button down event on non-text shapes.
+        /// Generates a context menu with general shape options.
+        /// </summary>
         private void Shape_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
-            GenerateContextMenuForRightClick(sender, e,false);
+            GenerateContextMenuForRightClick(sender, e, false);
         }
 
-        private void GenerateContextMenuForRightClick(object sender, MouseButtonEventArgs e,bool isText)
+        /// <summary>
+        /// Generates and displays a context menu for the clicked shape.
+        /// Adds additional options if the shape is a text shape.
+        /// </summary>
+        private void GenerateContextMenuForRightClick(object sender, MouseButtonEventArgs e, bool isText)
         {
             // Get the ViewModel
             var vm = this.DataContext as MainPageViewModel;
@@ -391,6 +460,10 @@ namespace WhiteboardGUI.Views
             e.Handled = true;
         }
 
+        /// <summary>
+        /// Handles the value changed event of the slider.
+        /// Currently not implemented.
+        /// </summary>
         private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
 

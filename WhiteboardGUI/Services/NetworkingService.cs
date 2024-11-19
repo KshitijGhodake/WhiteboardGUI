@@ -13,7 +13,7 @@ using Networking.Communication;
 using Networking;
 namespace WhiteboardGUI.Services
 {
-    public class NetworkingService: INotificationHandler
+    public class NetworkingService : INotificationHandler
     {
         public double _clientID;
         private bool _isHost;
@@ -21,7 +21,7 @@ namespace WhiteboardGUI.Services
         public ReceivedDataService _receivedDataService;
         public List<IShape> _synchronizedShapes;
 
-        public NetworkingService(ReceivedDataService dataTransferService) 
+        public NetworkingService(ReceivedDataService dataTransferService)
         {
             _receivedDataService = dataTransferService;
             _synchronizedShapes = dataTransferService._synchronizedShapes;
@@ -41,7 +41,7 @@ namespace WhiteboardGUI.Services
                 _communicator.Subscribe(_moduleIdentifier, this, false);
                 _communicator.Start();
                 _isHost = true;
-  
+
             }
             catch (Exception ex)
             {
@@ -72,12 +72,12 @@ namespace WhiteboardGUI.Services
 
         public void OnDataReceived(string serializedData)
         {
-            if ( _isHost )
+            if (_isHost)
             {
                 int id = _receivedDataService.DataReceived(serializedData);
                 if (id == -1) return;
                 BroadcastShapeData(serializedData);
-               
+
             }
             else
             {

@@ -135,36 +135,22 @@ namespace WhiteboardGUI.Models
         }
 
         public double MidX => (StartX + EndX) / 2;
-
         public double MidY => (StartY + EndY) / 2;
-
         public Brush Stroke => new SolidColorBrush((Color)ColorConverter.ConvertFromString(Color));
-
         public double Left => Math.Min(StartX, EndX) - HandleSize / 2;
-
         public double Top => Math.Min(StartY, EndY) - HandleSize / 2;
-
         public double Width => Math.Abs(EndX - StartX) + HandleSize;
-
         public double Height => Math.Abs(EndY - StartY) + HandleSize;
-
-     
-       public double HandleSize => 8;
+        public double HandleSize => 8;
        
         /// <summary>
         /// Properties for handle positions
         /// </summary>
         public double StartHandleX => StartX - HandleSize / 2;
-
         public double StartHandleY => StartY - HandleSize / 2;
-
         public double EndHandleX => EndX - HandleSize / 2;
-
         public double EndHandleY => EndY - HandleSize / 2;
-
-        public double RelativeStartX => StartX - Left;
-
-       
+        public double RelativeStartX => StartX - Left;      
         public double RelativeStartY => StartY - Top - Height;
 
         /// <summary>

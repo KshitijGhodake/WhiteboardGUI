@@ -79,9 +79,7 @@ namespace WhiteboardGUI.Models
         public double Top => Y;
 
         public Brush Background => new SolidColorBrush(Colors.LightGray);
-
         public Brush BorderBrush => new SolidColorBrush(Colors.Blue);
-
         public Brush Foreground => new SolidColorBrush((Color)ColorConverter.ConvertFromString(Color));
 
         private bool _isSelected;
@@ -121,7 +119,6 @@ namespace WhiteboardGUI.Models
                 Y = this.Y,
                 FontSize = this.FontSize,
                 ZIndex = this.ZIndex
-                // Copy additional properties from ShapeBase if necessary
             };
         }
     }

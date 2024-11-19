@@ -99,19 +99,8 @@ namespace WhiteboardGUI.Models
         public double Height => 2 * RadiusY;
         public double HandleSize => 8;
 
-        /// <summary>
-        /// Gets the X-coordinate of the top-right handle.
-        /// </summary>
         public double TopRightHandleX => Left + Width - HandleSize;
-
-        /// <summary>
-        /// Gets the Y-coordinate of the down-left handle.
-        /// </summary>
         public double DownLeftHandleY => Top + Height - HandleSize;
-
-        /// <summary>
-        /// Gets the stroke brush for the circle.
-        /// </summary>
         public Brush Stroke => new SolidColorBrush((Color)ColorConverter.ConvertFromString(Color));
 
         /// <summary>

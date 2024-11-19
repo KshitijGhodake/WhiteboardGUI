@@ -100,7 +100,7 @@
 //                    var receivedData = await reader.ReadLineAsync();
 //                    if (receivedData == null) continue;
 
-                   
+
 
 //                    if (receivedData.StartsWith("DELETE:"))
 //                    {
@@ -236,7 +236,7 @@
 //                                    existingShape.LockedByUserID = senderUserID;
 //                                    ShapeLocked?.Invoke(existingShape);
 
-//                                }  
+//                                }
 //                            }
 //                        }
 //                    }
@@ -265,7 +265,7 @@
 //        {
 //            _client = new TcpClient();
 //            //await _client.ConnectAsync(IPAddress.Parse("10.128.6.8"), port);
-//           await _client.ConnectAsync(IPAddress.Loopback, port);
+//            await _client.ConnectAsync(IPAddress.Loopback, port);
 //            Console.WriteLine("Connected to host");
 
 //            _clients.TryAdd(0, _client);
@@ -427,9 +427,9 @@
 //                            }
 //                        }
 //                    }
-                
-            
-//            }
+
+
+//                }
 //            }
 //            catch (Exception ex)
 //            {

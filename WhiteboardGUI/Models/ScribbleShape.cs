@@ -84,17 +84,11 @@ namespace WhiteboardGUI.Models
         ///  Properties for binding in XAML
         /// </summary>
         public double Left => GetBounds().Left;
-
         public double Top => GetBounds().Top;
-
         public double Width => GetBounds().Width;
-
         public double Height => GetBounds().Height;
-
         public double HandleSize => 8;
-
         public double TopRightHandleX => Left + Width - HandleSize;
-
         public double DownLeftHandleY => Top + Height - HandleSize;
 
         /// <summary>
