@@ -15,6 +15,7 @@ using Microsoft.Extensions.Http;
 using SECloud.Services;
 using SECloud.Models;
 using System.Net.Http;
+using SECloud.Interfaces;
 
 namespace WhiteboardGUI.Services
 {
@@ -28,7 +29,7 @@ namespace WhiteboardGUI.Services
         private Dictionary<string,ObservableCollection<IShape>> Snaps = new();
         private Dictionary<string, string> SnapshotFilename = new();
         public event Action OnSnapShotUploaded;
-        private CloudService cloudService;
+        private ICloud cloudService;
         //Max Snap
         int limit = 5;
 
@@ -68,7 +69,7 @@ namespace WhiteboardGUI.Services
                 httpClient,
                 logger);
         }
-        public async Task UploadSnapShot(string snapShotFileName, ObservableCollection<IShape> shapes)
+        public async Task UploadSnapShot(string snapShotFileName, ObservableCollection<IShape> shapes, bool isTest)
         {
             await Task.Run(async () =>
             {
@@ -78,11 +79,10 @@ namespace WhiteboardGUI.Services
                 Debug.WriteLine($"Uploading snapshot '{snapShotFileName}' with {shapes.Count} shapes.");
                 //Thread.Sleep(5000);
                 sendToCloud(snapShotFileName,SnapShot, shapes);
-
-                MessageBox.Show($"Filename '{snapShotFileName}' has been set.", "Filename Set", MessageBoxButton.OK);
+                if(!isTest) MessageBox.Show($"Filename '{snapShotFileName}' has been set.", "Filename Set", MessageBoxButton.OK);
                 // Perform the upload operation here (e.g., using HttpClient for HTTP requests)
             });
-            System.Windows.Application.Current.Dispatcher.Invoke(() => OnSnapShotUploaded?.Invoke());
+            if(!isTest) System.Windows.Application.Current.Dispatcher.Invoke(() => OnSnapShotUploaded?.Invoke());
             Debug.WriteLine("Upload completed.");
             
 

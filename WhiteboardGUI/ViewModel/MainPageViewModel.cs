@@ -549,7 +549,7 @@ namespace WhiteboardGUI.ViewModel
             try
             {
                 // Call the asynchronous upload method
-                await _snapShotService.UploadSnapShot(SnapShotFileName, Shapes);
+                await _snapShotService.UploadSnapShot(SnapShotFileName, Shapes, false);
                 IsPopupOpen = false;
                 Debug.WriteLine("Snapshot uploaded successfully.");
             }

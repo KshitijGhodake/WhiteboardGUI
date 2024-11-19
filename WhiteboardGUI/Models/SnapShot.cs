@@ -18,11 +18,5 @@ namespace WhiteboardGUI.Models
         public ObservableCollection<IShape> Shapes;
 
         public SnapShot() { }
-        public SnapShot(double clientID, ObservableCollection<IShape> shapes, String filename)
-        {
-            this.fileName = fileName;
-            this.userID = clientID.ToString();
-            Shapes = shapes;
-        }
     }
 }
