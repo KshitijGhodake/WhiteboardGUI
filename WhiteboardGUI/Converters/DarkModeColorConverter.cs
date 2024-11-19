@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
@@ -12,20 +13,24 @@ namespace WhiteboardGUI.Converters
         {
             var colorString = values[0] as string;
             bool isDarkMode = (bool)values[1];
-
-            if (ColorConverter.ConvertFromString(colorString) is Color originalColor)
+            try
             {
-                if (isDarkMode)
+                if (ColorConverter.ConvertFromString(colorString) is Color originalColor)
                 {
-                    if (originalColor == Colors.Black)
+                    if (isDarkMode)
                     {
-                        return new SolidColorBrush(Colors.White);
+                        if (originalColor == Colors.Black)
+                        {
+                            return new SolidColorBrush(Colors.White);
+                        }
                     }
+                    return new SolidColorBrush(originalColor);
                 }
-                return new SolidColorBrush(originalColor);
+                return DependencyProperty.UnsetValue;
             }
-            else
+            catch
             {
+                Debug.WriteLine("InvalidColor");
                 return DependencyProperty.UnsetValue;
             }
         }
