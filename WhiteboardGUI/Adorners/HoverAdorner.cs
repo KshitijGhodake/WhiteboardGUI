@@ -1,5 +1,4 @@
-﻿// HoverAdorner.cs
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
@@ -10,6 +9,9 @@ using System.Windows.Shapes;
 
 namespace WhiteboardGUI.Adorners
 {
+    /// <summary>
+    /// Represents a hover adorner that displays a tooltip-like UI element near the mouse pointer.
+    /// </summary>
     public class HoverAdorner : Adorner
     {
         private readonly VisualCollection _visuals;
@@ -19,9 +21,15 @@ namespace WhiteboardGUI.Adorners
         private readonly TextBlock _textBlock;
         private readonly Ellipse _colorPreview;
         private readonly Point _mousePosition;
-        private readonly TranslateTransform _transform;
 
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="HoverAdorner"/> class.
+        /// </summary>
+        /// <param name="adornedElement">The element to which the adorner is attached.</param>
+        /// <param name="text">The text to display in the adorner.</param>
+        /// <param name="mousePosition">The initial position of the mouse pointer.</param>
+        /// <param name="imageSource">The image source to display in the adorner.</param>
+        /// <param name="shapeColor">The color of the shape being hovered over.</param>
         public HoverAdorner(UIElement adornedElement, string text, Point mousePosition, ImageSource imageSource, Color shapeColor)
             : base(adornedElement)
         {
@@ -81,23 +89,40 @@ namespace WhiteboardGUI.Adorners
                 IsHitTestVisible = false
             };
 
-
-
             _visuals.Add(_border);
         }
+
+        /// <summary>
+        /// Gets the number of visual children managed by the adorner.
+        /// </summary>
         protected override int VisualChildrenCount => _visuals.Count;
 
+        /// <summary>
+        /// Gets a specific visual child by index.
+        /// </summary>
+        /// <param name="index">The index of the visual child to retrieve.</param>
+        /// <returns>The visual child at the specified index.</returns>
         protected override Visual GetVisualChild(int index)
         {
             return _visuals[index];
         }
 
+        /// <summary>
+        /// Measures the size required by the adorner.
+        /// </summary>
+        /// <param name="constraint">The size constraint for measuring.</param>
+        /// <returns>The desired size of the adorner.</returns>
         protected override Size MeasureOverride(Size constraint)
         {
             _border.Measure(constraint);
             return _border.DesiredSize;
         }
 
+        /// <summary>
+        /// Arranges the adorner at a specific position relative to the mouse pointer, ensuring it stays within bounds.
+        /// </summary>
+        /// <param name="finalSize">The final size of the adorned element.</param>
+        /// <returns>The arranged size of the adorner.</returns>
         protected override Size ArrangeOverride(Size finalSize)
         {
             // Position the Adorner near the mouse position
@@ -115,7 +140,10 @@ namespace WhiteboardGUI.Adorners
             return finalSize;
         }
 
-        // Method to update the text
+        /// <summary>
+        /// Updates the text displayed in the adorner.
+        /// </summary>
+        /// <param name="text">The new text to display.</param>
         public void UpdateText(string text)
         {
             _textBlock.Text = text;
