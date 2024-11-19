@@ -65,9 +65,30 @@ namespace WhiteboardGUI.ViewModel
         private bool _isDarkMode;
         private Brush _pageBackground = new SolidColorBrush(Color.FromRgb(245, 245, 245)); // Light
         private Brush _canvasBackground = new SolidColorBrush(Color.FromRgb(245, 245, 245)); // Light
- 
+        private static MainPageViewModel _whiteboardInstance;
+        private readonly ReceivedDataService _receivedDataService;
+        public string userName;
+        public int userId;
 
-      
+        private static readonly object padlock = new object();
+        public static MainPageViewModel WhiteboardInstance
+        {
+            get
+            {
+                lock (padlock)
+                {
+                    if (_whiteboardInstance == null)
+                    {
+                        _whiteboardInstance = new MainPageViewModel();
+                    }
+
+                    return _whiteboardInstance;
+                }
+            }
+        }
+
+
+
 
 
         public string DefaultColor
@@ -409,14 +430,27 @@ namespace WhiteboardGUI.ViewModel
         public event PropertyChangedEventHandler PropertyChanged;
         public event Action<IShape> ShapeReceived;
         public event Action<IShape> ShapeDeleted;
+        private ServerOrClient _serverOrClient = ServerOrClient.ServerOrClientInstance;
 
-       
+
+
         // Constructor
         public MainPageViewModel()
         {
             Shapes = new ObservableCollection<IShape>();
-            _networkingService = new NetworkingService();
-            _renderingService = new RenderingService(_networkingService, _undoRedoService, Shapes);
+            userId = _serverOrClient.userId;
+            userName = _serverOrClient.userName;
+            _receivedDataService = new ReceivedDataService(userId);
+            _networkingService = new NetworkingService(_receivedDataService);
+            if (userId == 1)
+            {
+                _networkingService.StartHost();
+            }
+            else
+            {
+                _networkingService.StartClient();
+            }
+            _renderingService = new RenderingService(_networkingService, _undoRedoService, Shapes, userId);
             _snapShotService = new SnapShotService(
                 _networkingService,
                 _renderingService,
@@ -429,37 +463,36 @@ namespace WhiteboardGUI.ViewModel
             InitializeDownloadItems();
             _snapShotService.OnSnapShotUploaded += RefreshDownloadItems;
 
-            // Subscribe to networking events
-            _networkingService.ShapeReceived += OnShapeReceived;
-            _networkingService.ShapeDeleted += OnShapeDeleted;
-            _networkingService.ShapeModified += OnShapeModified;
-            _networkingService.ShapesClear += OnShapeClear;
-            _networkingService.ShapeSendBackward += _moveShapeZIndexing.MoveShapeBackward;
-            _networkingService.ShapeSendToBack += _moveShapeZIndexing.MoveShapeBack;
-            _networkingService.ShapeLocked += OnShapeLocked;
-            _networkingService.ShapeUnlocked += OnShapeUnlocked;
+            _receivedDataService.ShapeReceived += OnShapeReceived;
+            _receivedDataService.ShapeDeleted += OnShapeDeleted;
+            _receivedDataService.ShapeModified += OnShapeModified;
+            _receivedDataService.ShapesClear += OnShapeClear;
+            _receivedDataService.ShapeSendBackward += _moveShapeZIndexing.MoveShapeBackward;
+            _receivedDataService.ShapeSendToBack += _moveShapeZIndexing.MoveShapeBack;
+            _receivedDataService.ShapeLocked += OnShapeLocked;
+            _receivedDataService.ShapeUnlocked += OnShapeUnlocked;
 
             Shapes.CollectionChanged += Shapes_CollectionChanged;
 
-            // Initialize DarkModeService
-            //_darkModeService = new DarkModeService();
+
+
 
             // Initialize commands
             Debug.WriteLine("ViewModel init start");
-            StartHostCommand = new RelayCommand(
-                async () => await TriggerHostCheckbox(),
-                () =>
-                {
-                    return true;
-                }
-            );
-            StartClientCommand = new RelayCommand(
-                async () => await TriggerClientCheckBox(5000),
-                () =>
-                {
-                    return true;
-                }
-            );
+            //StartHostCommand = new RelayCommand(
+            //    async () => await TriggerHostCheckbox(),
+            //    () =>
+            //    {
+            //        return true;
+            //    }
+            //);
+            //StartClientCommand = new RelayCommand(
+            //    async () => await TriggerClientCheckBox(5000),
+            //    () =>
+            //    {
+            //        return true;
+            //    }
+            //);
             SelectToolCommand = new RelayCommand<ShapeType>(SelectTool);
             //DrawShapeCommand = new RelayCommand<(IShape, string)>(DrawShape);
             DrawShapeCommand = new RelayCommand<object>(parameter =>
@@ -507,7 +540,6 @@ namespace WhiteboardGUI.ViewModel
             Green = 0;
             Blue = 0;
             UpdateSelectedColor();
-          
 
             // Initialize Dark Mode
             IsDarkMode = CheckIfDarkMode();
@@ -517,7 +549,12 @@ namespace WhiteboardGUI.ViewModel
             _timer.Interval = TimeSpan.FromSeconds(10);
             _timer.Tick += Timer_Tick;
             _timer.Start();
-        }        
+
+            //_whiteboardInstance = this;
+
+
+        }
+
 
         private bool CheckIfDarkMode()
         {
@@ -713,33 +750,33 @@ namespace WhiteboardGUI.ViewModel
         }
 
         // Methods
-        private async System.Threading.Tasks.Task TriggerHostCheckbox()
-        {
-            if (IsHost == true)
-            {
-                Debug.WriteLine("ViewModel host start");
-                await _networkingService.StartHost();
-            }
-            else
-            {
-                _networkingService.StopHost();
-            }
-        }
+        //private async System.Threading.Tasks.Task TriggerHostCheckbox()
+        //{
+        //    if (IsHost == true)
+        //    {
+        //        Debug.WriteLine("ViewModel host start");
+        //        await _networkingService.StartHost();
+        //    }
+        //    else
+        //    {
+        //        _networkingService.StopHost();
+        //    }
+        //}
 
-        private async System.Threading.Tasks.Task TriggerClientCheckBox(int port)
-        {
-            Debug.WriteLine("IsClient:", IsClient.ToString());
-            if (IsClient == false)
-            {
-                _networkingService.StopClient();
-            }
-            else
-            {
-                IsClient = true;
-                Debug.WriteLine("ViewModel client start");
-                await _networkingService.StartClient(port);
-            }
-        }
+        //private async System.Threading.Tasks.Task TriggerClientCheckBox(int port)
+        //{
+        //    Debug.WriteLine("IsClient:", IsClient.ToString());
+        //    if (IsClient == false)
+        //    {
+        //        _networkingService.StopClient();
+        //    }
+        //    else
+        //    {
+        //        IsClient = true;
+        //        Debug.WriteLine("ViewModel client start");
+        //        await _networkingService.StartClient(port);
+        //    }
+        //}
 
         private void StopHost()
         {
