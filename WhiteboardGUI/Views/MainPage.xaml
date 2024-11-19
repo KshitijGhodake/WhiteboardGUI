@@ -431,17 +431,21 @@ IsSnapToTickEnabled="True" />
 									<TextBlock Text="Select an item to download:" FontWeight="Bold" Margin="0,0,0,10"/>
 
 									<!-- ListBox for displaying download items -->
-									<ListBox ItemsSource="{Binding DownloadItems}"
-                     SelectedItem="{Binding SelectedDownloadItem, Mode=TwoWay}"
-                     Width="200" Height="150">
-										<ListBox.ItemTemplate>
-											<DataTemplate>
-												<TextBlock Text="{Binding}" FontSize="14"/>
-											</DataTemplate>
-										</ListBox.ItemTemplate>
-									</ListBox>
+                                    <ListBox ItemsSource="{Binding DownloadItems}"
+         SelectedItem="{Binding SelectedDownloadItem, Mode=TwoWay}"
+         Width="200" Height="150">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal" Margin="5">
+                                                    <TextBlock Text="{Binding FileName}" FontSize="14" />
+                                                    <TextBlock Text="{Binding Time, StringFormat=' {0:MM/dd/yyyy HH:mm}'}" 
+                           FontSize="12" Foreground="Gray" Margin="10,0,0,0" />
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
 
-									<!-- Download Button -->
+                                    <!-- Download Button -->
 									<Button Content="Download"
                     Width="100"
                     Height="30"

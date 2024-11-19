@@ -16,6 +16,7 @@ using SECloud.Services;
 using SECloud.Models;
 using System.Net.Http;
 using SECloud.Interfaces;
+using System.Windows.Data;
 
 namespace WhiteboardGUI.Services
 {
@@ -27,7 +28,8 @@ namespace WhiteboardGUI.Services
         private readonly UndoRedoService _undoRedoService;
         private ObservableCollection<IShape> Shapes;
         private Dictionary<string,ObservableCollection<IShape>> Snaps = new();
-        private Dictionary<string, string> SnapshotFilename = new();
+        //private Dictionary<string, string> SnapshotFilename = new();
+        private List<SnapShotDownloadItem> SnapShotDownloadItems = new();
         public event Action OnSnapShotUploaded;
         private ICloud cloudService;
         //Max Snap
@@ -112,32 +114,25 @@ namespace WhiteboardGUI.Services
         { 
             while (Snaps.Count >= limit)
             {
-                String lastSnapName = findLastSnap();
+                SnapShotDownloadItem lastSnapName = findLastSnap();
                 deleteSnap(lastSnapName);
             }
         }
 
-        private void deleteSnap(string lastSnapName)
+        private void deleteSnap(SnapShotDownloadItem lastSnap)
         {
-            SnapshotFilename.Remove(SnapshotFilename.FirstOrDefault(x => x.Value == lastSnapName).Key);
-            cloudService.DeleteAsync(lastSnapName+".json");
-            Snaps.Remove(lastSnapName);
+            SnapShotDownloadItems.RemoveAll(item=> item.FileName==lastSnap.FileName && item.Time==lastSnap.Time);
+            var SnapName = $"{_networkingService._clientID}_{lastSnap.FileName}_{((DateTimeOffset)lastSnap.Time.ToUniversalTime()).ToUnixTimeSeconds().ToString()}";
+
+            cloudService.DeleteAsync(SnapName+".json");
+            Snaps.Remove(SnapName);
         }
 
-        private string findLastSnap()
+        private SnapShotDownloadItem findLastSnap()
         {
-            return Snaps.Keys.OrderBy(key =>
-            {
-                // Split the key and parse the epoch time
-                string[] parts = key.Split('_');
-                if (parts.Length < 3)
-                    return long.MaxValue; // Invalid format, place at the end
-
-                if (long.TryParse(parts[2], out long epochTime))
-                    return epochTime;
-
-                return long.MaxValue; // If parsing fails, place at the end
-            }).FirstOrDefault();
+            return SnapShotDownloadItems
+                .OrderBy(item => item.Time) // Order items by Time in ascending order
+                .FirstOrDefault();
         }
 
         private string parseSnapShotName(string snapShotFileName, SnapShot snapShot)
@@ -149,15 +144,16 @@ namespace WhiteboardGUI.Services
                 snapShotFileName = currentDateTime.ToString("yyyyMMdd-HHmmss");
             }
             DateTimeOffset currentDateTimeEpoch = DateTimeOffset.UtcNow;
+            snapShot.dateTime = currentDateTimeEpoch.LocalDateTime;
             long epochTime = currentDateTimeEpoch.ToUnixTimeSeconds();
             var newSnapShotFileName = _networkingService._clientID + "_" + snapShotFileName + "_" + epochTime.ToString();
             snapShot.fileName = snapShotFileName;
-            SnapshotFilename.Add(snapShotFileName, newSnapShotFileName);
+            SnapShotDownloadItems.Add(new SnapShotDownloadItem(snapShotFileName, snapShot.dateTime));
             snapShotFileName = newSnapShotFileName;
             return snapShotFileName;
         }
 
-        public async Task<ObservableCollection<string>> getSnaps(string v, bool isInit)
+        public async Task<List<SnapShotDownloadItem>> getSnaps(string v, bool isInit)
         {
             if(isInit){
             var response = await cloudService.SearchJsonFilesAsync("userID", _networkingService._clientID.ToString());
@@ -169,28 +165,25 @@ namespace WhiteboardGUI.Services
                             match => SerializationService.DeserializeSnapShot(match.Content.ToString()).Shapes
                         );
 
-                    SnapshotFilename = response.Data.Matches
-                    .ToDictionary(
-                            match => SerializationService.DeserializeSnapShot(match.Content.ToString()).fileName,
-                            match => match.FileName.Substring(0, match.FileName.Length - 5)
-                        );
+                    PopulateSnapShotDownloadItems(response);
 
                     // Extract the FileName from each JsonSearchMatch and convert it to ObservableCollection
                     var fileNames = response.Data.Matches
                         .Select(match => match.FileName.Substring(0, match.FileName.Length - 5))
                         .ToList();
 
-                    return new ObservableCollection<string>(SnapshotFilename.Keys);
+
+                    return SnapShotDownloadItems;
                 }
                 // Return an empty ObservableCollection if the response or data is null
-                return new ObservableCollection<string>();
+                return new List<SnapShotDownloadItem>();
 
             }
 
-            return new ObservableCollection<string>(SnapshotFilename.Keys);
+            return SnapShotDownloadItems;
         }
 
-        internal void DownloadSnapShot(string selectedDownloadItem)
+        internal void DownloadSnapShot(SnapShotDownloadItem selectedDownloadItem)
         {
             ObservableCollection<IShape> snapShot = getSnapShot(selectedDownloadItem);
             _renderingService.RenderShape(null, "CLEAR");
@@ -211,13 +204,25 @@ namespace WhiteboardGUI.Services
 
         public bool IsValidFilename(String filename)
         {
-            return !SnapshotFilename.ContainsKey(filename);
+            return !SnapShotDownloadItems.Any(item=> item.FileName==filename);
         }
 
-        private ObservableCollection<IShape> getSnapShot(string selectedDownloadItem)
+        private ObservableCollection<IShape> getSnapShot(SnapShotDownloadItem selectedDownloadItem)
         {
+            var SnapName = $"{_networkingService._clientID}_{selectedDownloadItem.FileName}_{((DateTimeOffset)selectedDownloadItem.Time.ToUniversalTime()).ToUnixTimeSeconds().ToString()}";
+            return Snaps[SnapName];
+        }
 
-            return Snaps[SnapshotFilename[selectedDownloadItem]];
+        private void PopulateSnapShotDownloadItems(ServiceResponse<JsonSearchResponse> response)
+        {
+            SnapShotDownloadItems = response.Data.Matches
+                .Select(match =>
+                {
+                    var fileName = SerializationService.DeserializeSnapShot(match.Content.ToString()).fileName;
+                    var time = SerializationService.DeserializeSnapShot(match.Content.ToString()).dateTime;
+                    return new SnapShotDownloadItem(fileName, time);
+                })
+                .ToList();
         }
     }
 }

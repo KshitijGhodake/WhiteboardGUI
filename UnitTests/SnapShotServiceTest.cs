@@ -72,9 +72,9 @@ namespace WhiteboardGUI.Tests
             await _snapShotService.UploadSnapShot(snapShotFileName, shapes, true);
 
             // Assert: Verify the snapshot was added to the Snaps dictionary
-            var snapsField = typeof(SnapShotService).GetField("SnapshotFilename", BindingFlags.NonPublic | BindingFlags.Instance);
-            var SnapshotFilename = (Dictionary<string, string>)snapsField.GetValue(_snapShotService);
-            Assert.IsTrue(SnapshotFilename.ContainsKey(snapShotFileName));
+            var snapShotDownloadItemsField = typeof(SnapShotService).GetField("SnapShotDownloadItems", BindingFlags.NonPublic | BindingFlags.Instance);
+            var snapShotDownloadItems = (List<SnapShotDownloadItem>)snapShotDownloadItemsField.GetValue(_snapShotService);
+            Assert.IsTrue(snapShotDownloadItems.Any(item => item.FileName==snapShotFileName));
 
             // Verify UploadAsync was called
             _mockCloudService.Verify(cs => cs.UploadAsync(It.IsAny<string>(), It.IsAny<Stream>(), It.IsAny<string>()), Times.Once);
@@ -99,17 +99,18 @@ namespace WhiteboardGUI.Tests
 
             // Add enough entries to exceed the limit
             var snapsField = typeof(SnapShotService).GetField("Snaps", BindingFlags.NonPublic | BindingFlags.Instance);
-            var snapshotFilenameField = typeof(SnapShotService).GetField("SnapshotFilename", BindingFlags.NonPublic | BindingFlags.Instance);
+            var snapShotDownloadItemsField = typeof(SnapShotService).GetField("SnapShotDownloadItems", BindingFlags.NonPublic | BindingFlags.Instance);
             var snaps = new Dictionary<string, ObservableCollection<IShape>>();
-            var snapshotFilename = new Dictionary<string, string>();
+            var snapShotDownloadItems = new List<SnapShotDownloadItem>();
 
             for (int i = 0; i < 10; i++)
             {
-                snaps.Add($"0_snapshot{i}_414134141{i}", new ObservableCollection<IShape>());
-                snapshotFilename.Add($"snapshot{i}", $"0_snapshot{i}_414134141{i}");
+                var dateTime = DateTime.Now;
+                snaps.Add($"0_snapshot{i}_{((DateTimeOffset)dateTime.ToUniversalTime()).ToUnixTimeSeconds()}", new ObservableCollection<IShape>());
+                snapShotDownloadItems.Add(new SnapShotDownloadItem($"snapshot{i}",DateTime.Now));
             }
             snapsField.SetValue(_snapShotService, snaps);
-            snapshotFilenameField.SetValue(_snapShotService, snapshotFilename);
+            snapShotDownloadItemsField.SetValue(_snapShotService, snapShotDownloadItems);
 
             var snapShotFileName = "test_snapshot";
 
@@ -117,16 +118,17 @@ namespace WhiteboardGUI.Tests
             await _snapShotService.UploadSnapShot(snapShotFileName, _shapes,true);
 
             // Assert: Verify that the number of snaps does not exceed the limit
-            var updatedSnaps = (Dictionary<string, string>)snapshotFilenameField.GetValue(_snapShotService);
+            var updatedSnaps = (List<SnapShotDownloadItem>)snapShotDownloadItemsField.GetValue(_snapShotService);
             Assert.IsTrue(updatedSnaps.Count <= 5);
-            Assert.IsTrue(updatedSnaps.ContainsKey(snapShotFileName));
+            Assert.IsTrue(updatedSnaps.Any(item=> item.FileName==snapShotFileName));
         }
 
         [TestMethod]
         public void DownloadSnapShot_ShouldClearShapesAndAddNewOnes()
         {
             // Arrange
-            var selectedDownloadItem = "snapshot1";
+            var dateTime = DateTime.Now;
+            var selectedDownloadItem = new SnapShotDownloadItem("snapshot1",dateTime);
             var snapShotShapes = new ObservableCollection<IShape>
         {
             new LineShape { StartX = 10, StartY = 20, EndX = 30, EndY = 40 }
@@ -134,13 +136,16 @@ namespace WhiteboardGUI.Tests
 
             // Access and set private Snaps dictionary
             var snapsField = typeof(SnapShotService).GetField("Snaps", BindingFlags.NonPublic | BindingFlags.Instance);
-            var snapshotFilenameField = typeof(SnapShotService).GetField("SnapshotFilename", BindingFlags.NonPublic | BindingFlags.Instance);
+            var snapShotDownloadItemsField = typeof(SnapShotService).GetField("SnapShotDownloadItems", BindingFlags.NonPublic | BindingFlags.Instance);
 
-            var snaps = new Dictionary<string, ObservableCollection<IShape>> { { "snapshot1", snapShotShapes } };
-            var snapshotFilename = new Dictionary<string, string> { { "snapshot1", "snapshot1" } };
+            var snaps = new Dictionary<string, ObservableCollection<IShape>> { { $"0_snapshot1_{((DateTimeOffset)dateTime.ToUniversalTime()).ToUnixTimeSeconds()}", snapShotShapes } };
+            var snapShotDownloadItems = new List<SnapShotDownloadItem> {
+                    new SnapShotDownloadItem("snapshot1",dateTime),
+                    new SnapShotDownloadItem("snapshot2",DateTime.Now)
+                    };
 
             snapsField.SetValue(_snapShotService, snaps);
-            snapshotFilenameField.SetValue(_snapShotService, snapshotFilename);
+            snapShotDownloadItemsField.SetValue(_snapShotService, snapShotDownloadItems);
 
             // Mock RenderShape calls
             _mockRenderingService.Setup(rs => rs.RenderShape(It.IsAny<IShape>(), "DOWNLOAD"));
@@ -162,12 +167,12 @@ namespace WhiteboardGUI.Tests
         public void IsValidFilename_ShouldReturnCorrectValidation()
         {
             // Arrange
-            var snapshotFilenameField = typeof(SnapShotService).GetField("SnapshotFilename", BindingFlags.NonPublic | BindingFlags.Instance);
-            var snapshotFilename = new Dictionary<string, string>
+            var snapShotDownloadItemsField = typeof(SnapShotService).GetField("SnapShotDownloadItems", BindingFlags.NonPublic | BindingFlags.Instance);
+            var snapShotDownloadItems = new List<SnapShotDownloadItem>
         {
-            { "valid_filename", "snapshot_valid" }
+            { new SnapShotDownloadItem("valid_filename",DateTime.Now) }
         };
-            snapshotFilenameField.SetValue(_snapShotService, snapshotFilename);
+            snapShotDownloadItemsField.SetValue(_snapShotService, snapShotDownloadItems);
 
             // Act & Assert
             Assert.IsFalse(_snapShotService.IsValidFilename("valid_filename"), "Filename already exists, should return false.");
@@ -179,21 +184,22 @@ namespace WhiteboardGUI.Tests
         {
             // Arrange
             var snapsField = typeof(SnapShotService).GetField("Snaps", BindingFlags.NonPublic | BindingFlags.Instance);
-            var snapshotFilenameField = typeof(SnapShotService).GetField("SnapshotFilename", BindingFlags.NonPublic | BindingFlags.Instance);
+            var snapShotDownloadItemsField = typeof(SnapShotService).GetField("SnapShotDownloadItems", BindingFlags.NonPublic | BindingFlags.Instance);
 
             var snapShotShapes = new ObservableCollection<IShape>
         {
             new LineShape { StartX = 10, StartY = 20, EndX = 30, EndY = 40 }
         };
-            var snaps = new Dictionary<string, ObservableCollection<IShape>> { { "snapshot_key", snapShotShapes } };
-            var snapshotFilename = new Dictionary<string, string> { { "snapshot_name", "snapshot_key" } };
+            var dateTime = DateTime.Now;
+            var snaps = new Dictionary<string, ObservableCollection<IShape>> { { $"0_SnapName_{((DateTimeOffset)dateTime.ToUniversalTime()).ToUnixTimeSeconds()}", snapShotShapes } };
+            var snapShotDownloadItems = new List<SnapShotDownloadItem> { new SnapShotDownloadItem("SnapName",dateTime) };
 
             snapsField.SetValue(_snapShotService, snaps);
-            snapshotFilenameField.SetValue(_snapShotService, snapshotFilename);
+            snapShotDownloadItemsField.SetValue(_snapShotService, snapShotDownloadItems);
 
             // Use reflection to invoke the private getSnapShot method
             var getSnapShotMethod = typeof(SnapShotService).GetMethod("getSnapShot", BindingFlags.NonPublic | BindingFlags.Instance);
-            var result = (ObservableCollection<IShape>)getSnapShotMethod.Invoke(_snapShotService, new object[] { "snapshot_name" });
+            var result = (ObservableCollection<IShape>)getSnapShotMethod.Invoke(_snapShotService, new object[] { new SnapShotDownloadItem("SnapName",dateTime) });
 
             // Assert
             Assert.IsNotNull(result, "getSnapShot should return a valid snapshot.");
@@ -229,19 +235,19 @@ namespace WhiteboardGUI.Tests
         {
             // Arrange: Set up Snaps with a large number of snapshots
             var snapsField = typeof(SnapShotService).GetField("Snaps", BindingFlags.NonPublic | BindingFlags.Instance);
-            var snapshotFileNameField = typeof(SnapShotService).GetField("SnapshotFilename", BindingFlags.NonPublic | BindingFlags.Instance);
+            var snapShotDownloadItemsField = typeof(SnapShotService).GetField("SnapShotDownloadItems", BindingFlags.NonPublic | BindingFlags.Instance);
 
             var snaps = new Dictionary<string, ObservableCollection<IShape>>();
-            var snapshotFileName = new Dictionary<string, string>();
+            var snapShotDownloadItems = new List<SnapShotDownloadItem>();
 
             for (int i = 0; i < 10; i++)
             {
-                snaps.Add($"snapshot_{i}_1234567890", new ObservableCollection<IShape>());
-                snapshotFileName.Add(i.ToString(), $"snapshot_{i}_1234567890");
+                snaps.Add($"0_{i}_{((DateTimeOffset)DateTime.Now.ToUniversalTime()).ToUnixTimeSeconds().ToString()}", new ObservableCollection<IShape>());
+                snapShotDownloadItems.Add(new SnapShotDownloadItem(i.ToString(),DateTime.Now));
             }
 
             snapsField.SetValue(_snapShotService, snaps);
-            snapshotFileNameField.SetValue(_snapShotService, snapshotFileName);
+            snapShotDownloadItemsField.SetValue(_snapShotService, snapShotDownloadItems);
 
             // Act: Call CheckLimit
             _snapShotService.GetType()
@@ -256,11 +262,14 @@ namespace WhiteboardGUI.Tests
         [TestMethod]
         public async Task GetSnaps_ShouldReturnValidSnapshotFileNames()
         {
+            var dateTime1 = DateTime.Now;
+            var dateTime2 = DateTime.Now;
             // Arrange: Create and serialize SnapShot objects
             var snapshot1 = new SnapShot
             {
                 userID = "user_1",
                 fileName = "snapshot1",
+                dateTime = dateTime1,
                 Shapes = new ObservableCollection<IShape>
         {
             new LineShape { StartX = 10, StartY = 20, EndX = 30, EndY = 40 }
@@ -271,6 +280,7 @@ namespace WhiteboardGUI.Tests
             {
                 userID = "user_2",
                 fileName = "snapshot2",
+                dateTime = dateTime2,
                 Shapes = new ObservableCollection<IShape>
         {
             new LineShape { StartX = 50, StartY = 60, EndX = 70, EndY = 80 }
@@ -303,8 +313,8 @@ namespace WhiteboardGUI.Tests
 
             // Assert
             Assert.AreEqual(2, result.Count);
-            Assert.IsTrue(result.Contains("snapshot1"));
-            Assert.IsTrue(result.Contains("snapshot2"));
+            Assert.IsTrue(result.Any(item => item.FileName=="snapshot1"));
+            Assert.IsTrue(result.Any(item=> item.FileName=="snapshot2"));
         }
 
     }
