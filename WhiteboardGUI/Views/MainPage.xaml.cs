@@ -388,5 +388,10 @@ namespace WhiteboardGUI.Views
             // Mark the event as handled to prevent further processing
             e.Handled = true;
         }
+
+        private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+
+        }
     }
 }

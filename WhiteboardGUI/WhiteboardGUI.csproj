@@ -15,7 +15,9 @@
     <None Remove="Views\assets\cloud-download.png" />
     <None Remove="Views\assets\cloud-upload.png" />
     <None Remove="Views\assets\deleteicon.png" />
+    <None Remove="Views\assets\housekeeping-icon.png" />
     <None Remove="Views\assets\lineicon.png" />
+    <None Remove="Views\assets\night-icon.png" />
     <None Remove="Views\assets\palette.png" />
     <None Remove="Views\assets\pencilicon.png" />
     <None Remove="Views\assets\redo-circle.png" />
@@ -55,7 +57,9 @@
     <Resource Include="Views\assets\cloud-download.png" />
     <Resource Include="Views\assets\cloud-upload.png" />
     <Resource Include="Views\assets\deleteicon.png" />
+    <Resource Include="Views\assets\housekeeping-icon.png" />
     <Resource Include="Views\assets\lineicon.png" />
+    <Resource Include="Views\assets\night-icon.png" />
     <Resource Include="Views\assets\palette.png" />
     <Resource Include="Views\assets\pencilicon.png" />
     <Resource Include="Views\assets\redo-circle.png" />
