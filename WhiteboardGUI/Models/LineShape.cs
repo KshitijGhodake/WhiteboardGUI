@@ -1,11 +1,26 @@
-﻿using System;
+﻿/******************************************************************************
+ * Filename    = LineShape.cs
+ *
+ * Author      = Yash Mittal
+ *
+ * Project     = WhiteBoard
+ *
+ * Description = Implementing ShapeBase for Line shape
+ *****************************************************************************/
+using System;
 using System.Windows;
 using System.Windows.Media;
 
 namespace WhiteboardGUI.Models
 {
+    /// <summary>
+    /// Represents a line shape derived from ShapeBase.
+    /// </summary>
     public class LineShape : ShapeBase
     {
+        /// <summary>
+        /// Gets the type of the shape.
+        /// </summary>
         public override string ShapeType => "Line";
 
         private double _startX;
@@ -13,6 +28,9 @@ namespace WhiteboardGUI.Models
         private double _endX;
         private double _endY;
 
+        /// <summary>
+        /// Gets or sets the starting X-coordinate of the line.
+        /// </summary>
         public double StartX
         {
             get => _startX;
@@ -33,6 +51,9 @@ namespace WhiteboardGUI.Models
             }
         }
 
+        /// <summary>
+        /// Gets or sets the starting Y-coordinate of the line.
+        /// </summary>
         public double StartY
         {
             get => _startY;
@@ -52,6 +73,9 @@ namespace WhiteboardGUI.Models
             }
         }
 
+        /// <summary>
+        /// Gets or sets the ending X-coordinate of the line.
+        /// </summary>
         public double EndX
         {
             get => _endX;
@@ -71,6 +95,9 @@ namespace WhiteboardGUI.Models
             }
         }
 
+        /// <summary>
+        /// Gets or sets the ending Y-coordinate of the line.
+        /// </summary>
         public double EndY
         {
             get => _endY;
@@ -90,6 +117,9 @@ namespace WhiteboardGUI.Models
             }
         }
 
+        /// <summary>
+        /// Handles changes to the coordinates by updating dependent properties.
+        /// </summary>
         private void OnCoordinateChanged()
         {
             OnPropertyChanged(nameof(MidX));
@@ -105,38 +135,67 @@ namespace WhiteboardGUI.Models
         }
 
         public double MidX => (StartX + EndX) / 2;
+
         public double MidY => (StartY + EndY) / 2;
 
-        // Property for binding in XAML
         public Brush Stroke => new SolidColorBrush((Color)ColorConverter.ConvertFromString(Color));
 
         public double Left => Math.Min(StartX, EndX) - HandleSize / 2;
+
         public double Top => Math.Min(StartY, EndY) - HandleSize / 2;
+
         public double Width => Math.Abs(EndX - StartX) + HandleSize;
+
         public double Height => Math.Abs(EndY - StartY) + HandleSize;
 
-        public double HandleSize => 8;
-
-        // Properties for handle positions
+     
+       public double HandleSize => 8;
+       
+        /// <summary>
+        /// Properties for handle positions
+        /// </summary>
         public double StartHandleX => StartX - HandleSize / 2;
+
         public double StartHandleY => StartY - HandleSize / 2;
+
         public double EndHandleX => EndX - HandleSize / 2;
+
         public double EndHandleY => EndY - HandleSize / 2;
 
         public double RelativeStartX => StartX - Left;
+
+       
         public double RelativeStartY => StartY - Top - Height;
+
+        /// <summary>
+        /// Gets the relative X-coordinate of the end point.
+        /// </summary>
         public double RelativeEndX => EndX - Left;
+
+        /// <summary>
+        /// Gets the relative Y-coordinate of the end point.
+        /// </summary>
         public double RelativeEndY => EndY - Top - Height;
 
+        /// <summary>
+        /// Gets the bottom-left position of the line.
+        /// </summary>
         public double Bottomleft => Top + Height;
 
-
+        /// <summary>
+        /// Returns the bounding rectangle of the line.
+        /// </summary>
+        /// <returns>A Rect representing the bounds.</returns>
         public override Rect GetBounds()
         {
             // Return the axis-aligned bounding box of the line
             return new Rect(Left, Top, Width, Height);
         }
 
+        /// <summary>
+        /// Creates a clone of the current line shape.
+        /// </summary>
+        /// <returns>A new instance of LineShape with copied properties.</returns>
         public override IShape Clone()
         {
             return new LineShape

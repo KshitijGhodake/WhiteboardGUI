@@ -1,11 +1,24 @@
-﻿using System;
+﻿/******************************************************************************
+ * Filename    = TextBoxModel.cs
+ *
+ * Author      = Yash Mittal
+ *
+ * Project     = WhiteBoard
+ *
+ * Description = TextBoxModel implements ShapeBase class
+ *****************************************************************************/
+using System;
 using System.Windows;
 using System.Windows.Media;
 
 namespace WhiteboardGUI.Models
 {
+    /// <summary>
+    /// Represents a textbox shape derived from ShapeBase.
+    /// </summary>
     public class TextboxModel : ShapeBase
     {
+ 
         public override string ShapeType => "TextboxModel";
 
         private string _text;
@@ -15,12 +28,14 @@ namespace WhiteboardGUI.Models
         private double _y;
         private double _fontSize;
 
+        /// <summary>
+        /// Gets or sets the text content of the textbox.
+        /// </summary>
         public string Text
         {
             get => _text;
             set { _text = value; OnPropertyChanged(nameof(Text)); }
-        }
-
+        }      
         public double Width
         {
             get => _width;
@@ -45,21 +60,30 @@ namespace WhiteboardGUI.Models
             set { _y = value; OnPropertyChanged(nameof(Y)); OnPropertyChanged(nameof(Top)); }
         }
 
+        /// <summary>
+        /// Gets or sets the font size of the textbox text.
+        /// </summary>
         public double FontSize
         {
             get => _fontSize;
             set { _fontSize = value; OnPropertyChanged(nameof(FontSize)); }
         }
 
-        // Properties for binding in XAML
+
+        /// <summary>
+        /// Properties for binding in XAML
+        /// </summary>
+
         public double Left => X;
+
         public double Top => Y;
 
         public Brush Background => new SolidColorBrush(Colors.LightGray);
+
         public Brush BorderBrush => new SolidColorBrush(Colors.Blue);
+
         public Brush Foreground => new SolidColorBrush((Color)ColorConverter.ConvertFromString(Color));
 
-        // Implement IsSelected property
         private bool _isSelected;
         public bool IsSelected
         {
@@ -67,12 +91,19 @@ namespace WhiteboardGUI.Models
             set { _isSelected = value; OnPropertyChanged(nameof(IsSelected)); }
         }
 
-        // Implement GetBounds method
+        /// <summary>
+        /// Returns the bounding rectangle of the textbox.
+        /// </summary>
+        /// <returns>A Rect representing the bounds.</returns>
         public override Rect GetBounds()
         {
             return new Rect(Left, Top, Width, Height);
         }
 
+        /// <summary>
+        /// Creates a clone of the current textbox model.
+        /// </summary>
+        /// <returns>A new instance of TextboxModel with copied properties.</returns>
         public override IShape Clone()
         {
             return new TextboxModel
@@ -93,6 +124,5 @@ namespace WhiteboardGUI.Models
                 // Copy additional properties from ShapeBase if necessary
             };
         }
-
     }
 }

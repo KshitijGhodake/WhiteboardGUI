@@ -292,7 +292,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="TextBox">
                         <Grid>
-                            
+
                             <Border
                                 CornerRadius="5"
                                 Background="BlanchedAlmond"
@@ -403,505 +403,6 @@
             </Grid.RowDefinitions>
 
             <!--  Toolbar Section  -->
-            <Border
-                Grid.Row="0"
-                Margin="10"
-                Padding="10"
-                CornerRadius="10">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Offset="0.0" Color="#2B124C" />
-                        <GradientStop Offset="1.0" Color="#522B5B" />
-                    </LinearGradientBrush>
-                </Border.Background>
-                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                    <Border
-                        Grid.Row="0"
-                        Margin="10,10,0,10"
-                        Background="#854f6c"
-                        CornerRadius="10">
-                        <StackPanel
-                            Grid.Row="0"
-                            Margin="10,10,0,10"
-                            HorizontalAlignment="Center"
-                            Background="#854f6c"
-                            Orientation="Horizontal">
-
-                            <Button
-                                Command="{Binding SelectToolCommand}"
-                                CommandParameter="{x:Static models:ShapeType.Pencil}"
-                                Style="{StaticResource ToolBarStyle}"
-                                ToolTip="Pencil">
-                                <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
-                                    <Image
-                                        Width="20"
-                                        Height="20"
-                                        Source="Assets/PencilIcon.png" />
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        FontSize="12"
-                                        Text="Pencil" />
-                                </StackPanel>
-                            </Button>
-
-                            <Button
-                                Command="{Binding SelectToolCommand}"
-                                CommandParameter="{x:Static models:ShapeType.Line}"
-                                Style="{StaticResource ToolBarStyle}"
-                                ToolTip="Line">
-                                <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
-                                    <Image
-                                        Width="20"
-                                        Height="20"
-                                        Source="Assets/LineIcon.png" />
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        FontSize="12"
-                                        Text="Line" />
-                                </StackPanel>
-                            </Button>
-                            <Button
-                                Command="{Binding SelectToolCommand}"
-                                CommandParameter="{x:Static models:ShapeType.Circle}"
-                                Style="{StaticResource ToolBarStyle}"
-                                ToolTip="Circle">
-                                <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
-                                    <Image
-                                        Width="20"
-                                        Height="20"
-                                        Source="Assets/circleicon.png" />
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        FontSize="12"
-                                        Text="Circle" />
-                                </StackPanel>
-                            </Button>
-                            <Button
-                                Command="{Binding SelectToolCommand}"
-                                CommandParameter="{x:Static models:ShapeType.Text}"
-                                Style="{StaticResource ToolBarStyle}"
-                                ToolTip="Text">
-                                <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
-                                    <Image
-                                        Width="20"
-                                        Height="20"
-                                        Source="Assets/texticon.png" />
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        FontSize="12"
-                                        Text="Text" />
-                                </StackPanel>
-                            </Button>
-
-                            <Button
-                                Command="{Binding SelectToolCommand}"
-                                CommandParameter="{x:Static models:ShapeType.Select}"
-                                Style="{StaticResource ToolBarStyle}"
-                                ToolTip="Select">
-                                <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
-                                    <Image
-                                        Width="20"
-                                        Height="20"
-                                        Source="Assets/selecticon.png" />
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        FontSize="12"
-                                        Text="Select" />
-                                </StackPanel>
-                            </Button>
-                            <Button
-                                Background="#DFB6B2"
-                                Command="{Binding DeleteShapeCommand}"
-                                IsEnabled="{Binding IsShapeSelected}"
-                                Style="{StaticResource ToolBarStyle}"
-                                ToolTip="Delete">
-                                <StackPanel
-                                    HorizontalAlignment="Center"
-                                    Background="#DFB6B2"
-                                    Orientation="Vertical">
-                                    <Image
-                                        Width="20"
-                                        Height="20"
-                                        Source="Assets/deleteicon.png" />
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        FontSize="12"
-                                        Text="Delete" />
-                                </StackPanel>
-                            </Button>
-                            <!--  Clear Button with Confirmation Dialog  -->
-                            <Button
-                                x:Name="ClearButton"
-                                Command="{Binding OpenClearConfirmationCommand}"
-                                Style="{StaticResource ToolBarStyle}"
-                                ToolTip="Clear All Shapes">
-                                <!--  Updated Command Binding  -->
-                                <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
-                                    <Image
-                                        Width="20"
-                                        Height="20"
-                                        RenderTransformOrigin="0.524,0.5"
-                                        Source="Assets/housekeeping-icon.png" />
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        FontSize="12"
-                                        Text="Clear" />
-                                </StackPanel>
-                            </Button>
-                            <!--  Confirmation Popup for Clear Button  -->
-                            <Popup
-                                x:Name="ClearConfirmationPopup"
-                                AllowsTransparency="True"
-                                IsOpen="{Binding IsClearConfirmationOpen, Mode=TwoWay}"
-                                Placement="Bottom"
-                                PlacementTarget="{Binding ElementName=ClearButton}"
-                                PopupAnimation="Fade">
-                                <Border Style="{StaticResource PopupBorderStyle}">
-                                    <!--  Applied consistent Popup style  -->
-                                    <StackPanel>
-                                        <TextBlock
-                                            Margin="0,0,0,10"
-                                            FontSize="14"
-                                            Text="Are you sure you want to clear the screen?&#x0a;You can't revert this action"
-                                            TextWrapping="Wrap" />
-                                        <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
-                                            <Button
-                                                Width="60"
-                                                Margin="0,0,10,0"
-                                                Command="{Binding ConfirmClearCommand}"
-                                                Content="Yes"
-                                                Style="{StaticResource ConfirmationButtonStyle}" />
-                                            <Button
-                                                Width="60"
-                                                Command="{Binding CancelClearCommand}"
-                                                Content="No"
-                                                Style="{StaticResource ConfirmationButtonStyle}" />
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Border>
-                            </Popup>
-
-                            <Button
-                                Background="#DFB6B2"
-                                Command="{Binding UndoCommand}"
-                                Style="{StaticResource ToolBarStyle}"
-                                ToolTip="Undo">
-                                <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
-                                    <Image
-                                        Width="20"
-                                        Height="20"
-                                        Source="Assets/undo-circle.png" />
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        FontSize="12"
-                                        Text="Undo" />
-                                </StackPanel>
-                            </Button>
-
-                            <Button
-                                Background="#DFB6B2"
-                                Command="{Binding RedoCommand}"
-                                Style="{StaticResource ToolBarStyle}"
-                                ToolTip="Redo">
-                                <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
-                                    <Image
-                                        Width="20"
-                                        Height="20"
-                                        Source="Assets/redo-circle.png" />
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        FontSize="12"
-                                        Text="Redo" />
-                                </StackPanel>
-                            </Button>
-                            <!--  Toggle Buttons for Server and Client Modes  -->
-                            <ToggleButton
-                                Command="{Binding StartHostCommand}"
-                                IsChecked="{Binding IsHost, Mode=TwoWay}"
-                                Style="{StaticResource ToolBarToggleStyle}"
-                                ToolTip="Server Mode">
-                                <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
-                                    <Image
-                                        Width="20"
-                                        Height="20"
-                                        Source="Assets/servericon.png" />
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        FontSize="12"
-                                        Text="Server" />
-                                </StackPanel>
-                            </ToggleButton>
-                            <ToggleButton
-                                Command="{Binding StartClientCommand}"
-                                IsChecked="{Binding IsClient, Mode=TwoWay}"
-                                Style="{StaticResource ToolBarToggleStyle}"
-                                ToolTip="Client Mode">
-                                <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
-                                    <Image
-                                        Width="20"
-                                        Height="20"
-                                        Source="Assets/clienticon.png" />
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        FontSize="12"
-                                        Text="Client" />
-                                </StackPanel>
-                            </ToggleButton>
-                            <!--  start  -->
-                            <ToggleButton
-                                x:Name="PaletteToggleButton"
-                                Checked="PaletteToggleButton_Checked"
-                                Style="{StaticResource ToolBarToggleStyle}"
-                                ToolTip="Color Palette"
-                                Unchecked="PaletteToggleButton_Unchecked">
-                                <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
-                                    <Image
-                                        Width="20"
-                                        Height="20"
-                                        Source="Assets/palette.png" />
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        FontSize="12"
-                                        Text="Palette" />
-                                </StackPanel>
-                            </ToggleButton>
-                            <!--  Popup containing color options  -->
-                            <Popup
-                                x:Name="ColorPopup"
-                                AllowsTransparency="True"
-                                Placement="Bottom"
-                                PlacementTarget="{Binding ElementName=PaletteToggleButton}"
-                                PopupAnimation="Fade"
-                                StaysOpen="False">
-                                <!-- <Border Background="#FBE4DB"
-                    BorderBrush="Gray"
-                    BorderThickness="1"
-                    CornerRadius="5"
-                    Padding="10">-->
-                                <Border Style="{StaticResource PopupBorderStyle}">
-                                    <WrapPanel>
-                                        <!--  Define color buttons  -->
-                                        <Button
-                                            Margin="5"
-                                            Background="{Binding DefaultColor}"
-                                            Command="{Binding SelectColorCommand}"
-                                            CommandParameter="Black"
-                                            Style="{StaticResource CircularColorButton}" />
-                                        <Button
-                                            Margin="5"
-                                            Background="Red"
-                                            Command="{Binding SelectColorCommand}"
-                                            CommandParameter="Red"
-                                            Style="{StaticResource CircularColorButton}" />
-                                        <Button
-                                            Margin="5"
-                                            Background="Green"
-                                            Command="{Binding SelectColorCommand}"
-                                            CommandParameter="Green"
-                                            Style="{StaticResource CircularColorButton}" />
-                                        <Button
-                                            Margin="5"
-                                            Background="Blue"
-                                            Command="{Binding SelectColorCommand}"
-                                            CommandParameter="Blue"
-                                            Style="{StaticResource CircularColorButton}" />
-                                        <Button
-                                            Margin="5"
-                                            Background="Yellow"
-                                            Command="{Binding SelectColorCommand}"
-                                            CommandParameter="Yellow"
-                                            Style="{StaticResource CircularColorButton}" />
-                                        <Button
-                                            Margin="5"
-                                            Background="Orange"
-                                            Command="{Binding SelectColorCommand}"
-                                            CommandParameter="Orange"
-                                            Style="{StaticResource CircularColorButton}" />
-                                        <Button
-                                            Margin="5"
-                                            Background="Purple"
-                                            Command="{Binding SelectColorCommand}"
-                                            CommandParameter="Purple"
-                                            Style="{StaticResource CircularColorButton}" />
-                                        <!--  Add more colors as needed  -->
-                                    </WrapPanel>
-                                </Border>
-                            </Popup>
-                            <Ellipse
-                                Width="20"
-                                Height="20"
-                                Margin="0,0,10,0"
-                                Stroke="#190019">
-                                <Ellipse.Fill>
-                                    <SolidColorBrush Color="{Binding CurrentColor}" />
-                                </Ellipse.Fill>
-                            </Ellipse>
-                            <!--  Thickness Slider  -->
-                            <StackPanel
-                                Margin="10,0,0,0"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Orientation="Vertical">
-                                <Image
-                                    Width="20"
-                                    Height="20"
-                                    Source="Assets/thickness.png" />
-                                <TextBlock
-                                    HorizontalAlignment="Center"
-                                    FontSize="12"
-                                    Text="Thickness" />
-                            </StackPanel>
-
-                            <Slider
-                                Width="100"
-                                Margin="0,0,15,0"
-                                VerticalAlignment="Center"
-                                HorizontalContentAlignment="Stretch"
-                                Background="#FFF71818"
-                                IsSnapToTickEnabled="True"
-                                Maximum="10"
-                                Minimum="1"
-                                Template="{StaticResource CustomSliderTemplate}"
-                                TickFrequency="1"
-                                Ticks="1,5,10"
-                                ValueChanged="Slider_ValueChanged"
-                                Value="{Binding SelectedThickness, Mode=TwoWay}" />
-
-                            <Button
-                                x:Name="UploadButton"
-                                Background="#DFB6B2"
-                                Command="{Binding OpenPopupCommand}"
-                                Style="{StaticResource ToolBarStyle}"
-                                ToolTip="Upload">
-                                <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
-                                    <Image
-                                        Width="20"
-                                        Height="20"
-                                        Source="Assets/cloud-upload.png" />
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        FontSize="12"
-                                        Text="Snap" />
-                                </StackPanel>
-                            </Button>
-
-                            <!--  Popup containing the TextBox for filename  -->
-                            <Popup
-                                x:Name="UploadPopup"
-                                AllowsTransparency="True"
-                                IsOpen="{Binding IsPopupOpen, Mode=TwoWay}"
-                                Placement="Bottom"
-                                PlacementTarget="{Binding ElementName=UploadButton}"
-                                PopupAnimation="Fade"
-                                StaysOpen="False">
-                                <!--<Border Background="#FBE4D8"
-                                BorderBrush="Gray"
-                                BorderThickness="1"
-                                CornerRadius="5"
-                                Padding="10">-->
-                                <Border Style="{StaticResource PopupBorderStyle}">
-                                    <StackPanel>
-
-                                        <!--  TextBox with Placeholder  -->
-                                        <TextBox Style="{StaticResource WatermarkTextBox}" Text="{Binding SnapShotFileName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-
-                                        <!--  Submit Button with IsEnabled Binding  -->
-                                        <Button
-                                            Width="75"
-                                            Height="35"
-                                            Margin="0,10,0,0"
-                                            HorizontalAlignment="Right"
-                                            Command="{Binding SubmitCommand}"
-                                            Content="{Binding IsUploading, Converter={StaticResource BooleanToTextConverter}, ConverterParameter='Submit|Uploading...'}"
-                                            IsEnabled="{Binding IsUploading, Converter={StaticResource InverseBooleanConverter}}"
-                                            Style="{StaticResource SubmitButtonStyle}" />
-                                    </StackPanel>
-                                </Border>
-                            </Popup>
-
-                            <!--  Download Button  -->
-                            <Button
-                                x:Name="DownloadButton"
-                                Background="#DFB6B2"
-                                Command="{Binding OpenDownloadPopupCommand}"
-                                Style="{StaticResource ToolBarStyle}"
-                                ToolTip="Download">
-                                <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
-                                    <Image
-                                        Width="20"
-                                        Height="20"
-                                        Source="Assets/cloud-download.png" />
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        FontSize="12"
-                                        Text="Load" />
-                                </StackPanel>
-                            </Button>
-
-                            <!--  Popup containing the ListBox for selecting an item  -->
-                            <Popup
-                                x:Name="DownloadPopup"
-                                AllowsTransparency="True"
-                                IsOpen="{Binding IsDownloadPopupOpen, Mode=TwoWay}"
-                                Placement="Bottom"
-                                PlacementTarget="{Binding ElementName=DownloadButton}"
-                                PopupAnimation="Fade"
-                                StaysOpen="False">
-                                <Border Style="{StaticResource PopupBorderStyle}">
-                                    <StackPanel>
-                                        <TextBlock
-                                            Margin="0,0,0,10"
-                                            FontWeight="Bold"
-                                            Text="Select an item to download:" />
-
-                                        <!-- ListBox for displaying download items -->
-                                        <ListBox ItemsSource="{Binding DownloadItems}"
-                                            SelectedItem="{Binding SelectedDownloadItem, Mode=TwoWay}"
-                                            Width="200" Height="150">
-                                            <ListBox.ItemTemplate>
-                                                <DataTemplate>
-                                                    <StackPanel Orientation="Horizontal" Margin="5">
-                                                        <TextBlock Text="{Binding FileName}" FontSize="14" />
-                                                        <TextBlock Text="{Binding Time, StringFormat=' {0:MM/dd/yyyy HH:mm}'}" 
-                                                            FontSize="12" Foreground="Gray" Margin="10,0,0,0" />
-                                                    </StackPanel>
-                                                </DataTemplate>
-                                            </ListBox.ItemTemplate>
-                                        </ListBox> 
-
-                                        <!--  Download Button  -->
-                                        <Button
-                                            Width="90"
-                                            Height="38"
-                                            Margin="0,10,0,0"
-                                            HorizontalAlignment="Right"
-                                            Command="{Binding DownloadItemCommand}"
-                                            Content="Download"
-                                            IsEnabled="{Binding CanDownload}"
-                                            Style="{StaticResource SubmitButtonStyle}" />
-                                    </StackPanel>
-                                </Border>
-                            </Popup>
-                            <!--  Add this within your existing StackPanel in the toolbar  -->
-                            <ToggleButton
-                                IsChecked="{Binding IsDarkMode, Mode=TwoWay}"
-                                Style="{StaticResource ToolBarToggleStyle}"
-                                ToolTip="Dark Mode">
-                                <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
-                                    <Image
-                                        Width="18"
-                                        Height="17"
-                                        Margin="0,2"
-                                        RenderTransformOrigin="0.459,0.793"
-                                        Source="Assets/night-icon.png" />
-                                    <TextBlock FontSize="12" Text="Theme" />
-                                </StackPanel>
-                            </ToggleButton>
-
-                        </StackPanel>
-                    </Border>
-                </ScrollViewer>
-            </Border>
 
             <!--  Canvas Section  -->
             <ItemsControl
@@ -961,7 +462,7 @@
                                             Stroke="{Binding BoundingBoxColor}"
                                      ></Rectangle>
 
-                                     
+
 
 
 
@@ -1258,6 +759,505 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
+            <Border
+                Grid.Row="0"
+                Margin="10"
+                Padding="10"
+                CornerRadius="10">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Offset="0.0" Color="#2B124C" />
+                        <GradientStop Offset="1.0" Color="#522B5B" />
+                    </LinearGradientBrush>
+                </Border.Background>
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                    <Border
+                        Grid.Row="0"
+                        Margin="10,10,0,10"
+                        Background="#854f6c"
+                        CornerRadius="10">
+                        <StackPanel
+                            Grid.Row="0"
+                            Margin="10,10,0,10"
+                            HorizontalAlignment="Center"
+                            Background="#854f6c"
+                            Orientation="Horizontal">
+
+                            <Button
+                                Command="{Binding SelectToolCommand}"
+                                CommandParameter="{x:Static models:ShapeType.Pencil}"
+                                Style="{StaticResource ToolBarStyle}"
+                                ToolTip="Pencil">
+                                <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
+                                    <Image
+                                        Width="20"
+                                        Height="20"
+                                        Source="Assets/PencilIcon.png" />
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        FontSize="12"
+                                        Text="Pencil" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button
+                                Command="{Binding SelectToolCommand}"
+                                CommandParameter="{x:Static models:ShapeType.Line}"
+                                Style="{StaticResource ToolBarStyle}"
+                                ToolTip="Line">
+                                <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
+                                    <Image
+                                        Width="20"
+                                        Height="20"
+                                        Source="Assets/LineIcon.png" />
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        FontSize="12"
+                                        Text="Line" />
+                                </StackPanel>
+                            </Button>
+                            <Button
+                                Command="{Binding SelectToolCommand}"
+                                CommandParameter="{x:Static models:ShapeType.Circle}"
+                                Style="{StaticResource ToolBarStyle}"
+                                ToolTip="Circle">
+                                <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
+                                    <Image
+                                        Width="20"
+                                        Height="20"
+                                        Source="Assets/circleicon.png" />
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        FontSize="12"
+                                        Text="Circle" />
+                                </StackPanel>
+                            </Button>
+                            <Button
+                                Command="{Binding SelectToolCommand}"
+                                CommandParameter="{x:Static models:ShapeType.Text}"
+                                Style="{StaticResource ToolBarStyle}"
+                                ToolTip="Text">
+                                <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
+                                    <Image
+                                        Width="20"
+                                        Height="20"
+                                        Source="Assets/texticon.png" />
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        FontSize="12"
+                                        Text="Text" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button
+                                Command="{Binding SelectToolCommand}"
+                                CommandParameter="{x:Static models:ShapeType.Select}"
+                                Style="{StaticResource ToolBarStyle}"
+                                ToolTip="Select">
+                                <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
+                                    <Image
+                                        Width="20"
+                                        Height="20"
+                                        Source="Assets/selecticon.png" />
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        FontSize="12"
+                                        Text="Select" />
+                                </StackPanel>
+                            </Button>
+                            <Button
+                                Background="#DFB6B2"
+                                Command="{Binding DeleteShapeCommand}"
+                                IsEnabled="{Binding IsShapeSelected}"
+                                Style="{StaticResource ToolBarStyle}"
+                                ToolTip="Delete">
+                                <StackPanel
+                                    HorizontalAlignment="Center"
+                                    Background="#DFB6B2"
+                                    Orientation="Vertical">
+                                    <Image
+                                        Width="20"
+                                        Height="20"
+                                        Source="Assets/deleteicon.png" />
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        FontSize="12"
+                                        Text="Delete" />
+                                </StackPanel>
+                            </Button>
+                            <!--  Clear Button with Confirmation Dialog  -->
+                            <Button
+                                x:Name="ClearButton"
+                                Command="{Binding OpenClearConfirmationCommand}"
+                                Style="{StaticResource ToolBarStyle}"
+                                ToolTip="Clear All Shapes">
+                                <!--  Updated Command Binding  -->
+                                <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
+                                    <Image
+                                        Width="20"
+                                        Height="20"
+                                        RenderTransformOrigin="0.524,0.5"
+                                        Source="Assets/housekeeping-icon.png" />
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        FontSize="12"
+                                        Text="Clear" />
+                                </StackPanel>
+                            </Button>
+                            <!--  Confirmation Popup for Clear Button  -->
+                            <Popup
+                                x:Name="ClearConfirmationPopup"
+                                AllowsTransparency="True"
+                                IsOpen="{Binding IsClearConfirmationOpen, Mode=TwoWay}"
+                                Placement="Bottom"
+                                PlacementTarget="{Binding ElementName=ClearButton}"
+                                PopupAnimation="Fade">
+                                <Border Style="{StaticResource PopupBorderStyle}">
+                                    <!--  Applied consistent Popup style  -->
+                                    <StackPanel>
+                                        <TextBlock
+                                            Margin="0,0,0,10"
+                                            FontSize="14"
+                                            Text="Are you sure you want to clear the screen?&#xA;You can't revert this action"
+                                            TextWrapping="Wrap" />
+                                        <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                                            <Button
+                                                Width="60"
+                                                Margin="0,0,10,0"
+                                                Command="{Binding ConfirmClearCommand}"
+                                                Content="Yes"
+                                                Style="{StaticResource ConfirmationButtonStyle}" />
+                                            <Button
+                                                Width="60"
+                                                Command="{Binding CancelClearCommand}"
+                                                Content="No"
+                                                Style="{StaticResource ConfirmationButtonStyle}" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </Popup>
+
+                            <Button
+                                Background="#DFB6B2"
+                                Command="{Binding UndoCommand}"
+                                Style="{StaticResource ToolBarStyle}"
+                                ToolTip="Undo">
+                                <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
+                                    <Image
+                                        Width="20"
+                                        Height="20"
+                                        Source="Assets/undo-circle.png" />
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        FontSize="12"
+                                        Text="Undo" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button
+                                Background="#DFB6B2"
+                                Command="{Binding RedoCommand}"
+                                Style="{StaticResource ToolBarStyle}"
+                                ToolTip="Redo">
+                                <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
+                                    <Image
+                                        Width="20"
+                                        Height="20"
+                                        Source="Assets/redo-circle.png" />
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        FontSize="12"
+                                        Text="Redo" />
+                                </StackPanel>
+                            </Button>
+                            <!--  Toggle Buttons for Server and Client Modes  -->
+                            <ToggleButton
+                                Command="{Binding StartHostCommand}"
+                                IsChecked="{Binding IsHost, Mode=TwoWay}"
+                                Style="{StaticResource ToolBarToggleStyle}"
+                                ToolTip="Server Mode">
+                                <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
+                                    <Image
+                                        Width="20"
+                                        Height="20"
+                                        Source="Assets/servericon.png" />
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        FontSize="12"
+                                        Text="Server" />
+                                </StackPanel>
+                            </ToggleButton>
+                            <ToggleButton
+                                Command="{Binding StartClientCommand}"
+                                IsChecked="{Binding IsClient, Mode=TwoWay}"
+                                Style="{StaticResource ToolBarToggleStyle}"
+                                ToolTip="Client Mode">
+                                <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
+                                    <Image
+                                        Width="20"
+                                        Height="20"
+                                        Source="Assets/clienticon.png" />
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        FontSize="12"
+                                        Text="Client" />
+                                </StackPanel>
+                            </ToggleButton>
+                            <!--  start  -->
+                            <ToggleButton
+                                x:Name="PaletteToggleButton"
+                                Checked="PaletteToggleButton_Checked"
+                                Style="{StaticResource ToolBarToggleStyle}"
+                                ToolTip="Color Palette"
+                                Unchecked="PaletteToggleButton_Unchecked">
+                                <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
+                                    <Image
+                                        Width="20"
+                                        Height="20"
+                                        Source="Assets/palette.png" />
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        FontSize="12"
+                                        Text="Palette" />
+                                </StackPanel>
+                            </ToggleButton>
+                            <!--  Popup containing color options  -->
+                            <Popup
+                                x:Name="ColorPopup"
+                                AllowsTransparency="True"
+                                Placement="Bottom"
+                                PlacementTarget="{Binding ElementName=PaletteToggleButton}"
+                                PopupAnimation="Fade"
+                                StaysOpen="False">
+                                <!-- <Border Background="#FBE4DB"
+                    BorderBrush="Gray"
+                    BorderThickness="1"
+                    CornerRadius="5"
+                    Padding="10">-->
+                                <Border Style="{StaticResource PopupBorderStyle}">
+                                    <WrapPanel>
+                                        <!--  Add more colors as needed  -->
+                                        <!--  Define color buttons  -->
+                                        <Button
+                                            Margin="5"
+                                            Background="{Binding DefaultColor}"
+                                            Command="{Binding SelectColorCommand}"
+                                            CommandParameter="Black"
+                                            Style="{StaticResource CircularColorButton}" />
+                                        <Button
+                                            Margin="5"
+                                            Background="Red"
+                                            Command="{Binding SelectColorCommand}"
+                                            CommandParameter="Red"
+                                            Style="{StaticResource CircularColorButton}" />
+                                        <Button
+                                            Margin="5"
+                                            Background="Green"
+                                            Command="{Binding SelectColorCommand}"
+                                            CommandParameter="Green"
+                                            Style="{StaticResource CircularColorButton}" />
+                                        <Button
+                                            Margin="5"
+                                            Background="Blue"
+                                            Command="{Binding SelectColorCommand}"
+                                            CommandParameter="Blue"
+                                            Style="{StaticResource CircularColorButton}" />
+                                        <Button
+                                            Margin="5"
+                                            Background="Yellow"
+                                            Command="{Binding SelectColorCommand}"
+                                            CommandParameter="Yellow"
+                                            Style="{StaticResource CircularColorButton}" />
+                                        <Button
+                                            Margin="5"
+                                            Background="Orange"
+                                            Command="{Binding SelectColorCommand}"
+                                            CommandParameter="Orange"
+                                            Style="{StaticResource CircularColorButton}" />
+                                        <Button
+                                            Margin="5"
+                                            Background="Purple"
+                                            Command="{Binding SelectColorCommand}"
+                                            CommandParameter="Purple"
+                                            Style="{StaticResource CircularColorButton}" />
+                                    </WrapPanel>
+                                </Border>
+                            </Popup>
+                            <Ellipse
+                                Width="20"
+                                Height="20"
+                                Margin="0,0,10,0"
+                                Stroke="#190019">
+                                <Ellipse.Fill>
+                                    <SolidColorBrush Color="{Binding CurrentColor}" />
+                                </Ellipse.Fill>
+                            </Ellipse>
+                            <!--  Thickness Slider  -->
+                            <StackPanel
+                                Margin="10,0,0,0"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Orientation="Vertical">
+                                <Image
+                                    Width="20"
+                                    Height="20"
+                                    Source="Assets/thickness.png" />
+                                <TextBlock
+                                    HorizontalAlignment="Center"
+                                    FontSize="12"
+                                    Text="Thickness" />
+                            </StackPanel>
+
+                            <Slider
+                                Width="100"
+                                Margin="0,0,15,0"
+                                VerticalAlignment="Center"
+                                HorizontalContentAlignment="Stretch"
+                                Background="#FFF71818"
+                                IsSnapToTickEnabled="True"
+                                Maximum="10"
+                                Minimum="1"
+                                Template="{StaticResource CustomSliderTemplate}"
+                                TickFrequency="1"
+                                Ticks="1,5,10"
+                                ValueChanged="Slider_ValueChanged"
+                                Value="{Binding SelectedThickness, Mode=TwoWay}" />
+
+                            <Button
+                                x:Name="UploadButton"
+                                Background="#DFB6B2"
+                                Command="{Binding OpenPopupCommand}"
+                                Style="{StaticResource ToolBarStyle}"
+                                ToolTip="Upload">
+                                <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
+                                    <Image
+                                        Width="20"
+                                        Height="20"
+                                        Source="Assets/cloud-upload.png" />
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        FontSize="12"
+                                        Text="Snap" />
+                                </StackPanel>
+                            </Button>
+
+                            <!--  Popup containing the TextBox for filename  -->
+                            <Popup
+                                x:Name="UploadPopup"
+                                AllowsTransparency="True"
+                                IsOpen="{Binding IsPopupOpen, Mode=TwoWay}"
+                                Placement="Bottom"
+                                PlacementTarget="{Binding ElementName=UploadButton}"
+                                PopupAnimation="Fade"
+                                StaysOpen="False">
+                                <!--<Border Background="#FBE4D8"
+                                BorderBrush="Gray"
+                                BorderThickness="1"
+                                CornerRadius="5"
+                                Padding="10">-->
+                                <Border Style="{StaticResource PopupBorderStyle}">
+                                    <StackPanel>
+
+                                        <!--  TextBox with Placeholder  -->
+                                        <TextBox Style="{StaticResource WatermarkTextBox}" Text="{Binding SnapShotFileName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                                        <!--  Submit Button with IsEnabled Binding  -->
+                                        <Button
+                                            Width="75"
+                                            Height="35"
+                                            Margin="0,10,0,0"
+                                            HorizontalAlignment="Right"
+                                            Command="{Binding SubmitCommand}"
+                                            Content="{Binding IsUploading, ConverterParameter=Submit|Uploading..., Converter={StaticResource BooleanToTextConverter}}"
+                                            IsEnabled="{Binding IsUploading, Converter={StaticResource InverseBooleanConverter}}"
+                                            Style="{StaticResource SubmitButtonStyle}" />
+                                    </StackPanel>
+                                </Border>
+                            </Popup>
+
+                            <!--  Download Button  -->
+                            <Button
+                                x:Name="DownloadButton"
+                                Background="#DFB6B2"
+                                Command="{Binding OpenDownloadPopupCommand}"
+                                Style="{StaticResource ToolBarStyle}"
+                                ToolTip="Download">
+                                <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
+                                    <Image
+                                        Width="20"
+                                        Height="20"
+                                        Source="Assets/cloud-download.png" />
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        FontSize="12"
+                                        Text="Load" />
+                                </StackPanel>
+                            </Button>
+
+                            <!--  Popup containing the ListBox for selecting an item  -->
+                            <Popup
+                                x:Name="DownloadPopup"
+                                AllowsTransparency="True"
+                                IsOpen="{Binding IsDownloadPopupOpen, Mode=TwoWay}"
+                                Placement="Bottom"
+                                PlacementTarget="{Binding ElementName=DownloadButton}"
+                                PopupAnimation="Fade"
+                                StaysOpen="False">
+                                <Border Style="{StaticResource PopupBorderStyle}">
+                                    <StackPanel>
+                                        <TextBlock
+                                            Margin="0,0,0,10"
+                                            FontWeight="Bold"
+                                            Text="Select an item to download:" />
+
+                                        <!-- ListBox for displaying download items -->
+                                        <ListBox ItemsSource="{Binding DownloadItems}"
+                                            SelectedItem="{Binding SelectedDownloadItem, Mode=TwoWay}"
+                                            Width="200" Height="150">
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal" Margin="5">
+                                                        <TextBlock Text="{Binding FileName}" FontSize="14" />
+                                                        <TextBlock Text="{Binding Time, StringFormat=' \{0:MM/dd/yyyy HH:mm\}'}" 
+                                                            FontSize="12" Foreground="Gray" Margin="10,0,0,0" />
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
+
+                                        <!--  Download Button  -->
+                                        <Button
+                                            Width="90"
+                                            Height="38"
+                                            Margin="0,10,0,0"
+                                            HorizontalAlignment="Right"
+                                            Command="{Binding DownloadItemCommand}"
+                                            Content="Download"
+                                            IsEnabled="{Binding CanDownload}"
+                                            Style="{StaticResource SubmitButtonStyle}" />
+                                    </StackPanel>
+                                </Border>
+                            </Popup>
+                            <!--  Add this within your existing StackPanel in the toolbar  -->
+                            <ToggleButton
+                                IsChecked="{Binding IsDarkMode, Mode=TwoWay}"
+                                Style="{StaticResource ToolBarToggleStyle}"
+                                ToolTip="Dark Mode">
+                                <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
+                                    <Image
+                                        Width="18"
+                                        Height="17"
+                                        Margin="0,2"
+                                        RenderTransformOrigin="0.459,0.793"
+                                        Source="Assets/night-icon.png" />
+                                    <TextBlock FontSize="12" Text="Theme" />
+                                </StackPanel>
+                            </ToggleButton>
+
+                        </StackPanel>
+                    </Border>
+                </ScrollViewer>
+            </Border>
         </Grid>
     </AdornerDecorator>
 </Page>

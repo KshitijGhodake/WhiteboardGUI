@@ -1,4 +1,14 @@
-﻿using System;
+﻿/******************************************************************************
+ * Filename    = ShapeBase.cs
+ *
+ * Author      = Yash Mittal
+ *
+ * Project     = WhiteBoard
+ *
+ * Description = ShapeBase implements IShape interface
+ *****************************************************************************/
+
+using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
@@ -7,7 +17,7 @@ using System.Windows.Media;
 namespace WhiteboardGUI.Models
 {
     /// <summary>
-    /// A template class which all the available shapes implement
+    /// A base class that implements the IShape interface and provides common properties and methods for shapes.
     /// </summary>
     public abstract class ShapeBase : IShape
     {
@@ -21,8 +31,11 @@ namespace WhiteboardGUI.Models
         private bool _isLocked;
         private string _boundingBoxColor;
         private double _lockedByUserID;
-        public bool IsLocked
 
+        /// <summary>
+        /// Gets or sets a value indicating whether the shape is locked.
+        /// </summary>
+        public bool IsLocked
         {
             get => _isLocked;
             set
@@ -35,7 +48,9 @@ namespace WhiteboardGUI.Models
             }
         }
 
-     
+        /// <summary>
+        /// Gets or sets the user ID who locked the shape.
+        /// </summary>
         public double LockedByUserID
         {
             get => _lockedByUserID;
@@ -49,6 +64,9 @@ namespace WhiteboardGUI.Models
             }
         }
 
+        /// <summary>
+        /// Gets or sets the color of the bounding box.
+        /// </summary>
         public string BoundingBoxColor
         {
             get => _boundingBoxColor;
@@ -62,6 +80,9 @@ namespace WhiteboardGUI.Models
             }
         }
 
+        /// <summary>
+        /// Gets or sets the Z-index of the shape.
+        /// </summary>
         public int ZIndex
         {
             get => zIndex;
@@ -75,54 +96,89 @@ namespace WhiteboardGUI.Models
             }
         }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether the shape is selected.
+        /// </summary>
         public bool IsSelected
         {
             get => _isSelected;
             set { _isSelected = value; OnPropertyChanged(nameof(IsSelected)); }
         }
 
-      
-
+        /// <summary>
+        /// Gets or sets the unique identifier for the shape.
+        /// </summary>
         public Guid ShapeId
         {
             get => _shapeId;
             set { _shapeId = value; OnPropertyChanged(nameof(ShapeId)); }
         }
 
+        /// <summary>
+        /// Gets the type of the shape.
+        /// </summary>
         public abstract string ShapeType { get; }
 
+        /// <summary>
+        /// Gets or sets the color of the shape.
+        /// </summary>
         public string Color
         {
             get => _color;
             set { _color = value; OnPropertyChanged(nameof(Color)); }
         }
 
+        /// <summary>
+        /// Gets or sets the thickness of the shape's stroke.
+        /// </summary>
         public double StrokeThickness
         {
             get => _strokeThickness;
             set { _strokeThickness = value; OnPropertyChanged(nameof(StrokeThickness)); }
         }
 
+        /// <summary>
+        /// Gets or sets the user ID associated with the shape.
+        /// </summary>
         public double UserID
         {
             get => _userID;
             set { _userID = value; OnPropertyChanged(nameof(UserID)); }
         }
+
+        /// <summary>
+        /// Gets or sets the ID of the last user who modified the shape.
+        /// </summary>
         public double LastModifierID
         {
             get => _lastModifierID;
             set { _lastModifierID = value; OnPropertyChanged(nameof(LastModifierID)); }
         }
 
+        /// <summary>
+        /// Gets the bounding rectangle of the shape.
+        /// </summary>
+        /// <returns>A Rect representing the bounds.</returns>
         public abstract Rect GetBounds();
 
+        /// <summary>
+        /// Creates a clone of the shape.
+        /// </summary>
+        /// <returns>A new instance of IShape with copied properties.</returns>
         public abstract IShape Clone();
 
-
+        /// <summary>
+        /// Occurs when a property value changes.
+        /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
+
+        /// <summary>
+        /// Raises the PropertyChanged event for the specified property.
+        /// </summary>
+        /// <param name="propertyName">Name of the property that changed.</param>
         public void OnPropertyChanged([CallerMemberName] string propertyName = null)
-            {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-            }
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
+}
