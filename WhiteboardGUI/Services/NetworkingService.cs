@@ -13,8 +13,10 @@ namespace WhiteboardGUI.Services
 {
     public class NetworkingService
     {
-        private TcpListener _listener;
-        private TcpClient _client;
+        internal TcpListener? _listener;
+        internal TcpClient? _client;
+        internal TcpListener Listener => _listener;
+        internal TcpClient Client => _client;
         private ConcurrentDictionary<double, TcpClient> _clients = new();
         public double _clientID;
         public List<IShape> _synchronizedShapes = new();
@@ -58,13 +60,13 @@ namespace WhiteboardGUI.Services
                     currentUserID++;
                     _ = Task.Run(() => ListenClients(newClient, currentUserID - 1));
                     //Send all existing shapes to new clients
-                    foreach (var shape in _synchronizedShapes)
-                    {
+                    //foreach (var shape in _synchronizedShapes)
+                    //{
 
-                        string serializedShape = SerializationService.SerializeShape(shape);
-                        await BroadcastShapeData(serializedShape, -1);
+                    //    string serializedShape = SerializationService.SerializeShape(shape);
+                    //    await BroadcastShapeData(serializedShape, -1);
 
-                    }
+                    //}
                 }
             }
             catch (Exception ex)
@@ -202,14 +204,15 @@ namespace WhiteboardGUI.Services
         public void StopHost()
         {
             _listener?.Stop();
+            _listener = null;
             _clients.Clear();
         }
 
         public async Task StartClient(int port)
         {
             _client = new TcpClient();
-            //await _client.ConnectAsync(IPAddress.Parse("10.32.10.20"), port);
-            await _client.ConnectAsync(IPAddress.Parse("192.168.0.183"), port);
+            //await _client.ConnectAsync(IPAddress.Parse("10.128.6.8"), port);
+           await _client.ConnectAsync(IPAddress.Loopback, port);
             Console.WriteLine("Connected to host");
 
             _clients.TryAdd(0, _client);
@@ -366,6 +369,7 @@ namespace WhiteboardGUI.Services
         public void StopClient()
         {
             _client?.Close();
+            _client = null;
         }
 
         public async Task BroadcastShapeData(string shapeData, double senderUserID)

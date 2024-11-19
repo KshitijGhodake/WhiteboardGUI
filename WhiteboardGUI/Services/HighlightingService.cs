@@ -49,7 +49,7 @@ namespace WhiteboardGUI.Services
             return (DispatcherTimer)obj.GetValue(HoverTimerProperty);
         }
 
-        internal static void SetHoverTimer(DependencyObject obj, DispatcherTimer value)
+        private static void SetHoverTimer(DependencyObject obj, DispatcherTimer value)
         {
             obj.SetValue(HoverTimerProperty, value);
         }
@@ -73,7 +73,7 @@ namespace WhiteboardGUI.Services
         }
 
         // Mouse Enter Event Handler
-        internal static void Element_MouseEnter(object sender, MouseEventArgs e)
+        private static void Element_MouseEnter(object sender, MouseEventArgs e)
         {
             if (sender is FrameworkElement element)
             {
@@ -140,7 +140,7 @@ namespace WhiteboardGUI.Services
             }
         }
 
-        internal static ImageSource GetImageSourceForShape(IShape shape)
+        private static ImageSource GetImageSourceForShape(IShape shape)
         {
             string imagePath = "";
             imagePath = "../Views/Assets/sirphoto.png";
@@ -157,7 +157,7 @@ namespace WhiteboardGUI.Services
             }
         }
         // Mouse Leave Event Handler
-        internal static void Element_MouseLeave(object sender, MouseEventArgs e)
+        private static void Element_MouseLeave(object sender, MouseEventArgs e)
         {
             if (sender is FrameworkElement element)
             {
@@ -199,7 +199,7 @@ namespace WhiteboardGUI.Services
         }
 
         // Helper method to find the ViewModel from the visual tree
-        internal static MainPageViewModel? FindParentViewModel(FrameworkElement element)
+        private static MainPageViewModel? FindParentViewModel(FrameworkElement element)
         {
             DependencyObject parent = element;
             while (parent != null)
@@ -214,7 +214,7 @@ namespace WhiteboardGUI.Services
         }
 
         // Helper method to remove existing HoverAdorner
-        internal static void RemoveHoverAdorner(AdornerLayer adornerLayer, MainPageViewModel vm)
+        private static void RemoveHoverAdorner(AdornerLayer adornerLayer, MainPageViewModel vm)
         {
             if (vm.CurrentHoverAdorner != null)
             {

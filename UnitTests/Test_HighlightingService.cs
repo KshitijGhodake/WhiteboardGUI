@@ -1,207 +1,172 @@
-﻿//using Microsoft.VisualStudio.TestTools.UnitTesting;
-//using Moq;
-//using System;
-//using System.Threading;
-//using System.Windows;
-//using System.Windows.Controls;
-//using System.Windows.Documents;
-//using System.Windows.Input;
-//using System.Windows.Media;
-//using System.Windows.Threading;
-//using WhiteboardGUI.Adorners;
-//using WhiteboardGUI.Models;
-//using WhiteboardGUI.Services;
-//using WhiteboardGUI.ViewModel;
+﻿// File: UnitTests/Test_HighlightingService.cs
 
-//namespace UnitTests
-//{
-//    [TestClass]
-//    public class Test_HighlightingService
-//    {
-//        private FrameworkElement _frameworkElement;
-//        private MainPageViewModel _viewModel;
-//        private DispatcherTimer _mockTimer;
-//        private Window _testWindow;
-//        private Canvas _canvas;
-//        private Thread _uiThread;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using System;
+using System.Linq;
+using System.Reflection;
+using System.Threading;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Threading;
+using WhiteboardGUI.Services;
+using WhiteboardGUI.ViewModel;
+using WhiteboardGUI.Models;
+using WhiteboardGUI.Adorners;
 
-//        [TestInitialize]
-//        public void Setup()
-//        {
-//            _uiThread = new Thread(() =>
-//            {
-//                if (Application.Current == null)
-//                {
-//                    new Application();
-//                }
+namespace WhiteboardGUI.UnitTests
+{
+    [TestClass]
+    public class HighlightingServiceTests
+    {
+        /// <summary>
+        /// Helper method to execute test actions on the STA thread.
+        /// WPF requires UI components to be accessed on an STA thread.
+        /// </summary>
+        /// <param name="action">The test action to execute.</param>
+        private void RunOnUIThread(Action action)
+        {
+            Exception capturedException = null;
+            var done = new ManualResetEvent(false);
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    // Ensure an Application instance exists
+                    if (Application.Current == null)
+                    {
+                        new Application();
+                    }
 
-//                _viewModel = new MainPageViewModel();
-//                _mockTimer = new DispatcherTimer();
+                    // Execute the test action
+                    action();
+                }
+                catch (Exception ex)
+                {
+                    capturedException = ex;
+                }
+                finally
+                {
+                    done.Set();
+                }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
 
-//                _testWindow = new Window();
-//                _canvas = new Canvas();
-//                _frameworkElement = new FrameworkElement
-//                {
-//                    DataContext = _viewModel
-//                };
-//                _canvas.Children.Add(_frameworkElement);
-//                _testWindow.Content = _canvas;
-//                _testWindow.Show();
+            // Wait for the action to complete or timeout after 5 seconds
+            if (!done.WaitOne(TimeSpan.FromSeconds(5)))
+            {
+                Assert.Fail("Test execution timed out.");
+            }
 
-//                Dispatcher.Run();
-//            });
+            if (capturedException != null)
+            {
+                throw new Exception("Exception in UI thread.", capturedException);
+            }
+        }
 
-//            _uiThread.SetApartmentState(ApartmentState.STA);
-//            _uiThread.Start();
-//        }
+        /// <summary>
+        /// Tests that multiple hover events correctly remove the previous HoverAdorner and add a new one.
+        /// </summary>
+        [TestMethod]
+        public void MultipleHovers_RemoveAndAddHoverAdorner()
+        {
+            RunOnUIThread(() =>
+            {
+                // Arrange
+                var window = new Window();
+                var adornerDecorator = new AdornerDecorator();
+                window.Content = adornerDecorator;
 
-//        [TestCleanup]
-//        public void Cleanup()
-//        {
-//            if (_testWindow != null)
-//            {
-//                _testWindow.Dispatcher.Invoke(() =>
-//                {
-//                    _testWindow.Close();
-//                    _testWindow = null;
-//                    _frameworkElement = null;
-//                    _canvas = null;
-//                });
+                var grid = new Grid();
+                adornerDecorator.Child = grid;
 
-//                _testWindow.Dispatcher.InvokeShutdown();
-//                _uiThread.Join();
-//            }
-//        }
+                var element = new Button();
+                grid.Children.Add(element);
 
-//        private void InvokeOnUIThread(Action action)
-//        {
-//            _testWindow.Dispatcher.Invoke(action);
-//        }
+                var viewModel = new MainPageViewModel();
+                window.DataContext = viewModel;
 
-//        [TestMethod]
-//        public void GetEnableHighlighting_ShouldReturnDefaultValue()
-//        {
-//            InvokeOnUIThread(() =>
-//            {
-//                bool result = HighlightingService.GetEnableHighlighting(_frameworkElement);
-//                Assert.IsFalse(result);
-//            });
-//        }
+                // Set Application.Current.MainWindow explicitly
+                Application.Current.MainWindow = window;
 
-//        [TestMethod]
-//        public void SetEnableHighlighting_ShouldEnableHighlighting()
-//        {
-//            InvokeOnUIThread(() =>
-//            {
-//                HighlightingService.SetEnableHighlighting(_frameworkElement, true);
-//                bool result = HighlightingService.GetEnableHighlighting(_frameworkElement);
-//                Assert.IsTrue(result);
-//            });
-//        }
+                window.Show();
 
-//        [TestMethod]
-//        public void FindParentViewModel_ShouldReturnCorrectViewModel()
-//        {
-//            InvokeOnUIThread(() =>
-//            {
-//                var result = HighlightingService.FindParentViewModel(_frameworkElement);
-//                Assert.IsNotNull(result);
-//                Assert.AreEqual(_viewModel, result);
-//            });
-//        }
+                HighlightingService.SetEnableHighlighting(element, true);
 
-//        [TestMethod]
-//        public void FindParentViewModel_ShouldReturnNull_WhenNoViewModelFound()
-//        {
-//            InvokeOnUIThread(() =>
-//            {
-//                _frameworkElement.DataContext = null;
-//                var result = HighlightingService.FindParentViewModel(_frameworkElement);
-//                Assert.IsNull(result);
-//            });
-//        }
+                // Mock shape 1 with a valid color
+                var mockShape1 = new Mock<IShape>();
+                mockShape1.Setup(s => s.ShapeId).Returns(Guid.NewGuid());
+                mockShape1.Setup(s => s.ShapeType).Returns("Circle");
+                mockShape1.Setup(s => s.Color).Returns("#FF0000"); // Valid color
 
-//        [TestMethod]
-//        public void Element_MouseEnter_ShouldStartHoverTimer()
-//        {
-//            InvokeOnUIThread(() =>
-//            {
-//                HighlightingService.SetEnableHighlighting(_frameworkElement, true);
-//                HighlightingService.SetHoverTimer(_frameworkElement, _mockTimer);
+                // Mock shape 2 with a valid color
+                var mockShape2 = new Mock<IShape>();
+                mockShape2.Setup(s => s.ShapeId).Returns(Guid.NewGuid());
+                mockShape2.Setup(s => s.ShapeType).Returns("Rectangle");
+                mockShape2.Setup(s => s.Color).Returns("#00FF00"); // Valid color
 
-//                HighlightingService.Element_MouseEnter(_frameworkElement, null);
+                // First hover
+                element.DataContext = mockShape1.Object;
+                var mouseEnterEvent1 = new MouseEventArgs(Mouse.PrimaryDevice, 0)
+                {
+                    RoutedEvent = UIElement.MouseEnterEvent
+                };
+                element.RaiseEvent(mouseEnterEvent1);
 
-//                Assert.IsNotNull(_mockTimer);
-//                Assert.IsTrue(_mockTimer.IsEnabled);
-//            });
-//        }
+                // Wait for the DispatcherTimer to tick
+                WaitForDispatcherTimer();
 
-//        [TestMethod]
-//        public void Element_MouseLeave_ShouldStopHoverTimer()
-//        {
-//            InvokeOnUIThread(() =>
-//            {
-//                _mockTimer.Start();
-//                HighlightingService.SetHoverTimer(_frameworkElement, _mockTimer);
+                // Assert first hover
+                Assert.IsTrue(viewModel.IsShapeHovered, "IsShapeHovered should be true after first hover.");
 
-//                HighlightingService.Element_MouseLeave(_frameworkElement, null);
+                var adornerLayer = AdornerLayer.GetAdornerLayer(element);
+                Assert.IsNotNull(adornerLayer, "AdornerLayer should not be null.");
 
-//                Assert.IsNotNull(_mockTimer);
-//                Assert.IsFalse(_mockTimer.IsEnabled);
-//            });
-//        }
+                // Second hover with a different shape
+                element.DataContext = mockShape2.Object;
+                var mouseEnterEvent2 = new MouseEventArgs(Mouse.PrimaryDevice, 0)
+                {
+                    RoutedEvent = UIElement.MouseEnterEvent
+                };
+                element.RaiseEvent(mouseEnterEvent2);
 
-//        [TestMethod]
-//        public void RemoveHoverAdorner_ShouldClearCurrentHoverAdorner()
-//        {
-//            InvokeOnUIThread(() =>
-//            {
-//                var hoverAdorner = new HoverAdorner(_frameworkElement, "", new Point(), null, Colors.Green);
-//                _viewModel.CurrentHoverAdorner = hoverAdorner;
+                // Wait for the DispatcherTimer to tick
+                WaitForDispatcherTimer();
 
-//                AdornerLayer adornerLayer = AdornerLayer.GetAdornerLayer(_frameworkElement);
-//                if (adornerLayer != null)
-//                {
-//                    HighlightingService.RemoveHoverAdorner(adornerLayer, _viewModel);
-//                    adornerLayer.Remove(hoverAdorner);
-//                }
+                // Assert second hover
+                Assert.IsTrue(viewModel.IsShapeHovered, "IsShapeHovered should be true after second hover.");
+                Assert.AreEqual(mockShape2.Object, viewModel.HoveredShape, "HoveredShape should be updated to the second shape.");
 
-//                Assert.IsNull(_viewModel.CurrentHoverAdorner);
-//            });
-//        }
+                var adorners = adornerLayer.GetAdorners(element);
+                Assert.IsNotNull(adorners, "Adorners should not be null after second hover.");
+                Assert.IsTrue(adorners.Any(a => a is HoverAdorner), "HoverAdorner should be added after second hover.");
 
-//        [TestMethod]
-//        public void Element_MouseEnter_ShouldCreateHoverAdorner()
-//        {
-//            InvokeOnUIThread(() =>
-//            {
-//                _viewModel.HoveredShape = new Mock<IShape>().Object;
-//                _viewModel.IsShapeHovered = true;
+                // Clean up
+                window.Close();
+            });
+        }
 
-//                AdornerLayer adornerLayer = AdornerLayer.GetAdornerLayer(_frameworkElement);
-//                Assert.IsNull(adornerLayer); // Typically null in a unit test environment.
-
-//                HighlightingService.Element_MouseEnter(_frameworkElement, null);
-//            });
-//        }
-
-//        [TestMethod]
-//        public void Element_MouseLeave_ShouldRemoveHoverAdorner()
-//        {
-//            InvokeOnUIThread(() =>
-//            {
-//                var hoverAdorner = new HoverAdorner(_frameworkElement, "", new Point(), null, Colors.Green);
-//                _viewModel.CurrentHoverAdorner = hoverAdorner;
-
-//                AdornerLayer adornerLayer = AdornerLayer.GetAdornerLayer(_frameworkElement);
-//                if (adornerLayer != null)
-//                {
-//                    HighlightingService.Element_MouseLeave(_frameworkElement, null);
-//                    adornerLayer.Remove(hoverAdorner);
-//                }
-
-//                Assert.IsNull(_viewModel.CurrentHoverAdorner);
-//            });
-//        }
-//    }
-//}
+        /// <summary>
+        /// Helper method to wait for the DispatcherTimer.
+        /// </summary>
+        private void WaitForDispatcherTimer()
+        {
+            var frame = new DispatcherFrame();
+            var timer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(0.5)
+            };
+            timer.Tick += (s, e) =>
+            {
+                timer.Stop();
+                frame.Continue = false;
+            };
+            timer.Start();
+            Dispatcher.PushFrame(frame);
+        }
+    }
+}
