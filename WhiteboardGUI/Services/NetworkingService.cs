@@ -13,8 +13,10 @@ namespace WhiteboardGUI.Services
 {
     public class NetworkingService
     {
-        private TcpListener _listener;
-        private TcpClient _client;
+        internal TcpListener? _listener;
+        internal TcpClient? _client;
+        internal TcpListener Listener => _listener;
+        internal TcpClient Client => _client;
         private ConcurrentDictionary<double, TcpClient> _clients = new();
         public double _clientID;
         public List<IShape> _synchronizedShapes = new();
@@ -202,6 +204,7 @@ namespace WhiteboardGUI.Services
         public void StopHost()
         {
             _listener?.Stop();
+            _listener = null;
             _clients.Clear();
         }
 
@@ -366,6 +369,7 @@ namespace WhiteboardGUI.Services
         public void StopClient()
         {
             _client?.Close();
+            _client = null;
         }
 
         public async Task BroadcastShapeData(string shapeData, double senderUserID)
