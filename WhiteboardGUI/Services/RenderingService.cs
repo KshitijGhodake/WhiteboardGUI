@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Shapes;
 using WhiteboardGUI.Models;
 
 namespace WhiteboardGUI.Services
@@ -169,6 +170,7 @@ namespace WhiteboardGUI.Services
                 _networkingService._synchronizedShapes.Remove(currentShape);
                 _undoRedoService.UpdateLastDrawing(null, currentShape);
             }
+
 
             currentShape.LastModifierID = _networkingService._clientID;
             string serializedShape = SerializationService.SerializeShape(currentShape);

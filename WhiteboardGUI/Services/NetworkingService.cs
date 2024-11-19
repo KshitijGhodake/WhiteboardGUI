@@ -25,6 +25,9 @@ namespace WhiteboardGUI.Services
         public event Action<IShape> ShapeSendBackward;
         public event Action<IShape> ShapeModified;
         public event Action ShapesClear;
+        public event Action<IShape> ShapeLocked;
+        public event Action<IShape> ShapeUnlocked;
+
         //public NetworkingService(List<IShape> synchronizedShapes)
         //{
         //    _synchronizedShapes = synchronizedShapes;
@@ -95,8 +98,7 @@ namespace WhiteboardGUI.Services
                     var receivedData = await reader.ReadLineAsync();
                     if (receivedData == null) continue;
 
-                    Debug.WriteLine($"Received data: {receivedData}");
-                    await BroadcastShapeData(receivedData, senderUserID);
+                   
 
                     if (receivedData.StartsWith("DELETE:"))
                     {
@@ -179,7 +181,7 @@ namespace WhiteboardGUI.Services
                         var shape = SerializationService.DeserializeShape(data);
                         if (shape != null)
                         {
-                            ShapeReceived?.Invoke(shape,true);
+                            ShapeReceived?.Invoke(shape, true);
                         }
                     }
                     else if (receivedData.StartsWith("DOWNLOAD:"))
@@ -188,11 +190,62 @@ namespace WhiteboardGUI.Services
                         var shape = SerializationService.DeserializeShape(data);
                         if (shape != null)
                         {
-                            ShapeReceived?.Invoke(shape,false);
+                            ShapeReceived?.Invoke(shape, false);
                         }
                     }
+
+                    else if (receivedData.StartsWith("UNLOCK:"))
+                    {
+                        string data = receivedData.Substring(7);
+                        var shape = SerializationService.DeserializeShape(data);
+                        if (shape != null)
+                        {
+                            // Update the shape's lock status
+                            var existingShape = _synchronizedShapes.FirstOrDefault(s => s.ShapeId == shape.ShapeId);
+                            if (existingShape != null)
+                            {
+                                existingShape.IsLocked = false;
+                                existingShape.LockedByUserID = -1;
+                                ShapeUnlocked?.Invoke(existingShape);
+                            }
+                        }
+                    }
+
+                    else if (receivedData.StartsWith("LOCK:"))
+                    {
+                        string data = receivedData.Substring(5);
+                        var shape = SerializationService.DeserializeShape(data);
+                        if (shape != null)
+                        {
+                            // Update the shape's lock status
+                            var existingShape = _synchronizedShapes.FirstOrDefault(s => s.ShapeId == shape.ShapeId);
+
+                            if (existingShape != null)
+                            {
+                                if (existingShape.IsLocked)
+                                {
+                                    senderUserID = -1;
+                                    receivedData = receivedData = "UNLOCK:" + receivedData.Substring("LOCK:".Length);
+                                }
+                                else
+                                {
+                                    senderUserID = -1;
+                                    existingShape.IsLocked = true;
+                                    existingShape.LockedByUserID = senderUserID;
+                                    ShapeLocked?.Invoke(existingShape);
+
+                                }  
+                            }
+                        }
+                    }
+
+                    Debug.WriteLine($"Received data: {receivedData}");
+                    await BroadcastShapeData(receivedData, senderUserID);
+
                 }
             }
+
+
             catch (Exception ex)
             {
                 Debug.WriteLine($"Error in ListenClients: {ex}");
@@ -334,7 +387,46 @@ namespace WhiteboardGUI.Services
                             ShapeReceived?.Invoke(shape, false);
                         }
                     }
-                }
+
+
+
+                    else if (receivedData.StartsWith("UNLOCK:"))
+                    {
+                        string data = receivedData.Substring(7);
+                        var shape = SerializationService.DeserializeShape(data);
+                        if (shape != null)
+                        {
+                            // Update the shape's lock status
+                            var existingShape = _synchronizedShapes.FirstOrDefault(s => s.ShapeId == shape.ShapeId);
+                            if (existingShape != null)
+                            {
+                                existingShape.IsLocked = false;
+                                existingShape.LockedByUserID = -1;
+                                ShapeUnlocked?.Invoke(existingShape);
+                            }
+                        }
+                    }
+
+                    else if (receivedData.StartsWith("LOCK:"))
+                    {
+                        string data = receivedData.Substring(5);
+                        var shape = SerializationService.DeserializeShape(data);
+                        if (shape != null)
+                        {
+                            // Update the shape's lock status
+                            var existingShape = _synchronizedShapes.FirstOrDefault(s => s.ShapeId == shape.ShapeId);
+
+                            if (existingShape != null)
+                            {
+                                existingShape.IsLocked = true;
+                                existingShape.LockedByUserID = shape.LockedByUserID;
+                                ShapeLocked?.Invoke(existingShape);
+                            }
+                        }
+                    }
+                
+            
+            }
             }
             catch (Exception ex)
             {

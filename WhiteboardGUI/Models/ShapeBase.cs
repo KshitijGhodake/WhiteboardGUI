@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using System.Windows.Media;
 
 namespace WhiteboardGUI.Models
 {
@@ -17,6 +18,50 @@ namespace WhiteboardGUI.Models
         private double _lastModifierID;
         private bool _isSelected;
         private int zIndex;
+        private bool _isLocked;
+        private string _boundingBoxColor;
+        private double _lockedByUserID;
+        public bool IsLocked
+
+        {
+            get => _isLocked;
+            set
+            {
+                if (_isLocked != value)
+                {
+                    _isLocked = value;
+                    OnPropertyChanged(nameof(IsLocked));
+                }
+            }
+        }
+
+     
+        public double LockedByUserID
+        {
+            get => _lockedByUserID;
+            set
+            {
+                if (_lockedByUserID != value)
+                {
+                    _lockedByUserID = value;
+                    OnPropertyChanged(nameof(LockedByUserID));
+                }
+            }
+        }
+
+        public string BoundingBoxColor
+        {
+            get => _boundingBoxColor;
+            set
+            {
+                if (_boundingBoxColor != value)
+                {
+                    _boundingBoxColor = value;
+                    OnPropertyChanged(nameof(BoundingBoxColor));
+                }
+            }
+        }
+
         public int ZIndex
         {
             get => zIndex;
@@ -35,6 +80,8 @@ namespace WhiteboardGUI.Models
             get => _isSelected;
             set { _isSelected = value; OnPropertyChanged(nameof(IsSelected)); }
         }
+
+      
 
         public Guid ShapeId
         {

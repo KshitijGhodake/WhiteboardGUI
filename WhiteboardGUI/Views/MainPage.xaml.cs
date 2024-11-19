@@ -31,6 +31,7 @@ namespace WhiteboardGUI.Views
         private void Canvas_LeftMouseButtonDown(object sender, MouseButtonEventArgs e)
         {
             ViewModel?.CanvasLeftMouseDownCommand.Execute(e);
+            ViewModel.IsDragging = true;
         }
 
         private void Canvas_MouseMove(object sender, MouseEventArgs e)
@@ -41,6 +42,7 @@ namespace WhiteboardGUI.Views
         private void Canvas_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             ViewModel?.CanvasMouseUpCommand.Execute(e);
+            ViewModel.IsDragging = false;
         }
 
         private void PaletteToggleButton_Checked(object sender, RoutedEventArgs e)

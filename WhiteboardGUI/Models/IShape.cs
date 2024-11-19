@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Windows;
+using System.Windows.Media;
 
 namespace WhiteboardGUI.Models
 {
@@ -15,6 +16,11 @@ namespace WhiteboardGUI.Models
         int ZIndex { get; set; }
 
         bool IsSelected { get; set; }
+
+        bool IsLocked { get; set; }
+        double LockedByUserID { get; set; }
+
+        string BoundingBoxColor { get; set; }
         Rect GetBounds();
 
         IShape Clone();

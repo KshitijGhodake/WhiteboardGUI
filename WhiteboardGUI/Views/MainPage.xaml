@@ -19,6 +19,8 @@
         <conv:InverseBooleanConverter x:Key="InverseBooleanConverter" />
         <conv:NullToBooleanConverter x:Key="NullToBooleanConverter" />
         <conv:DarkModeColorConverter x:Key="DarkModeColorConverter" />
+        <conv:LockToStrokeConverter x:Key="LockToStrokeConverter" />
+
 
         <!--  Style for the Track Buttons  -->
         <Style x:Key="TrackButtonStyle" TargetType="RepeatButton">
@@ -936,8 +938,6 @@
                                             Width="{Binding Width}"
                                             Height="{Binding Height}"
                                             service:HighlightingService.EnableHighlighting="True"
-                                            Fill="Transparent"
-                                            MouseRightButtonDown="Shape_MouseRightButtonDown"
                                             StrokeThickness="{Binding StrokeThickness}">
                                             <Ellipse.Stroke>
                                                 <MultiBinding Converter="{StaticResource DarkModeColorConverter}">
@@ -951,10 +951,17 @@
                                             Canvas.Top="{Binding Top}"
                                             Width="{Binding Width}"
                                             Height="{Binding Height}"
-                                            Stroke="Blue"
+                                            Fill="Transparent"
+                                            MouseRightButtonDown="Shape_MouseRightButtonDown"
                                             StrokeDashArray="2"
                                             StrokeThickness="1"
-                                            Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                            Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                            Stroke="{Binding BoundingBoxColor}"
+                                     ></Rectangle>
+
+                                     
+
+
 
                                         <!--  Top-Left Handle  -->
                                         <Rectangle
@@ -1051,10 +1058,10 @@
                                             Height="{Binding Height}"
                                             Fill="Transparent"
                                             MouseRightButtonDown="Shape_MouseRightButtonDown"
-                                            Stroke="Blue"
                                             StrokeDashArray="2"
                                             StrokeThickness="1"
-                                            Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                            Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                             Stroke="{Binding BoundingBoxColor}"/>
 
                                         <!--  Start Handle  -->
                                         <Ellipse
@@ -1118,10 +1125,10 @@
                                             Height="{Binding Height}"
                                             Fill="Transparent"
                                             MouseRightButtonDown="Shape_MouseRightButtonDown"
-                                            Stroke="Blue"
                                             StrokeDashArray="2"
                                             StrokeThickness="1"
-                                            Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                            Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                             Stroke="{Binding BoundingBoxColor}"/>
 
                                         <!--  Top-Left Handle  -->
                                         <Rectangle
@@ -1206,10 +1213,10 @@
                                             Canvas.Top="{Binding Top}"
                                             Width="{Binding Width}"
                                             Height="{Binding Height}"
-                                            Stroke="Blue"
                                             StrokeDashArray="2"
                                             StrokeThickness="1"
-                                            Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                            Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                             Stroke="{Binding BoundingBoxColor}"/>
                                     </Canvas>
                                 </DataTemplate>
 
@@ -1236,10 +1243,10 @@
                                             Canvas.Top="{Binding Top}"
                                             Width="{Binding Width}"
                                             Height="{Binding Height}"
-                                            Stroke="Blue"
                                             StrokeDashArray="2"
                                             StrokeThickness="1"
-                                            Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                            Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                             Stroke="{Binding BoundingBoxColor}"/>
                                     </Canvas>
                                 </DataTemplate>
                             </ContentControl.Resources>

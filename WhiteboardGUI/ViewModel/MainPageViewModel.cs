@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Shapes;
 using System.Windows.Threading;
 using WhiteboardGUI.Adorners;
 using WhiteboardGUI.Models;
@@ -20,6 +21,8 @@ namespace WhiteboardGUI.ViewModel
         public readonly RenderingService _renderingService;
         private readonly SnapShotService _snapShotService;
         private readonly MoveShapeZIndexing _moveShapeZIndexing;
+        public double ClientID => _networkingService._clientID;
+
 
         private readonly DispatcherTimer _timer;
         private string _defaultColor;
@@ -61,6 +64,9 @@ namespace WhiteboardGUI.ViewModel
         private bool _isDarkMode;
         private Brush _pageBackground = new SolidColorBrush(Color.FromRgb(245, 245, 245)); // Light
         private Brush _canvasBackground = new SolidColorBrush(Color.FromRgb(245, 245, 245)); // Light
+ 
+
+      
 
 
         public string DefaultColor
@@ -140,7 +146,17 @@ namespace WhiteboardGUI.ViewModel
                 OnPropertyChanged(nameof(IsUploading));
             }
         }
-  
+
+
+        public bool IsDragging
+        {
+            get => _isDragging;
+            set
+            {
+                _isDragging = value;
+                OnPropertyChanged(nameof(IsDragging));
+            }
+        }
         public bool IsDownloading
         {
             get => _isDownloading;
@@ -413,6 +429,8 @@ namespace WhiteboardGUI.ViewModel
             _networkingService.ShapesClear += OnShapeClear;
             _networkingService.ShapeSendBackward += _moveShapeZIndexing.MoveShapeBackward;
             _networkingService.ShapeSendToBack += _moveShapeZIndexing.MoveShapeBack;
+            _networkingService.ShapeLocked += OnShapeLocked;
+            _networkingService.ShapeUnlocked += OnShapeUnlocked;
 
             Shapes.CollectionChanged += Shapes_CollectionChanged;
 
@@ -482,6 +500,7 @@ namespace WhiteboardGUI.ViewModel
             Green = 0;
             Blue = 0;
             UpdateSelectedColor();
+          
 
             // Initialize Dark Mode
             IsDarkMode = CheckIfDarkMode();
@@ -806,24 +825,68 @@ namespace WhiteboardGUI.ViewModel
                 if (CurrentTool == ShapeType.Select)
                 {
                     // Implement selection logic
-
-
+                    //if (SelectedShape != null)
+                    //{
+                    //    SelectedShape.IsSelected = false;
+                    //}
                     _isSelecting = true;
+                    bool _loopBreaker = false;
                     foreach (var shape in Shapes.Reverse())
                     {
                         if (IsPointOverShape(shape, _startPoint))
                         {
-                            SelectedShape = shape;
-                            Debug.WriteLine(shape.IsSelected);
-                            _lastMousePosition = _startPoint;
-                            _isSelecting = true;
-                            break;
+
+                            if (shape.IsLocked && shape.LockedByUserID != _networkingService._clientID)
+                            {
+                                // Shape is locked by someone else
+
+                                if (SelectedShape != null)
+                                {
+                                    SelectedShape.LockedByUserID = -1;
+
+                                    _renderingService.RenderShape(SelectedShape, "UNLOCK");
+                                }
+
+                                SelectedShape = null;
+                                _isSelecting = false;
+                                MessageBox.Show("This shape is locked by another user.", "Locked", MessageBoxButton.OK, MessageBoxImage.Information);
+                                _loopBreaker = true;
+                                break;
+                            }
+                            else
+                            {
+                                
+                                if(SelectedShape != null)
+                                {
+                                    SelectedShape.LockedByUserID = -1;
+                                   
+                                    _renderingService.RenderShape(SelectedShape, "UNLOCK");
+                                }
+                                SelectedShape = shape;
+
+                                Debug.WriteLine(shape.IsSelected);
+                                _lastMousePosition = _startPoint;
+                                _isSelecting = true;
+                                shape.LockedByUserID = _networkingService._clientID;
+                                _renderingService.RenderShape(shape, "LOCK");
+                                _loopBreaker = true;
+                                break;
+                            }
                         }
-                        else
+                    }
+                        
+                    if (_loopBreaker == false) 
+                    {
+                       
+                        _isSelecting = false;
+                        if (SelectedShape != null)
                         {
-                            _isSelecting = false;
-                            SelectedShape = null;
+                            SelectedShape.LockedByUserID = -1;
+                            
+                            _renderingService.RenderShape(SelectedShape, "UNLOCK");
                         }
+                        SelectedShape = null;
+                       
                     }
                 }
                 else if (CurrentTool == ShapeType.Text)
@@ -851,7 +914,14 @@ namespace WhiteboardGUI.ViewModel
                     IShape newShape = CreateShape(_startPoint);
                     if (newShape != null)
                     {
+                        newShape.BoundingBoxColor = "blue";
                         Shapes.Add(newShape);
+                        if (SelectedShape != null)
+                        {
+                            SelectedShape.LockedByUserID = -1;
+
+                            _renderingService.RenderShape(SelectedShape, "UNLOCK");
+                        }
                         SelectedShape = newShape;
                     }
                 }
@@ -904,7 +974,7 @@ namespace WhiteboardGUI.ViewModel
                 if (canvas != null)
                 {
                     Point currentPoint = e.GetPosition(canvas);
-                    if (e.LeftButton == MouseButtonState.Pressed)
+                    if (_isDragging)
                     {
                         if (CurrentTool == ShapeType.Select && SelectedShape != null)
                         {
@@ -1023,6 +1093,46 @@ namespace WhiteboardGUI.ViewModel
                 }
             });
         }
+
+        private void OnShapeLocked(IShape shape)
+        {
+            var existingShape = Shapes.FirstOrDefault(s =>
+                   s.ShapeId == shape.ShapeId && s.UserID == shape.UserID
+               );
+
+            existingShape.IsLocked = true;
+            existingShape.LockedByUserID = shape.LockedByUserID;
+            existingShape.IsSelected = true;
+
+            if (existingShape.LockedByUserID != ClientID)
+            {
+                existingShape.BoundingBoxColor = "red";
+            }
+
+            else if (existingShape.LockedByUserID == ClientID)
+            {
+
+                existingShape.BoundingBoxColor = "blue";
+            }
+        
+        }
+
+        private void OnShapeUnlocked(IShape shape)
+        {
+            var existingShape = Shapes.FirstOrDefault(s =>
+                   s.ShapeId == shape.ShapeId && s.UserID == shape.UserID
+               );
+
+            existingShape.IsLocked = false;
+            existingShape.LockedByUserID = -1;
+            existingShape.IsSelected = false;
+            if (existingShape.LockedByUserID != ClientID)
+            {
+                existingShape.BoundingBoxColor = "blue";
+            }
+        }
+
+
 
         private void OnShapeModified(IShape shape)
         {
