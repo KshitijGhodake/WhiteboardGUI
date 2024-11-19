@@ -8,7 +8,7 @@ using System.Windows.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using WhiteboardGUI.Adorners;
 
-namespace WhiteboardGUI.Tests.Adorners
+namespace UnitTests
 {
     [TestClass]
     public class Test_HoverAdorner

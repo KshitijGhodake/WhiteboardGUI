@@ -17,7 +17,7 @@ using WhiteboardGUI.ViewModel;
 using WhiteboardGUI.Models;
 using WhiteboardGUI.Adorners;
 
-namespace WhiteboardGUI.UnitTests
+namespace UnitTests
 {
     [TestClass]
     public class HighlightingServiceTests

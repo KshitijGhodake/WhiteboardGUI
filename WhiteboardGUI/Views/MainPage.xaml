@@ -740,30 +740,33 @@ IsSnapToTickEnabled="True" />
                                                 </StackPanel>
                                             </DataTemplate>
                                         </ListBox.ItemTemplate>
-                                    </ListBox>
+                                    </ListBox> 
+
+                                    
+
 
                                     <!-- Download Button -->
                                     <Button Content="Download"
-                    Width="100"
-                    Height="30"
-                    HorizontalAlignment="Right"
-                    Margin="0,10,0,0"
-                    Command="{Binding DownloadItemCommand}"
-                    IsEnabled="{Binding CanDownload}"/>
-                                </StackPanel>
-                            </Border>
-                        </Popup>
-                        <!-- Add this within your existing StackPanel in the toolbar -->
-                        <ToggleButton
-						Style="{StaticResource ToolBarToggleStyle}"
-                        Background="#DFB6B2"
-						IsChecked="{Binding IsDarkMode, Mode=TwoWay}"
-						ToolTip="Dark Mode">
-                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
-                                <Image Source="Assets/night-icon.png" Width="18" Height="17" RenderTransformOrigin="0.459,0.793" Margin="0,2"/>
-                                <TextBlock Text="Theme" FontSize="12"/>
-                            </StackPanel>
-                        </ToggleButton>
+                                        Width="100"
+                                        Height="30"
+                                        HorizontalAlignment="Right"
+                                        Margin="0,10,0,0"
+                                        Command="{Binding DownloadItemCommand}"
+                                        IsEnabled="{Binding CanDownload}"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </Popup>
+                                            <!-- Add this within your existing StackPanel in the toolbar -->
+                                        <ToggleButton
+						                    Style="{StaticResource ToolBarToggleStyle}"
+                                            Background="#DFB6B2"
+						                    IsChecked="{Binding IsDarkMode, Mode=TwoWay}"
+						                    ToolTip="Dark Mode">
+                                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                                                <Image Source="Assets/night-icon.png" Width="18" Height="17" RenderTransformOrigin="0.459,0.793" Margin="0,2"/>
+                                                <TextBlock Text="Theme" FontSize="12"/>
+                                            </StackPanel>
+                                        </ToggleButton>     
 
                     </StackPanel>
                 </ScrollViewer>

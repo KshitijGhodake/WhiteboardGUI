@@ -15,7 +15,7 @@ using WhiteboardGUI.Services;
 using Microsoft.Extensions.Logging;
 using SECloud.Interfaces;
 
-namespace WhiteboardGUI.Tests
+namespace UnitTests
 {
     [TestClass]
     public class SnapShotServiceTests
