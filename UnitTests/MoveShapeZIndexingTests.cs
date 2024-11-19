@@ -9,7 +9,7 @@ using WhiteboardGUI.Models;
 using WhiteboardGUI.Services;
 
 
-namespace WhiteboardGUI.Tests
+namespace UnitTests
 {
     [TestClass]
     public class MoveShapeZIndexingTests
@@ -54,7 +54,24 @@ namespace WhiteboardGUI.Tests
         {
             // Arrange
             var shape1 = new CircleShape { ShapeId = Guid.NewGuid(), CenterX = 50, CenterY = 50, RadiusX = 25, RadiusY = 25, Color = "Red" };
-            var shape2 = new LineShape { ShapeId = Guid.NewGuid(), StartX = 0, StartY = 0, EndX = 100, EndY = 100, Color = "Blue" };
+            var shape2 = new ScribbleShape
+            {
+                ShapeId = Guid.NewGuid(),
+                UserID = 1.0,
+                Color = "Blue",
+                StrokeThickness = 2.0,
+                LastModifierID = 1.0,
+                IsSelected = false,
+                Points = new List<Point>
+                {
+                    new Point(10, 10),
+                    new Point(20, 20),
+                    new Point(30, 15),
+                    new Point(40, 25),
+                    new Point(50, 20)
+                },
+                ZIndex = 1
+            };
             _shapes.Add(shape1);
             _shapes.Add(shape2);
 
