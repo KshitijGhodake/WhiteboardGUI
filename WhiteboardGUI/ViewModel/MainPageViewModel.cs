@@ -10,6 +10,8 @@ using System.Windows.Threading;
 using WhiteboardGUI.Adorners;
 using WhiteboardGUI.Models;
 using WhiteboardGUI.Services;
+using System.Windows.Data;
+using System.Windows.Navigation;
 
 namespace WhiteboardGUI.ViewModel
 {
@@ -331,21 +333,27 @@ namespace WhiteboardGUI.ViewModel
         public bool IsHost { get; set; }
         public bool IsClient { get; set; }
 
-        public ObservableCollection<string> DownloadItems { get; set; }
+
 
         private bool _isClearConfirmationOpen;
 
-        public string SelectedDownloadItem
+  
+
+
+        public ListCollectionView DownloadItems { get; set; }
+
+        private SnapShotDownloadItem _selectedDownloadItem;
+        public SnapShotDownloadItem SelectedDownloadItem
         {
             get => _selectedDownloadItem;
             set
             {
                 _selectedDownloadItem = value;
-                OnPropertyChanged(SelectedDownloadItem);
+                OnPropertyChanged(nameof(SelectedDownloadItem));
                 OnPropertyChanged(nameof(CanDownload)); // Notify change for CanDownload
             }
         }
-        public bool CanDownload => !string.IsNullOrEmpty(SelectedDownloadItem);
+        public bool CanDownload => !(SelectedDownloadItem==null);
         public bool IsDownloadPopupOpen { get; set; }
 
         // Property to control the visibility of the Clear Confirmation Popup
@@ -418,7 +426,7 @@ namespace WhiteboardGUI.ViewModel
             );
             _moveShapeZIndexing = new MoveShapeZIndexing(Shapes);
 
-            DownloadItems = new ObservableCollection<string>();
+            DownloadItems = new ListCollectionView(new List<SnapShotDownloadItem>());
             InitializeDownloadItems();
             _snapShotService.OnSnapShotUploaded += RefreshDownloadItems;
 
@@ -584,7 +592,7 @@ namespace WhiteboardGUI.ViewModel
 
         private void DownloadSelectedItem()
         {
-            if (!string.IsNullOrEmpty(SelectedDownloadItem))
+            if (SelectedDownloadItem!=null)
             {
                 IsDownloading = false;
                 try
@@ -611,25 +619,16 @@ namespace WhiteboardGUI.ViewModel
 
         private async void InitializeDownloadItems()
         {
-            DownloadItems.Clear();
-            ObservableCollection<string> newSnaps = await _snapShotService.getSnaps("a", true);
-            foreach (var snap in newSnaps)
-            {
-                DownloadItems.Add(snap);
-            }
-
+            List<SnapShotDownloadItem> newSnaps = await _snapShotService.getSnaps("a",true);
+            DownloadItems = new ListCollectionView(newSnaps);
             OnPropertyChanged(nameof(DownloadItems));
         }
 
         private async void RefreshDownloadItems()
         {
-            DownloadItems.Clear();
-            ObservableCollection<string> newSnaps = await _snapShotService.getSnaps("a", false);
-            foreach (var snap in newSnaps)
-            {
-                DownloadItems.Add(snap);
-            }
-
+            
+            List<SnapShotDownloadItem> newSnaps = await _snapShotService.getSnaps("a",false);
+            DownloadItems = new ListCollectionView(newSnaps);
             OnPropertyChanged(nameof(DownloadItems));
         }
 
@@ -694,7 +693,7 @@ namespace WhiteboardGUI.ViewModel
             try
             {
                 // Call the asynchronous upload method
-                await _snapShotService.UploadSnapShot(SnapShotFileName, Shapes);
+                await _snapShotService.UploadSnapShot(SnapShotFileName, Shapes, false);
                 IsPopupOpen = false;
                 Debug.WriteLine("Snapshot uploaded successfully.");
             }

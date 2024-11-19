@@ -28,7 +28,7 @@ namespace WhiteboardGUI.Services
             _networkingService._synchronizedShapes.Add(shape);
             return prevShape;
         }
-        internal void RenderShape(IShape currentShape, string command)
+        public virtual void RenderShape(IShape currentShape, string command)
         {
 
             if (command == "CREATE")

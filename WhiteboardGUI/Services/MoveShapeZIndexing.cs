@@ -129,18 +129,6 @@ namespace WhiteboardGUI.Services
                         break;
                     }
 
-                case TextShape textShape:
-                    {
-                        // Implement if TextShape has a stroke geometry
-                        return null;
-                    }
-
-                case TextboxModel textbox:
-                    {
-                        // Implement if TextboxModel has a stroke geometry
-                        return null;
-                    }
-
                 default:
                     {
                         // Unsupported shape type

@@ -854,18 +854,20 @@
                                             FontWeight="Bold"
                                             Text="Select an item to download:" />
 
-                                        <!--  ListBox for displaying download items  -->
-                                        <ListBox
-                                            Width="200"
-                                            Height="150"
-                                            ItemsSource="{Binding DownloadItems}"
-                                            SelectedItem="{Binding SelectedDownloadItem, Mode=TwoWay}">
+                                        <!-- ListBox for displaying download items -->
+                                        <ListBox ItemsSource="{Binding DownloadItems}"
+                                            SelectedItem="{Binding SelectedDownloadItem, Mode=TwoWay}"
+                                            Width="200" Height="150">
                                             <ListBox.ItemTemplate>
                                                 <DataTemplate>
-                                                    <TextBlock FontSize="14" Text="{Binding}" />
+                                                    <StackPanel Orientation="Horizontal" Margin="5">
+                                                        <TextBlock Text="{Binding FileName}" FontSize="14" />
+                                                        <TextBlock Text="{Binding Time, StringFormat=' {0:MM/dd/yyyy HH:mm}'}" 
+                                                            FontSize="12" Foreground="Gray" Margin="10,0,0,0" />
+                                                    </StackPanel>
                                                 </DataTemplate>
                                             </ListBox.ItemTemplate>
-                                        </ListBox>
+                                        </ListBox> 
 
                                         <!--  Download Button  -->
                                         <Button
