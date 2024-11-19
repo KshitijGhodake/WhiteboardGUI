@@ -62,7 +62,6 @@ namespace WhiteboardGUI.ViewModel
         private Color _currentColor = Colors.Black;
         private bool _isPopupOpen;
         private string _snapShotFileName;
-        private string _selectedDownloadItem;
         private bool _isDarkMode;
         private Brush _pageBackground = new SolidColorBrush(Color.FromRgb(245, 245, 245)); // Light
         private Brush _canvasBackground = new SolidColorBrush(Color.FromRgb(245, 245, 245)); // Light
