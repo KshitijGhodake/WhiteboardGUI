@@ -12,14 +12,29 @@ using WhiteboardGUI.Models;
 
 namespace WhiteboardGUI.Services
 {
+    /// <summary>
+    /// Manages Z-indexing of shapes in an ObservableCollection, allowing for reordering based on overlap and user actions.
+    /// </summary>
     public class MoveShapeZIndexing
     {
-        ObservableCollection<IShape> Shapes;
+        /// <summary>
+        /// Collection of shapes managed for Z-indexing.
+        /// </summary>
+        private ObservableCollection<IShape> Shapes;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MoveShapeZIndexing"/> class.
+        /// </summary>
+        /// <param name="shapes">The collection of shapes to manage.</param>
         public MoveShapeZIndexing(ObservableCollection<IShape> shapes)
         {
             Shapes = shapes;
         }
+
+        /// <summary>
+        /// Moves the specified shape to the back of the collection, giving it the lowest Z-index.
+        /// </summary>
+        /// <param name="shape">The shape to move.</param>
         public void MoveShapeBack(IShape shape)
         {
             Application.Current.Dispatcher.Invoke(() =>
@@ -32,6 +47,9 @@ namespace WhiteboardGUI.Services
             });
         }
 
+        /// <summary>
+        /// Updates the Z-index of all shapes in the collection to reflect their position.
+        /// </summary>
         public void UpdateZIndices()
         {
             for (int i = 0; i < Shapes.Count; i++)
@@ -40,6 +58,10 @@ namespace WhiteboardGUI.Services
             }
         }
 
+        /// <summary>
+        /// Moves the specified shape one step backward in the Z-index, if possible, and swaps it with an overlapping shape.
+        /// </summary>
+        /// <param name="shape">The shape to move.</param>
         public void MoveShapeBackward(IShape shape)
         {
             Application.Current.Dispatcher.Invoke(() =>
@@ -66,7 +88,12 @@ namespace WhiteboardGUI.Services
             });
         }
 
-        // Helper method to determine if two shapes' strokes are overlapping
+        /// <summary>
+        /// Determines if the strokes of two shapes overlap.
+        /// </summary>
+        /// <param name="shape1">The first shape.</param>
+        /// <param name="shape2">The second shape.</param>
+        /// <returns><c>true</c> if the shapes overlap; otherwise, <c>false</c>.</returns>
         private bool AreShapesOverlapping(IShape shape1, IShape shape2)
         {
             Geometry strokeGeometry1 = GetShapeStrokeGeometry(shape1);
@@ -86,8 +113,11 @@ namespace WhiteboardGUI.Services
             return !combinedGeometry.IsEmpty();
         }
 
-
-        // Helper method to create the Geometry of a shape's stroke
+        /// <summary>
+        /// Generates the stroke geometry of a shape based on its type, stroke color, and thickness.
+        /// </summary>
+        /// <param name="shape">The shape to process.</param>
+        /// <returns>A <see cref="Geometry"/> object representing the stroke area, or <c>null</c> if unsupported.</returns>
         private Geometry GetShapeStrokeGeometry(IShape shape)
         {
             if (shape == null)
