@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Shapes;
 using WhiteboardGUI.Models;
 
 namespace WhiteboardGUI.Services
@@ -15,11 +14,13 @@ namespace WhiteboardGUI.Services
         NetworkingService _networkingService;
         UndoRedoService _undoRedoService;
         ObservableCollection<IShape> Shapes;
-        public RenderingService(NetworkingService networkingService, UndoRedoService undoRedoService,ObservableCollection<IShape> shapes)
+        double _userId;
+        public RenderingService(NetworkingService networkingService, UndoRedoService undoRedoService, ObservableCollection<IShape> shapes, double UserID)
         {
             _networkingService = networkingService;
             _undoRedoService = undoRedoService;
             Shapes = shapes;
+            _userId = UserID;
         }
         private IShape UpdateSynchronizedShapes(IShape shape)
         {
@@ -28,7 +29,7 @@ namespace WhiteboardGUI.Services
             _networkingService._synchronizedShapes.Add(shape);
             return prevShape;
         }
-        public virtual void RenderShape(IShape currentShape, string command)
+        internal void RenderShape(IShape currentShape, string command)
         {
 
             if (command == "CREATE")
@@ -37,39 +38,44 @@ namespace WhiteboardGUI.Services
                 _networkingService._synchronizedShapes.Add(newShape);
                 newShape.IsSelected = false;
                 _undoRedoService.UpdateLastDrawing(newShape, null);
-
-            }else if (command.StartsWith("INDEX"))
-            {
-                var newShape = currentShape.Clone();
-                UpdateAllSynchronizedShapes();
-                newShape.IsSelected = false;
             }
+
+            else if (command.StartsWith("INDEX"))
+            {
+                _networkingService._synchronizedShapes.Clear();
+                foreach (IShape shape in Shapes)
+                {
+                    _networkingService._synchronizedShapes.Add(shape);
+                }
+            }
+
             else if (command == "DOWNLOAD")
             {
                 var newShape = currentShape.Clone();
                 _networkingService._synchronizedShapes.Add(newShape);
                 newShape.IsSelected = false;
-
             }
+
             else if (command == "MODIFY")
             {
                 var newShape = currentShape.Clone();
                 var prevShape = UpdateSynchronizedShapes(newShape);
                 newShape.IsSelected = false;
                 _undoRedoService.UpdateLastDrawing(newShape, prevShape);
-
             }
+
             else if (command == "CLEAR")
             {
                 Shapes.Clear();
                 _undoRedoService.UndoList.Clear();
                 _undoRedoService.RedoList.Clear();
                 _networkingService._synchronizedShapes.Clear();
-                string clearMessage = $"{command}:";
+                string clearMessage = $"ID{_userId}{command}:";
                 Debug.WriteLine(clearMessage);
-                _networkingService.BroadcastShapeData(clearMessage, -1);
+                _networkingService.BroadcastShapeData(clearMessage);
                 return;
             }
+
             else if (command == "UNDO")
             {
                 var prevShape = _undoRedoService.UndoList[_undoRedoService.UndoList.Count - 1].Item1;
@@ -89,6 +95,7 @@ namespace WhiteboardGUI.Services
                     prevShape.LastModifierID = _networkingService._clientID;
                     command = "DELETE";
                 }
+
                 else if (prevShape == null)
                 {
                     currentShape = _currentShape;
@@ -97,6 +104,7 @@ namespace WhiteboardGUI.Services
                     _networkingService._synchronizedShapes.Add(newShape);
                     command = "CREATE";
                 }
+
                 else
                 {
                     currentShape = _currentShape;
@@ -117,6 +125,7 @@ namespace WhiteboardGUI.Services
                 }
                 _undoRedoService.Undo();
             }
+
             else if (command == "REDO")
             {
                 var prevShape = _undoRedoService.RedoList[_undoRedoService.RedoList.Count - 1].Item1;
@@ -164,6 +173,7 @@ namespace WhiteboardGUI.Services
                 }
                 _undoRedoService.Redo();
             }
+
             else if (command == "DELETE")
             {
                 Shapes.Remove(currentShape);
@@ -171,21 +181,11 @@ namespace WhiteboardGUI.Services
                 _undoRedoService.UpdateLastDrawing(null, currentShape);
             }
 
-
             currentShape.LastModifierID = _networkingService._clientID;
             string serializedShape = SerializationService.SerializeShape(currentShape);
-            string serializedMessage = $"{command}:{serializedShape}";
+            string serializedMessage = $"ID{_userId}END{command}:{serializedShape}";
             Debug.WriteLine(serializedMessage);
-            _networkingService.BroadcastShapeData(serializedMessage, -1);
-        }
-
-        private void UpdateAllSynchronizedShapes()
-        {
-            _networkingService._synchronizedShapes.Clear();
-            foreach(IShape shape in Shapes)
-            {
-                _networkingService._synchronizedShapes.Add(shape);
-            }
+            _networkingService.BroadcastShapeData(serializedMessage);
         }
     }
 }
